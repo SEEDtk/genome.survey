@@ -23,6 +23,9 @@ public class App
         case "tetra" :
             processor = new TetraProcessor();
             break;
+        case "goodCore" :
+            processor = new GoodCoreProcessor();
+            break;
         default:
             throw new RuntimeException("Invalid command " + command);
         }
