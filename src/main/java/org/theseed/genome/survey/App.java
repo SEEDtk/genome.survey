@@ -7,7 +7,9 @@ import org.theseed.utils.BaseProcessor;
 /**
  * Commands for extracting learning sets from genomes.
  *
- * tetra	generate tetramer profiles for domain detection
+ * tetra		generate tetramer profiles for domain detection
+ * goodCore		generate a directory of the good coreSEED genomes
+ * gaps			categorize the gaps between genes in a GTO
  *
  */
 public class App
@@ -25,6 +27,9 @@ public class App
             break;
         case "goodCore" :
             processor = new GoodCoreProcessor();
+            break;
+        case "gaps" :
+            processor = new GapProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);
