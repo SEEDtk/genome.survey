@@ -149,7 +149,7 @@ public class GoodCoreProcessor extends BaseProcessor {
                     else
                         outFile = new File(this.outDir, gName);
                     log.info("Saving genome #{}: {} to {}.", saved, genome, outFile);
-                    genome.update(outFile);
+                    genome.save(outFile);
                 }
             }
         }
