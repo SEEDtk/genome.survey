@@ -10,6 +10,7 @@ import org.theseed.utils.BaseProcessor;
  * tetra		generate tetramer profiles for domain detection
  * goodCore		generate a directory of the good coreSEED genomes
  * gaps			categorize the gaps between genes in a GTO
+ * fidCompare	compare two feature lists and output the roles and subsystems of the differing features
  *
  */
 public class App
@@ -30,6 +31,9 @@ public class App
             break;
         case "gaps" :
             processor = new GapProcessor();
+            break;
+        case "fidCompare" :
+            processor = new CompareProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);
