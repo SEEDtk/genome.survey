@@ -97,12 +97,6 @@ public class CompareProcessor extends BaseProcessor {
                 writer.format("%s\t%s\t%d%n", fid, feat.getFunction(), feat.getSubsystems().size());
             }
         }
-
-        // TODO code for runCommand
-
     }
-    // FIELDS
-    // TODO data members for CompareProcessor
 
-    // TODO constructors and methods for CompareProcessor
 }
