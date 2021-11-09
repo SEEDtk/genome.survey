@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.io.Shuffler;
 import org.theseed.io.TabbedLineReader;
-import org.theseed.p3api.Connection;
+import org.theseed.p3api.P3Connection;
 import org.theseed.sequence.FastaInputStream;
 import org.theseed.sequence.Sequence;
 import org.theseed.sequence.TetramerProfile;
@@ -57,7 +57,7 @@ public class TetraProcessor extends BaseProcessor {
     /** input stream to use for input */
     private InputStream inStream;
     /** connection to PATRIC */
-    private Connection p3;
+    private P3Connection p3;
     /** random number generator */
     private Random rand;
 
@@ -104,7 +104,7 @@ public class TetraProcessor extends BaseProcessor {
             int kingCol = genomeStream.findField("kingdom");
             int countCol = genomeStream.findField("count");
             int sourceCol = genomeStream.findField("source");
-            this.p3 = new Connection();
+            this.p3 = new P3Connection();
             // Write the output headers.
             System.out.println("id\t" + TetramerProfile.headers() + "\tdomain");
             // Loop through the input.
@@ -193,12 +193,12 @@ public class TetraProcessor extends BaseProcessor {
      */
     protected Shuffler<String> getPatricSequences(String genome_id) {
         Shuffler<String> retVal;
-        List<JsonObject> contigs = this.p3.getRecords(Connection.Table.CONTIG, "genome_id", Collections.singleton(genome_id),
+        List<JsonObject> contigs = this.p3.getRecords(P3Connection.Table.CONTIG, "genome_id", Collections.singleton(genome_id),
             "sequence_id,sequence");
         log.info("{} contigs found.", contigs.size());
         // Get the long ones into a shuffler.
         retVal = new Shuffler<String>(contigs.size());
-        contigs.stream().map(x -> Connection.getString(x, "sequence")).filter(x -> x.length() >= this.profileLen)
+        contigs.stream().map(x -> P3Connection.getString(x, "sequence")).filter(x -> x.length() >= this.profileLen)
                 .forEach(x -> retVal.add(x));
         return retVal;
     }
