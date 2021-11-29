@@ -3,6 +3,7 @@
 	<name>genome.survey</name>
 	<comment></comment>
 	<projects>
+		<project>dl4j.utils</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>

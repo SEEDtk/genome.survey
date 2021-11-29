@@ -11,6 +11,7 @@ import org.theseed.utils.BaseProcessor;
  * goodCore		generate a directory of the good coreSEED genomes
  * gaps			categorize the gaps between genes in a GTO
  * fidCompare	compare two feature lists and output the roles and subsystems of the differing features
+ * cluster		cluster features together in a genome
  *
  */
 public class App
@@ -34,6 +35,9 @@ public class App
             break;
         case "fidCompare" :
             processor = new CompareProcessor();
+            break;
+        case "cluster" :
+            processor = new ClusterProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);
