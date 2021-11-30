@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -18,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.clusters.Cluster;
 import org.theseed.clusters.methods.ClusterMergeMethod;
+import org.theseed.counters.CountMap;
 import org.theseed.genome.Feature;
 import org.theseed.genome.Genome;
 import org.theseed.io.TabbedLineReader;
@@ -49,6 +51,8 @@ public class AnalyticalClusterReporter extends ClusterReporter {
     Map<String, RnaFeatureData> featMap;
     /** map of feature IDs to subsystem IDs */
     Map<String, String[]> subMap;
+    /** maximum cluster size */
+    private int maxClusterSize;
     /** number of nontrivial clusters */
     private int nonTrivial;
     /** number of features in nontrivial clusters */
@@ -61,6 +65,8 @@ public class AnalyticalClusterReporter extends ClusterReporter {
     private int opCount;
     /** number of features in modulons */
     private int modCount;
+    /** number of features in regulons */
+    private int regCount;
     /** current cluster number */
     private int clNum;
     /** constant for no subsystems */
@@ -71,6 +77,8 @@ public class AnalyticalClusterReporter extends ClusterReporter {
     private ContainerTag contents;
     /** summary notes list */
     private ContainerTag notesList;
+    /** title prefix */
+    private String titlePrefix;
     /** HTML tag for styles */
     private static final ContainerTag STYLES = style("td.num, th.num { text-align: right; }\n" +
             "td.flag, th.flag { text-align: center; }\ntd.text, th.text { text-align: left; }\n" +
@@ -96,6 +104,10 @@ public class AnalyticalClusterReporter extends ClusterReporter {
         // Get the clustering specs.
         this.method = processor.getMethod();
         this.threshold = processor.getMinSimilarity();
+        // Get the title prefix.  This is a human-readable report.
+        this.titlePrefix = processor.getTitlePrefix();
+        // We also need the maximum cluster size for the title.
+        this.maxClusterSize = processor.getMaxSize();
         // Validate the genome file.
         File genomeFile = processor.getGenomeFile();
         if (genomeFile == null)
@@ -115,11 +127,16 @@ public class AnalyticalClusterReporter extends ClusterReporter {
         try (TabbedLineReader groupStream = new TabbedLineReader(groupFile)) {
             this.opCount = 0;
             this.modCount = 0;
+            this.regCount = 0;
             for (TabbedLineReader.Line line : groupStream) {
                 String fid = line.get(0);
                 RnaFeatureData featData = this.featMap.get(fid);
                 if (featData != null) {
-                    featData.setAtomicRegulon(line.getInt(2));
+                    int regulon = line.getInt(2);
+                    if (regulon > 0) {
+                        featData.setAtomicRegulon(regulon);
+                        this.regCount++;
+                    }
                     String operon = line.get(3);
                     if (! StringUtils.isBlank(operon)) {
                         featData.setOperon(operon);
@@ -144,10 +161,16 @@ public class AnalyticalClusterReporter extends ClusterReporter {
         this.coverage = 0;
         this.nonTrivial = 0;
         this.clNum = 0;
+        // Compute the title.
+        String title = String.format("Cluster Analysis Report using Method %s with Threshold %1.4f",
+                this.method, this.threshold);
+        if (this.titlePrefix != null)
+            title = this.titlePrefix + " " + title;
+        if (this.maxClusterSize < Integer.MAX_VALUE)
+            title += String.format(" and Size Limit %d", this.maxClusterSize);
         // Start the report.
         this.sections = new ArrayList<DomContent>(1000);
-        this.sections.add(h1(String.format("Cluster Analysis Report using Method %s with Threshold %1.4f",
-                this.method, this.threshold)));
+        this.sections.add(h1(title));
         this.sections.add(h2("Table of Contents"));
         // Initialize the table of contents.
         this.contents = ul().with(li(a("Summary Statistics").withHref("#summary")));
@@ -163,19 +186,23 @@ public class AnalyticalClusterReporter extends ClusterReporter {
     @Override
     public void writeCluster(Cluster cluster) {
         // Only process a nontrivial cluster.
-        if (cluster.size() > 1) {
+        int clSize = cluster.size();
+        if (clSize > 1) {
             // Count this cluster as nontrivial.
             this.nonTrivial++;
-            // Create the cluster description.
+            // Create the cluster name.
             clNum++;
             String clId = String.format("CL%d", clNum);
-            ContainerTag header = h2(a(String.format("%s: size %d, height %d, score %1.4f",
-                    clId, cluster.size(), cluster.getHeight(), cluster.getScore()))
-                    .withName(clId));
             // Create the table of contents entry for this cluster.
             ContainerTag linker = li(a(String.format("%s (%s) size %d", clId, cluster.getId(),
-                    cluster.size())).withHref("#" + clId));
+                    clSize)).withHref("#" + clId));
             this.contents.with(linker);
+            // Here we track the groups represented in this cluster.  For each group we need the number of
+            // cluster members in the group.
+            var modCounters = new CountMap<String>();
+            var opCounters = new CountMap<String>();
+            var subCounters = new CountMap<String>();
+            var regCounters = new CountMap<String>();
             // Set up the table.
             ContainerTag tableHead = tr().with(Arrays.stream(COLUMNS).map(x -> th(x).withStyle("text")));
             ContainerTag table = table().with(tableHead);
@@ -183,21 +210,79 @@ public class AnalyticalClusterReporter extends ClusterReporter {
             for (String fid : cluster.getMembers()) {
                 RnaFeatureData feat = this.featMap.get(fid);
                 String[] subsystems = this.subMap.getOrDefault(fid, NO_SUBS);
+                String[] modulons = feat.getiModulons();
+                String operon = feat.getOperon();
+                int arNum = feat.getAtomicRegulon();
+                String arString = (arNum > 0 ? String.format("AR%d", arNum) : "");
                 String[] columns = new String[] { fid, feat.getGene(), feat.getBNumber(),
-                        Integer.toString(feat.getAtomicRegulon()), feat.getOperon(),
-                        groupString(feat.getiModulons()), groupString(subsystems),
+                        arString, operon, groupString(modulons), groupString(subsystems),
                         feat.getFunction() };
                 List<ContainerTag> row = Arrays.stream(columns).map(x -> td(x).withClass("text"))
                         .collect(Collectors.toList());
                 row.get(row.size() - 2).withClass("big");
                 row.get(row.size() - 1).withClass("big");
                 table.with(tr().with(row));
+                // Count this feature in each of its groups.
+                if (! StringUtils.isEmpty(operon))
+                    opCounters.count(operon);
+                if (arNum > 0)
+                    regCounters.count(arString);
+                Arrays.stream(subsystems).forEach(x -> subCounters.count(x));
+                Arrays.stream(modulons).forEach(x -> modCounters.count(x));
                 // Count this feature as covered.
                 this.coverage++;
             }
-            // Add the header and the table as another section.
-            DomContent section = div().with(header, table);
+            // Create the section heading.
+            ContainerTag header = h2(a(String.format("%s: size %d, height %d, score %1.4f",
+                    clId, clSize, cluster.getHeight(), cluster.getScore()))
+                    .withName(clId));
+            // Now we do the evidence computation.  The evidence is the number of pairs in a group.
+            // We compute this for each type of group.
+            int pairSize = clSize * (clSize - 1)/2;
+            ContainerTag evidence = ul().with(li(String.format("%d possible pairs.", pairSize)));
+            this.addEvidence(evidence, "modulon", "modulons", modCounters);
+            this.addEvidence(evidence, "operon", "operons", opCounters);
+            this.addEvidence(evidence, "regulon", "regulons", regCounters);
+            this.addEvidence(evidence, "subsystem", "subsystems", subCounters);
+            // Add the header, the evidence, and the table as another section.
+            DomContent section = div().with(header, evidence, table);
             this.sections.add(section);
+        }
+    }
+
+    /**
+     * This method adds an evidence indication to the evidence bullet list based on a particular type of grouping.
+     *
+     * @param evidence		evidence bullet list
+     * @param typeString	name of the grouping
+     * @param pluralString	plural name of the grouping
+     * @param counters		count map showing the number of items in each group
+     */
+    private void addEvidence(ContainerTag evidence, String typeString, String pluralString, CountMap<String> counters) {
+        // We sum the triangle number of each group size count.  This is the total number of pairs in groups
+        // of this type.
+        int pairCount = 0;
+        int groupCount = 0;
+        List<CountMap<String>.Count> counts = counters.sortedCounts();
+        if (counts.size() > 0) {
+            for (CountMap<String>.Count count : counts) {
+                int n = count.getCount();
+                if (n > 1) {
+                    // Here we have a meaningful group.
+                    groupCount++;
+                    pairCount += n*(n-1)/2;
+                }
+            }
+            // If there is at least one pair, make it a bullet point.
+            CountMap<String>.Count bigCount = counts.get(0);
+            if (pairCount == 1) {
+                // Here we have a single pair.
+                evidence.with(li(String.format("One pair in %s %s.", typeString, bigCount.getKey())));
+            } else if (pairCount > 1) {
+                // Here the pair count is non-trivial.
+                evidence.with(li(String.format("%d pairs found in %d %s. Largest %s is %s with %d features.",
+                        pairCount, groupCount, pluralString, typeString, bigCount.getKey(), bigCount.getCount())));
+            }
         }
     }
 
@@ -237,6 +322,10 @@ public class AnalyticalClusterReporter extends ClusterReporter {
                 .filter(x -> ! StringUtils.isEmpty(x)).collect(Collectors.toSet());
         this.notesList.with(li(String.format("%d features in %d operons.",
                 this.opCount, groups.size())));
+        // Count the regulons.
+        OptionalInt regulonMax = this.featMap.values().stream().mapToInt(x -> x.getAtomicRegulon()).max();
+        int regulonCount = (regulonMax.isEmpty() ? 0 : regulonMax.getAsInt() + 1);
+        this.notesList.with(li(String.format("%d features in %d regulons.", this.regCount, regulonCount)));
         // Finally, count the modulons.
         groups = this.featMap.values().stream().flatMap(x -> Arrays.stream(x.getiModulons()))
                 .collect(Collectors.toSet());

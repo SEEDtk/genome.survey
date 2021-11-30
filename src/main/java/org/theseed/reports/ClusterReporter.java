@@ -44,6 +44,16 @@ public abstract class ClusterReporter extends BaseReporterReporter {
          */
         double getMinSimilarity();
 
+        /**
+         * @return the prefix to put on the report title, or NULL if there is none
+         */
+        String getTitlePrefix();
+
+        /**
+         * @return the maximum allowed cluster size
+         */
+        int getMaxSize();
+
     }
 
     /**

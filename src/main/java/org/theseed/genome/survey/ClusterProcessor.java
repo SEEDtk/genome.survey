@@ -49,6 +49,8 @@ import org.theseed.utils.ParseFailureException;
  * --gto		GTO file for the reference genome for genome-based reports
  * --sparse		if specified, the incoming distances are not complete (suppresses a warning)
  * --groups		group file for ANALYTICAL reports
+ * --comment	title prefix for ANALYTICAL report
+ * --maxSize	maximum permissible cluster size; the default allows unlimited clustering
  *
  * @author Bruce Parrello
  *
@@ -101,6 +103,14 @@ public class ClusterProcessor extends BaseReportProcessor implements ClusterRepo
     @Option(name = "--groups", metaVar = "groups.tbl", usage = "groups definition file for ANALYTICAL report")
     private File groupFile;
 
+    /** title prefix */
+    @Option(name = "--comment", metaVar = "Operon-Weighted", usage = "prefix to add to titles on human-readable reports")
+    private String titlePrefix;
+
+    /** maximum cluster size */
+    @Option(name = "--maxSize", metaVar = "10", usage = "maximum permissible cluster size")
+    private int maxSize;
+
     /** minimum similarity for joining */
     @Argument(index = 0, metaVar = "minScore", usage = "minimum acceptable similarity score for clustering", required = true)
     private double minScore;
@@ -120,10 +130,15 @@ public class ClusterProcessor extends BaseReportProcessor implements ClusterRepo
         this.genomeFile = null;
         this.sparseMode = false;
         this.groupFile = null;
+        this.titlePrefix = null;
+        this.maxSize = Integer.MAX_VALUE;
     }
 
     @Override
     protected void validateReporterParms() throws IOException, ParseFailureException {
+        // Validate the size limit.
+        if (this.maxSize < 2)
+            throw new ParseFailureException("Maximum cluster size must be at least 2.");
         // Validate the input file.
         if (! this.inFile.canRead())
             throw new FileNotFoundException("Input file " + this.inFile + " is not found or unreadable.");
@@ -139,6 +154,12 @@ public class ClusterProcessor extends BaseReportProcessor implements ClusterRepo
         this.mainGroup.load(this.inFile, col1Name, col2Name, scoreName, this.sparseMode);
         if (this.mainGroup.size() < 2)
             throw new ParseFailureException("Too few datapoints in input file for clustering.");
+        // Store the size limit.
+        this.mainGroup.setMaxSize(this.maxSize);
+        if (this.maxSize == Integer.MAX_VALUE)
+            log.info("Unlimited cluster size allowed.");
+        else
+            log.info("Maximum cluster size is {}.", this.maxSize);
         // Create the output report.
         this.reporter = this.reportType.create(this);
     }
@@ -192,6 +213,16 @@ public class ClusterProcessor extends BaseReportProcessor implements ClusterRepo
     @Override
     public double getMinSimilarity() {
         return this.minScore;
+    }
+
+    @Override
+    public String getTitlePrefix() {
+        return this.titlePrefix;
+    }
+
+    @Override
+    public int getMaxSize() {
+        return this.maxSize;
     }
 
 }
