@@ -5,13 +5,12 @@ import java.util.Arrays;
 import org.theseed.utils.BaseProcessor;
 
 /**
- * Commands for extracting learning sets from genomes.
+ * Commands for extracting general data from genomes.
  *
  * tetra		generate tetramer profiles for domain detection
  * goodCore		generate a directory of the good coreSEED genomes
  * gaps			categorize the gaps between genes in a GTO
  * fidCompare	compare two feature lists and output the roles and subsystems of the differing features
- * cluster		cluster features together in a genome
  * bbh			find bidirectional best hits between two genomes
  *
  */
@@ -36,9 +35,6 @@ public class App
             break;
         case "fidCompare" :
             processor = new CompareProcessor();
-            break;
-        case "cluster" :
-            processor = new ClusterProcessor();
             break;
         case "bbh" :
             processor = new BbhProcessor();
