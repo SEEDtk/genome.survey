@@ -12,6 +12,7 @@ import org.theseed.utils.BaseProcessor;
  * gaps			categorize the gaps between genes in a GTO
  * fidCompare	compare two feature lists and output the roles and subsystems of the differing features
  * bbh			find bidirectional best hits between two genomes
+ * validate		test all genomes in a directory to make sure they load
  *
  */
 public class App
@@ -38,6 +39,9 @@ public class App
             break;
         case "bbh" :
             processor = new BbhProcessor();
+            break;
+        case "validate" :
+            processor = new ValidateProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);
