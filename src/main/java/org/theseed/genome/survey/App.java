@@ -13,6 +13,7 @@ import org.theseed.utils.BaseProcessor;
  * fidCompare	compare two feature lists and output the roles and subsystems of the differing features
  * bbh			find bidirectional best hits between two genomes
  * validate		test all genomes in a directory to make sure they load
+ * rolePegs		find all pegs in a genome directory containing roles in a specified role set
  *
  */
 public class App
@@ -42,6 +43,9 @@ public class App
             break;
         case "validate" :
             processor = new ValidateProcessor();
+            break;
+        case "rolePegs" :
+            processor = new RolePegProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);
