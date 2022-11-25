@@ -13,10 +13,10 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.counters.Shuffler;
 import org.theseed.genome.Genome;
 import org.theseed.genome.GenomeDirectory;
 import org.theseed.io.LineReader;
-import org.theseed.io.Shuffler;
 import org.theseed.utils.BaseProcessor;
 import org.theseed.utils.ParseFailureException;
 

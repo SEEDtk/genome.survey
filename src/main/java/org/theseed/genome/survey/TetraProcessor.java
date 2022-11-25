@@ -16,7 +16,7 @@ import java.util.Random;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.theseed.io.Shuffler;
+import org.theseed.counters.Shuffler;
 import org.theseed.io.TabbedLineReader;
 import org.theseed.p3api.P3Connection;
 import org.theseed.sequence.FastaInputStream;
