@@ -14,11 +14,11 @@ import java.util.TreeSet;
 import org.kohsuke.args4j.Argument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.BaseProcessor;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.genome.Feature;
 import org.theseed.genome.Genome;
 import org.theseed.locations.Location;
-import org.theseed.utils.BaseProcessor;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This command takes as input a single GTO, and outputs an analysis of the gap distance between adjacent genes, categorized

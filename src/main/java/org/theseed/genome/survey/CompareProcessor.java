@@ -14,12 +14,12 @@ import java.util.TreeSet;
 import org.kohsuke.args4j.Argument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.BaseProcessor;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.genome.Feature;
 import org.theseed.genome.Genome;
 import org.theseed.io.TabbedLineReader;
 import org.theseed.reports.NaturalSort;
-import org.theseed.utils.BaseProcessor;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This command looks for differences between two lists of feature IDs and outputs the IDs and roles of the

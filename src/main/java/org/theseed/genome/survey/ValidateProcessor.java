@@ -11,10 +11,10 @@ import java.io.PrintWriter;
 import org.kohsuke.args4j.Argument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.genome.Genome;
 import org.theseed.genome.GenomeDirectory;
 import org.theseed.utils.BaseReportProcessor;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This program reads all the genomes in a genome directory to make sure they are valid.  If

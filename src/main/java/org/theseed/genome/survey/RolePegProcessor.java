@@ -13,6 +13,7 @@ import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.basic.ParseFailureException;
 import org.theseed.genome.Feature;
 import org.theseed.genome.Genome;
 import org.theseed.genome.iterator.GenomeSource;
@@ -20,7 +21,6 @@ import org.theseed.proteins.Role;
 import org.theseed.proteins.RoleMap;
 import org.theseed.reports.RolePegReporter;
 import org.theseed.utils.BaseReportProcessor;
-import org.theseed.utils.ParseFailureException;
 
 /**
  * This command produces a report mapping pegs to specified roles.  In particular, if it is given a list

@@ -2,7 +2,7 @@ package org.theseed.genome.survey;
 
 import java.util.Arrays;
 
-import org.theseed.utils.BaseProcessor;
+import org.theseed.basic.BaseProcessor;
 
 /**
  * Commands for extracting general data from genomes.
