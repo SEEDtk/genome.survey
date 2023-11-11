@@ -14,6 +14,7 @@ import org.theseed.basic.BaseProcessor;
  * bbh			find bidirectional best hits between two genomes
  * validate		test all genomes in a directory to make sure they load
  * rolePegs		find all pegs in a genome directory containing roles in a specified role set
+ * roleMap		create a file of protein sequences and annotations from a set of genomes
  *
  */
 public class App
@@ -46,6 +47,9 @@ public class App
             break;
         case "rolePegs" :
             processor = new RolePegProcessor();
+            break;
+        case "roleMap" :
+            processor = new RoleMapProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);
