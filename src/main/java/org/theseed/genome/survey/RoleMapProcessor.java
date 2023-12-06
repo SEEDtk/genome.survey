@@ -107,40 +107,46 @@ public class RoleMapProcessor extends BaseMultiReportProcessor {
         int missingTotal = 0;
         int badTotal = 0;
         // Insanely, we read everything into memory; then we write it to the output.
-        // This is because we can't know the error proteins until we're done.
-        for (Genome genome : this.genomes) {
-            gCount++;
-            int pegCount = 0;
-            int badCount = 0;
-            int missing = 0;
-            log.info("Processing genome {} of {}: {}.", gCount, nGenomes, genome);
-            // Loop through the pegs.
-            for (Feature peg : genome.getPegs()) {
-                String protein = peg.getProteinTranslation();
-                // Only proceed if the protein is present.
-                if (StringUtils.isBlank(protein))
-                    missing++;
-                else {
-                    // Insure there are no internal stops.
-                    if (protein.endsWith("*"))
-                        protein = StringUtils.chop(protein);
-                    if (protein.contains("*"))
-                        badCount++;
-                    else {
-                        String annotation = peg.getPegFunction();
-                        Set<String> annoSet = this.annotationMap.computeIfAbsent(protein, x -> new TreeSet<String>());
-                        annoSet.add(annotation);
-                        pegCount++;
+        // This is because we can't know the error proteins until we're done.  The only
+        // exception is the invalid proteins.
+        try (PrintWriter badWriter = this.openReport("invalid.tbl")) {
+            badWriter.println("fid\terror\tannotation");
+            for (Genome genome : this.genomes) {
+                gCount++;
+                int pegCount = 0;
+                int badCount = 0;
+                int missing = 0;
+                log.info("Processing genome {} of {}: {}.", gCount, nGenomes, genome);
+                // Loop through the pegs.
+                for (Feature peg : genome.getPegs()) {
+                    String protein = peg.getProteinTranslation();
+                    String annotation = peg.getPegFunction();
+                    // Only proceed if the protein is present.
+                    if (StringUtils.isBlank(protein)) {
+                        missing++;
+                        badWriter.println(peg.getId() + "\tmissing\t" + annotation);
+                    } else {
+                        // Insure there are no internal stops.
+                        if (protein.endsWith("*"))
+                            protein = StringUtils.chop(protein);
+                        if (protein.contains("*")) {
+                            badCount++;
+                            badWriter.println(peg.getId() + "\tinvalid\t" + annotation);
+                        } else {
+                            Set<String> annoSet = this.annotationMap.computeIfAbsent(protein, x -> new TreeSet<String>());
+                            annoSet.add(annotation);
+                            pegCount++;
+                        }
                     }
                 }
+                log.info("{} proteins found, {} missing, {} bad in {}.", pegCount, missing, badCount, genome);
+                pegTotal += pegCount;
+                missingTotal += missing;
+                badTotal += badCount;
             }
-            log.info("{} proteins found, {} missing, {} bad in {}.", pegCount, missing, badCount, genome);
-            pegTotal += pegCount;
-            missingTotal += missing;
-            badTotal += badCount;
+            log.info("{} proteins found in {} pegs. {} invalid pegs found.", this.annotationMap.size(),
+                    pegTotal, missingTotal + badTotal);
         }
-        log.info("{} proteins found in {} pegs. {} invalid pegs found.", this.annotationMap.size(),
-                pegTotal, missingTotal + badTotal);
         // Open the output files.
         try (
                 PrintWriter writer  = this.openReport("roleMap.tbl");
