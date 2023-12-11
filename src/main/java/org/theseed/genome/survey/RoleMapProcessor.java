@@ -9,9 +9,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.NavigableMap;
-import java.util.NavigableSet;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -25,6 +23,7 @@ import org.theseed.basic.ParseFailureException;
 import org.theseed.genome.Feature;
 import org.theseed.genome.Genome;
 import org.theseed.genome.iterator.GenomeSource;
+import org.theseed.io.TabbedLineReader;
 import org.theseed.sequence.MD5Hex;
 import org.theseed.utils.BaseMultiReportProcessor;
 
@@ -50,6 +49,7 @@ import org.theseed.utils.BaseMultiReportProcessor;
  * -t	type of input genome source (default DIR)
  *
  * --clear	erase the output directory before processing
+ * --filter	specifies a file with genome IDs in the first column; only those genomes will be processed
  *
  *
  * @author Bruce Parrello
@@ -63,6 +63,8 @@ public class RoleMapProcessor extends BaseMultiReportProcessor {
     private Map<String, NavigableMap<String, Set<String>>> annotationMap;
     /** input genome source */
     private GenomeSource genomes;
+    /** IDs of genomes to process */
+    private Set<String> filterSet;
     /** MD5 computer */
     private MD5Hex md5Computer;
     /** header line for output files */
@@ -73,6 +75,10 @@ public class RoleMapProcessor extends BaseMultiReportProcessor {
     /** type of input genome source */
     @Option(name = "--source", aliases = { "-t" }, usage = "type of input genome source")
     private GenomeSource.Type sourceType;
+
+    /** optional filter file */
+    @Option(name = "--filter", metaVar = "complete.tbl", usage = "optional list of genome IDs to use")
+    private File filterFile;
 
     /** input genome source file or directory */
     @Argument(index = 0, metaVar = "inDir", usage = "input genome source file or directory", required = true)
@@ -86,6 +92,7 @@ public class RoleMapProcessor extends BaseMultiReportProcessor {
     @Override
     protected void setMultiReportDefaults() {
         this.sourceType = GenomeSource.Type.DIR;
+        this.filterFile = null;
     }
 
     @Override
@@ -96,13 +103,20 @@ public class RoleMapProcessor extends BaseMultiReportProcessor {
         log.info("Connecting to {} genome source at {}.", this.sourceType, this.inDir);
         this.genomes = this.sourceType.create(this.inDir);
         log.info("{} genomes found in {}.", this.genomes.size(), this.inDir);
+        if (this.filterFile != null) {
+            log.info("Reading genomes to use from {}.", this.filterFile);
+            this.filterSet = TabbedLineReader.readSet(this.filterFile, "1");
+        } else {
+            log.info("All genomes will be processed.");
+            this.filterSet = this.genomes.getIDs();
+        }
     }
 
     @Override
     protected void runMultiReports() throws Exception {
         this.md5Computer = new MD5Hex();
         // Set up the main map.
-        final int nGenomes = this.genomes.size();
+        final int nGenomes = this.filterSet.size();
         this.annotationMap = new HashMap<String, NavigableMap<String, Set<String>>>(nGenomes * 6000);
         // Initialize some counters.
         int gCount = 0;
@@ -114,8 +128,9 @@ public class RoleMapProcessor extends BaseMultiReportProcessor {
         // exception is the invalid proteins.
         try (PrintWriter badWriter = this.openReport("invalid.tbl")) {
             badWriter.println("fid\terror\tannotation");
-            for (Genome genome : this.genomes) {
+            for (String genomeId : this.filterSet) {
                 gCount++;
+                Genome genome = this.genomes.getGenome(genomeId);
                 int pegCount = 0;
                 int badCount = 0;
                 int missing = 0;
