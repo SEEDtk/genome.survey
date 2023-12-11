@@ -9,8 +9,11 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.NavigableSet;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 
 import org.apache.commons.lang3.StringUtils;
@@ -56,8 +59,8 @@ public class RoleMapProcessor extends BaseMultiReportProcessor {
     // FIELDS
     /** logging facility */
     protected static Logger log = LoggerFactory.getLogger(RoleMapProcessor.class);
-    /** map of protein strings to annotations */
-    private Map<String, NavigableSet<String>> annotationMap;
+    /** map of protein strings to annotations to feature IDs */
+    private Map<String, NavigableMap<String, Set<String>>> annotationMap;
     /** input genome source */
     private GenomeSource genomes;
     /** MD5 computer */
@@ -100,7 +103,7 @@ public class RoleMapProcessor extends BaseMultiReportProcessor {
         this.md5Computer = new MD5Hex();
         // Set up the main map.
         final int nGenomes = this.genomes.size();
-        this.annotationMap = new HashMap<String, NavigableSet<String>>(nGenomes * 6000);
+        this.annotationMap = new HashMap<String, NavigableMap<String, Set<String>>>(nGenomes * 6000);
         // Initialize some counters.
         int gCount = 0;
         int pegTotal = 0;
@@ -133,8 +136,9 @@ public class RoleMapProcessor extends BaseMultiReportProcessor {
                             badCount++;
                             badWriter.println(peg.getId() + "\tinvalid\t" + annotation);
                         } else {
-                            Set<String> annoSet = this.annotationMap.computeIfAbsent(protein, x -> new TreeSet<String>());
-                            annoSet.add(annotation);
+                            Map<String, Set<String>> annoFidMap = this.annotationMap.computeIfAbsent(protein, x -> new TreeMap<String, Set<String>>());
+                            Set<String> fidSet = annoFidMap.computeIfAbsent(annotation, x -> new TreeSet<String>());
+                            fidSet.add(peg.getId());
                             pegCount++;
                         }
                     }
@@ -156,24 +160,25 @@ public class RoleMapProcessor extends BaseMultiReportProcessor {
             int errCount = 0;
             // Write the headers.
             writer.println(HEADER_LINE);
-            errorWriter.println(HEADER_LINE);
+            errorWriter.println(HEADER_LINE + "\tfids");
             // Loop through the map.
             long lastMsg = System.currentTimeMillis();
             log.info("Processing {} proteins in annotation map.", this.annotationMap.size());
             for (var annoEntry : this.annotationMap.entrySet()) {
                 String protein = annoEntry.getKey();
                 String md5 = this.md5Computer.sequenceMD5(protein);
-                NavigableSet<String> annotations = annoEntry.getValue();
-                if (annotations.size() == 1) {
+                // This will have one entry per annotation, mapped to a set of feature IDs.
+                NavigableMap<String, Set<String>> fidMap = annoEntry.getValue();
+                if (fidMap.size() == 1) {
                     // Here we have a good protein.
-                    writer.println(md5 + "\t" + protein + "\t" + annotations.first());
+                    writer.println(md5 + "\t" + protein + "\t" + fidMap.firstKey());
                     goodCount++;
                 } else {
                     // Here we have an ambiguous protein.
-                    var iter = annotations.iterator();
-                    errorWriter.println(md5 + "\t" + protein + "\t" + iter.next());
+                    var iter = fidMap.entrySet().iterator();
+                    errorWriter.println(md5 + "\t" + protein + "\t" + this.annoData(iter.next()));
                     while (iter.hasNext())
-                        errorWriter.println("\t\t" + iter.next());
+                        errorWriter.println("\t\t" + this.annoData(iter.next()));
                     errCount++;
                 }
                 if (log.isInfoEnabled() && System.currentTimeMillis() - lastMsg >= 10000) {
@@ -183,6 +188,19 @@ public class RoleMapProcessor extends BaseMultiReportProcessor {
             }
             log.info("{} good proteins and {} ambiguous proteins found.", goodCount, errCount);
         }
+    }
+
+    /**
+     * Display the annotation string and features for the specified annotation/fid map entry.
+     *
+     * @param entry		map entry of an annotation and the set of features using it
+     *
+     * @return the string to print in the last two report columns
+     */
+    private String annoData(Map.Entry<String, Set<String>> entry) {
+        String anno = entry.getKey();
+        String fids = StringUtils.join(entry.getValue(), ", ");
+        return anno + "\t" + fids;
     }
 
 }
