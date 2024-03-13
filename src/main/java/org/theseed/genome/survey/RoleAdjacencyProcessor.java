@@ -94,13 +94,14 @@ public class RoleAdjacencyProcessor extends BaseProcessor {
          * @param id		feature ID
          * @param function	functional assignment
          * @param contig	contig ID
-         * @param start		protein start
-         * @param end		protein end
+         * @param strand	protein strand
+         * @param start		protein left position
+         * @param end		protein right position
          */
-        public FeatureData(String id, String function, String contig, int start, int end) {
+        public FeatureData(String id, String function, String contig, String strand, int start, int end) {
             this.fid = id;
             this.product = function;
-            this.loc = Location.create(contig, start, end);
+            this.loc = Location.create(contig, strand, start, end);
         }
 
         @Override
@@ -201,7 +202,8 @@ public class RoleAdjacencyProcessor extends BaseProcessor {
             // We need the column indices for the fields of interest.
             int idColIdx = inStream.findField("patric_id");
             int prodColIdx = inStream.findField("product");
-            int contigColIdx = inStream.findField("sequence_id");
+            int contigColIdx = inStream.findField("accession");
+            int strandColIdx = inStream.findField("strand");
             int startColIdx = inStream.findField("start");
             int endColIdx = inStream.findField("end");
             int typeColIdx = inStream.findField("feature_type");
@@ -230,12 +232,13 @@ public class RoleAdjacencyProcessor extends BaseProcessor {
                     if (! StringUtils.isBlank(fid)) {
                         String product = record.get(prodColIdx);
                         String contig = record.get(contigColIdx);
+                        String strand = record.get(strandColIdx);
                         int start = record.getInt(startColIdx);
                         int end = record.getInt(endColIdx);
-                        FeatureData feat = new FeatureData(fid, product, contig, start, end);
+                        FeatureData feat = new FeatureData(fid, product, contig, strand, start, end);
                         // Get the strand's hash entryn and add us to the list.
-                        String strand = feat.getStrand();
-                        List<FeatureData> flist = featMap.computeIfAbsent(strand, x -> new ArrayList<FeatureData>());
+                        String strandId = feat.getStrand();
+                        List<FeatureData> flist = featMap.computeIfAbsent(strandId, x -> new ArrayList<FeatureData>());
                         flist.add(feat);
                     }
                 }
