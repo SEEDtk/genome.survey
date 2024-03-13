@@ -251,7 +251,7 @@ public class RoleAdjacencyProcessor extends BaseProcessor {
         log.info("Writing data for genome {} ({}) to {}.", genomeId, genomeName, outFile);
         try (PrintWriter outStream = new PrintWriter(outFile)) {
             // Start with the header line.
-            outStream.println("genome_id\tgenome_name\tpatric_id\tproduct\tprevious\tnext");
+            outStream.println("genome_id\tgenome_name\tpatric_id\ttype\tproduct\tprevious\tnext");
             // Now loop through the strands.
             for (var strandEntry : featMap.entrySet()) {
                 List<FeatureData> flist = strandEntry.getValue();
@@ -277,7 +277,7 @@ public class RoleAdjacencyProcessor extends BaseProcessor {
                         String nextRole = this.checkAdjacentRole(curr, next);
                         if (! nextRole.isBlank() || ! prevRole.isBlank()) {
                             // Here there is at least one good neighbor.
-                            outStream.println(genomeId + "\t" + genomeName + "\t" + fid + "\t" + curr.getProduct() +"\t"
+                            outStream.println(genomeId + "\t" + genomeName + "\t" + fid + "\tCDS\t" + curr.getProduct() +"\t"
                                     + prevRole + "\t" + nextRole);
                         }
                     }
