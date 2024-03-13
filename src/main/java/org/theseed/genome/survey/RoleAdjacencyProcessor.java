@@ -106,9 +106,15 @@ public class RoleAdjacencyProcessor extends BaseProcessor {
 
         @Override
         public int compareTo(FeatureData o) {
+            // Compare locations.
             int retVal = this.loc.compareTo(o.loc);
-            if (retVal == 0)
+            if (retVal == 0) {
+                // Locations are equal, so compare the feature IDs.
                 retVal = this.fid.compareTo(o.fid);
+            } else if (this.loc.getStrand().equals("-")) {
+                // Locations are unequal.  On the minus strand, we reverse the order.
+                retVal = -retVal;
+            }
             return retVal;
         }
 
