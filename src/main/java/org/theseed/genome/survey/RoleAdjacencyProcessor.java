@@ -198,6 +198,7 @@ public class RoleAdjacencyProcessor extends BaseProcessor {
         // Allocate variables for the genome ID and name.
         String genomeId = null;
         String genomeName = null;
+        String genomeWord = null;
         // Compute the name of the output file.
         File outFile = new File(gDir, "neighbors.tbl");
         // Create a hash to map strand IDs to feature data lists.
@@ -213,9 +214,10 @@ public class RoleAdjacencyProcessor extends BaseProcessor {
             int startColIdx = inStream.findField("start");
             int endColIdx = inStream.findField("end");
             int typeColIdx = inStream.findField("feature_type");
-            // We need the genome ID and name from the first record.
+            // We need the genome ID, genome magic word, and name from the first record.
             int gIdColIdx = inStream.findField("genome_id");
             int gNameColIdx = inStream.findField("genome_name");
+            int gWordColIdx = inStream.findField("genome_word");
             // Now loop through the records.
             int inCount = 0;
             int protCount = 0;
@@ -226,6 +228,7 @@ public class RoleAdjacencyProcessor extends BaseProcessor {
                 if (genomeId == null) {
                     genomeId = record.get(gIdColIdx);
                     genomeName = record.get(gNameColIdx);
+                    genomeWord = record.get(gWordColIdx);
                     log.info("Processing genome {}: {}.", genomeId, genomeName);
                 }
                 // Now insure we have a protein.
@@ -260,7 +263,7 @@ public class RoleAdjacencyProcessor extends BaseProcessor {
         log.info("Writing data for genome {} ({}) to {}.", genomeId, genomeName, outFile);
         try (PrintWriter outStream = new PrintWriter(outFile)) {
             // Start with the header line.
-            outStream.println("genome_id\tgenome_name\tpatric_id\ttype\tproduct\tprevious\tnext");
+            outStream.println("genome_id\tgenome_name\tgenome_word\tpatric_id\ttype\tproduct\tprevious\tnext");
             // Now loop through the strands.
             for (var strandEntry : featMap.entrySet()) {
                 List<FeatureData> flist = strandEntry.getValue();
@@ -286,7 +289,7 @@ public class RoleAdjacencyProcessor extends BaseProcessor {
                         String nextRole = this.checkAdjacentRole(curr, next);
                         if (! nextRole.isBlank() || ! prevRole.isBlank()) {
                             // Here there is at least one good neighbor.
-                            outStream.println(genomeId + "\t" + genomeName + "\t" + fid + "\tCDS\t" + curr.getProduct() +"\t"
+                            outStream.println(genomeId + "\t" + genomeName + "\t" + genomeWord + "\t" + fid + "\tCDS\t" + curr.getProduct() +"\t"
                                     + prevRole + "\t" + nextRole);
                         }
                     }

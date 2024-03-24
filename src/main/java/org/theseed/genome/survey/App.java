@@ -16,6 +16,7 @@ import org.theseed.basic.BaseProcessor;
  * rolePegs		find all pegs in a genome directory containing roles in a specified role set
  * roleMap		create a file of protein sequences and annotations from a set of genomes
  * roleAdj		create a file that can be used to build role-adjacency training data
+ * taxonScan	create a file that can be used to build taxonomic training data
  *
  */
 public class App
@@ -54,6 +55,9 @@ public class App
             break;
         case "roleAdj" :
             processor = new RoleAdjacencyProcessor();
+            break;
+        case "taxonScan" :
+            processor = new TaxonomyScanProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);
