@@ -28,6 +28,8 @@ public class EntityInstance {
     private List<String> attributes;
     /** list of relationship instances */
     private List<RelationshipInstance> connections;
+    /** TRUE if this instance has been deleted */
+    private boolean deleted;
 
     /**
      * Create a new, empty entity instance.
@@ -124,6 +126,20 @@ public class EntityInstance {
     public void shuffleAll() {
         Collections.shuffle(this.attributes);
         Collections.shuffle(this.connections);
+    }
+
+    /**
+     * @return TRUE if this entity instance is deleted
+     */
+    public boolean isDeleted() {
+        return this.deleted;
+    }
+
+    /**
+     * Denote that this entity instance is deleted.
+     */
+    public void setDeleted() {
+        this.deleted = true;
     }
 
 }

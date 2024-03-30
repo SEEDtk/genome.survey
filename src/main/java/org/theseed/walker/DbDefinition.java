@@ -97,8 +97,8 @@ public class DbDefinition {
      */
     private String processEntityDefinition(String line, Iterator<String> iter) throws ParseFailureException {
         String[] parms = StringUtils.split(line, " ", 5);
-        if (parms.length < 3)
-            throw new ParseFailureException("Entity header i line " + this.lineCount + " of definition file has fewer than 2 parameters.");
+        if (parms.length < 4)
+            throw new ParseFailureException("Entity header i line " + this.lineCount + " of definition file has fewer than 3 parameters.");
         // Find this entity type in the type map and set the ID column name.
         EntityType entity = this.findEntityType(parms[1]);
         entity.setIdColName(parms[2]);
@@ -110,8 +110,8 @@ public class DbDefinition {
             throw new ParseFailureException("Invalid priority number \"" + parms[3] + " in line " + this.lineCount + " of definition file.");
         }
         // Store a file name if we have one.
-        if (parms.length >= 4)
-            entity.setFileName(parms[3]);
+        if (parms.length >= 5)
+            entity.setFileName(parms[4]);
         // Now we need to read through the attributes.  The method will return the next header line, or NULL if we hit
         // end-of-file.
         String retVal = this.readAttributes(entity, iter);
@@ -159,7 +159,7 @@ public class DbDefinition {
      */
     private String readAttributes(EntityType entity, Iterator<String> iter) {
         String retVal = null;
-        if (! iter.hasNext()) {
+        if (iter.hasNext()) {
             String line = iter.next();
             this.lineCount++;
             while (line != null && ! line.startsWith("#")) {
@@ -209,6 +209,8 @@ public class DbDefinition {
             this.relCount++;
             // Store the template strings.
             rel.setTemplateStrings(forward, converse);
+            // Save the relationship.
+            entity.addRelationship(rel);
             // Get the next record.
             retVal = this.readNext(iter);
         }
@@ -256,23 +258,30 @@ public class DbDefinition {
                         // Here we can read the entities.
                         try (FieldInputStream inStream = FieldInputStream.create(inFile)) {
                             fileCount++;
-                            log.info("Reading instances for {} from {}.", type.getName(), inFile);
-                            long lastMsg = System.currentTimeMillis();
                             // The builder creates all the line templates for this entity.  Each record
                             // is applied to every template.  Setting up the templates also tells the
                             // input stream the columns we are using.
+                            log.info("Compiling templates for {}.", inFile);
                             EntityType.Builder builder = type.new Builder(inStream);
                             // Loop through the records, executing the builder.  This creates all the
                             // entity and relationship instances and compiles the attributes.
+                            log.info("Reading instances for {} from {}.", type.getName(), inFile);
+                            long lastMsg = System.currentTimeMillis();
+                            int inCount = 0;
+                            int skipCount = 0;
                             for (var record : inStream) {
-                                builder.build(record, retVal);
-                                recordCount++;
+                                inCount++;
+                                EntityInstance newInstance = builder.build(record, retVal);
+                                if (newInstance == null)
+                                    skipCount++;
                                 long now = System.currentTimeMillis();
                                 if (now - lastMsg >= 5000) {
-                                    log.info("{} records processed.", recordCount);
+                                    log.info("{} records processed in {}.", inCount, inFile);
                                     lastMsg = now;
                                 }
                             }
+                            log.info("{} total records processed in {}: {} skipped.", inCount, inFile, skipCount);
+                            recordCount += inCount;
                         }
                     }
                 }
@@ -286,7 +295,7 @@ public class DbDefinition {
             String typeName = type.getName();
             long typeTokens = type.getTokenCount();
             tokenTotal += typeTokens;
-            log.info("Entity type has {} instances and {} tokens.", type.getInstanceCount(), type.getTokenCount());
+               log.info("Entity type {} has {} instances and generated {} tokens.", typeName, retVal.getTypeCount(typeName), typeTokens);
             for (EntityInstance instance : retVal.getAllEntities(typeName))
                 instance.shuffleAll();
         }

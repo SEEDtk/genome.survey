@@ -17,6 +17,7 @@ import org.theseed.basic.BaseProcessor;
  * roleMap		create a file of protein sequences and annotations from a set of genomes
  * roleAdj		create a file that can be used to build role-adjacency training data
  * taxonScan	create a file that can be used to build taxonomic training data
+ * dbWalk		generate a random walk of a database JSON dump using templates
  *
  */
 public class App
@@ -58,6 +59,9 @@ public class App
             break;
         case "taxonScan" :
             processor = new TaxonomyScanProcessor();
+            break;
+        case "dbWalk" :
+            processor = new RandomWalkProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);
