@@ -48,12 +48,12 @@ public class EntityType implements Comparable<EntityType> {
     private List<String> attributeStrings;
     /** list of relationship definitions */
     private List<RelationshipType> relationships;
-    /** instance count */
-    private long instanceCount;
     /** priority */
     private int priority;
     /** token counter */
     private long tokenCount;
+    /** special ID for connector records */
+    private static final String NULL_ID = "<connector>";
 
     /**
      * This is a helper class for building an entity instance from an entity type.
@@ -95,10 +95,9 @@ public class EntityType implements Comparable<EntityType> {
          */
         protected String computeId(FieldInputStream.Record record) {
              String retVal;
-             long count = EntityType.this.getNewInstanceCount();
              if (this.idColIdx < 0) {
-                 // Here we have a generated ID.
-                 retVal = Long.toHexString(count);
+                 // Here we have a connector record with no ID.
+                 retVal = NULL_ID;
              } else {
                  // Here there is a natural ID in the input record.
                  retVal = record.get(this.idColIdx);
@@ -120,15 +119,19 @@ public class EntityType implements Comparable<EntityType> {
             String entityId = this.computeId(record);
             // Only proceed if we have an ID for this entity.
             if (! StringUtils.isBlank(entityId)) {
-                // Find or create the entity instance.
-                retVal = db.findEntity(EntityType.this, entityId);
-                // Loop through the attribute strings, creating the attributes.
+                // We will count tokens in here.
                 int tokenCount = 0;
-                for (LineTemplate template : this.attributeBuilders) {
-                    String attributeString = template.apply(record);
-                    if (! StringUtils.isBlank(attributeString)) {
-                        retVal.addAttribute(attributeString);
-                        tokenCount += this.encoder.countTokens(attributeString);
+                // If this is a real entity, set up the attributes and create an instance.
+                if (! entityId.contentEquals(NULL_ID)) {
+                    // Find or create the entity instance.
+                    retVal = db.findEntity(EntityType.this, entityId);
+                    // Loop through the attribute strings, creating the attributes.
+                    for (LineTemplate template : this.attributeBuilders) {
+                        String attributeString = template.apply(record);
+                        if (! StringUtils.isBlank(attributeString)) {
+                            retVal.addAttribute(attributeString);
+                            tokenCount += this.encoder.countTokens(attributeString);
+                        }
                     }
                 }
                 // Loop through the relationship builders, creating the relationship instances
@@ -136,11 +139,12 @@ public class EntityType implements Comparable<EntityType> {
                 for (RelationBuilder builder : this.relationBuilders) {
                     String forwardString = builder.getForwardString(record);
                     EntityInstance targetInstance = builder.getTarget(record, db);
-                    // Only proceed if there is a target at the other end.
-                    if (targetInstance != null) {
+                    EntityInstance sourceInstance = builder.getSource(record, db);
+                    // Only proceed if there is a source and a target.
+                    if (sourceInstance != null && targetInstance != null) {
                         String converseString = builder.getConverseString(record);
-                        retVal.addConnection(new RelationshipInstance(forwardString, targetInstance));
-                        targetInstance.addConnection(new RelationshipInstance(converseString, retVal));
+                        sourceInstance.addConnection(new RelationshipInstance(forwardString, targetInstance));
+                        targetInstance.addConnection(new RelationshipInstance(converseString, sourceInstance));
                         tokenCount += this.encoder.countTokens(forwardString) + this.encoder.countTokens(converseString);
                     }
                 }
@@ -164,19 +168,8 @@ public class EntityType implements Comparable<EntityType> {
         this.idColName = null;
         this.attributeStrings = new ArrayList<String>();
         this.relationships = new ArrayList<RelationshipType>();
-        this.instanceCount = 0;
         this.tokenCount = 0;
         this.priority = 0;
-    }
-
-    /**
-     * Increment the instance count and return it.
-     *
-     * @return the new instance count
-     */
-    public long getNewInstanceCount() {
-        this.instanceCount++;
-        return this.instanceCount;
     }
 
     @Override
@@ -238,7 +231,7 @@ public class EntityType implements Comparable<EntityType> {
      * @param idCol		the id column name
      */
     public void setIdColName(String idCol) {
-        if (idCol.contentEquals("generated"))
+        if (idCol.contentEquals("null"))
             this.idColName = null;
         else
             this.idColName = idCol;
@@ -308,7 +301,7 @@ public class EntityType implements Comparable<EntityType> {
     public Collection<RelationBuilder> getRelationshipBuilders(FieldInputStream inStream) throws IOException, ParseFailureException {
         List<RelationBuilder> retVal = new ArrayList<RelationBuilder>(this.relationships.size());
         for (RelationshipType relType : this.relationships) {
-            RelationBuilder builder = new RelationBuilder(EntityType.this, relType, inStream);
+            RelationBuilder builder = new RelationBuilder(relType, inStream);
             retVal.add(builder);
         }
         return retVal;
@@ -326,13 +319,6 @@ public class EntityType implements Comparable<EntityType> {
      */
     public long getTokenCount() {
         return this.tokenCount;
-    }
-
-    /**
-     * @return the number of instances of this entity type
-     */
-    public long getInstanceCount() {
-        return this.instanceCount;
     }
 
     /**

@@ -17,22 +17,30 @@ package org.theseed.walker;
 public class RelationshipType {
 
     // FIELDS
+    /** source entity type */
+    private EntityType source;
     /** target entity type */
     private EntityType target;
     /** forward relationship template string */
     private String forwardSentence;
     /** converse relationship sentence string */
     private String converseSentence;
+    /** source entity column name */
+    private String sourceColName;
     /** target entity column name */
     private String targetColName;
 
     /**
      * Construct a relationship type for a specified relationship.
      *
+     * @param sourceType	source entity type
+     * @param sourceCol		column name of source entity ID in record
      * @param targetType	target entity type
-     * @param targetCol		column name of target entity ID in source column
+     * @param targetCol		column name of target entity ID in record
      */
-    public RelationshipType(EntityType targetType, String targetCol) {
+    public RelationshipType(EntityType sourceType, String sourceCol, EntityType targetType, String targetCol) {
+        this.source = sourceType;
+        this.sourceColName = sourceCol;
         this.target = targetType;
         this.targetColName = targetCol;
         this.forwardSentence = "";
@@ -76,6 +84,20 @@ public class RelationshipType {
      */
     public EntityType getTargetType() {
         return this.target;
+    }
+
+    /**
+     * @return the column name containing the source entity ID
+     */
+    public String getSourceColName() {
+        return this.sourceColName;
+    }
+
+    /**
+     * @return the source entity type
+     */
+    public EntityType getSourceType() {
+        return this.source;
     }
 
 }

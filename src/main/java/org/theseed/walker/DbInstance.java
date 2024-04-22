@@ -61,7 +61,9 @@ public class DbInstance {
         List<EntityInstance> masterList = new ArrayList<EntityInstance>();
         for (String typeName : this.typeNames) {
             var entityMap = this.masterMap.get(typeName);
-            masterList.addAll(entityMap.values());
+            // Only proceed if this is a real entity.
+            if (entityMap != null)
+                masterList.addAll(entityMap.values());
         }
         int passCount = 0;
         while (! masterList.isEmpty()) {

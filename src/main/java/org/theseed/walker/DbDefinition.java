@@ -24,14 +24,33 @@ import org.theseed.io.LineReader;
  * A database definition contains the entity and relationship types.  Its primary purpose is to
  * facilitate creating the types from the definition file.
  *
- * A definition file is divided into zones by entity headers.  Each entity header contains "#Entity"
- * in the first column, then a space, the entity type name, a space, the entity ID column name, a priority
- * number, and the input file name.  The input file name is optional.  If omitted, the entity data comes
- * entirely from the relationships.  Each attribute is then described by a template input string on
- * a line by itself.  Finally, the entity's many-to-one relationships are described.  Each begins
- * with a header that contains "#Relationship" in the first column, a space, the target entity type,
- * another space, and finally the input column name for the target entity ID. The next two lines
- * contain the relationship sentences, forward and reverse, one per line in order.
+ * The definition file contains commands (denoted by "#" in the first column) and templates.  The
+ * commands have a command name (currently "Entity" or "Relationship") immediately after the pound
+ * sign, and one or more space-delimited parameters.
+ *
+ * The Entity command's parameters are (1) entity type name, (2) entity ID column name, (3) priority
+ * number (with 0 being the lowest), and (4) a file name.  The file name should be the base name of
+ * the file in each directory.  The priority is used to determine which entities should be chosen first
+ * when beginning a random walk.  Thus, if "Genome" has the highest priority, the walker will choose
+ * Genome records to start each walk until they run out.
+ *
+ * Some entities are actually many-to-many or ternary relationship.  We don't want these put into the
+ * database; rather they are used to generate relationship records in other entities.  For these,
+ * we specify "null" for the ID column.
+ *
+ * Immediately after the entity header are zero or more attribute templates.  These are used to generate
+ * attribute descriptions for the entity.
+ *
+ * The relationship definitions follow each entity.  A relationship definition describes a many-to-one
+ * connection between entities and contains a template for the forward direction and the reverse direction.
+ * The Relationship command's parameters are (1) source entity type name, (2) column name for the source entity ID,
+ * (3) target entity type name, and (4) column name for the target entity ID.  In a normal entity, the source
+ * entity type name and ID column name describe the current entity itself.  Thus, a relationship in the Genome
+ * entity will specify "Genome" as the source entity type and "genome_id" as the source ID column name.  In
+ * the case of a relationship entity, however, the source entity type must be a different entity.  Thus, the
+ * SubsystemCell ternary relationship entity never specifies itself as a source; rather, the source is either
+ * Subsystem, Genome, or Role. The relationship definition is always three lines:  the header, the forward
+ * template, and the converse template.
  *
  * @author Bruce Parrello
  *
@@ -189,12 +208,14 @@ public class DbDefinition {
         String retVal = line;
         while (retVal != null && retVal.startsWith("#Relationship")) {
             // Here we have a relationship header.
-            String[] parms = StringUtils.split(retVal, " ", 3);
-            if (parms.length != 3)
-                throw new ParseFailureException("Relationship header in line " + this.lineCount + " of definition file should have exactly 2 parameters.");
-            // The header contains the target entity type name and the target ID column name.
-            EntityType targetType = this.findEntityType(parms[1]);
-            RelationshipType rel = new RelationshipType(targetType, parms[2]);
+            String[] parms = StringUtils.split(retVal, " ", 5);
+            if (parms.length != 5)
+                throw new ParseFailureException("Relationship header in line " + this.lineCount + " of definition file should have exactly 4 parameters.");
+            // The header contains the source entity type name, the source ID column name, the target entity type name and
+            // the target ID column name.
+            EntityType sourceType = this.findEntityType(parms[1]);
+            EntityType targetType = this.findEntityType(parms[3]);
+            RelationshipType rel = new RelationshipType(sourceType, parms[2], targetType, parms[4]);
             // Read the forward-direction template sentence.
             if (! iter.hasNext())
                 throw new ParseFailureException("Missing template strings for relationship in line " + this.lineCount + " of definition file.");
