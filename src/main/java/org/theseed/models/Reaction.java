@@ -23,6 +23,8 @@ import com.github.cliftonlabs.json_simple.JsonObject;
 public class Reaction {
 
     // FIELDS
+    /** genome ID */
+    private String genomeId;
     /** reaction ID */
     private String reactId;
     /** reaction name */
@@ -100,10 +102,11 @@ public class Reaction {
      * @param json			JSON object containing the reaction data
      * @param compartMap	map of compartment IDs to names
      * @param compMap		map of compound IDs to compound descriptors
+     * @param genome		ID of the genome in which the reaction occurs
      *
      * @throws IOException
      */
-    public Reaction(JsonObject json, Map<String, String> compartMap, Map<String, Compound> compMap) throws IOException {
+    public Reaction(JsonObject json, Map<String, String> compartMap, Map<String, Compound> compMap, String genome) throws IOException {
         // Get the ID.
         this.reactId = json.getStringOrDefault(ReactionKeys.ID);
         // Get the name.
@@ -150,6 +153,8 @@ public class Reaction {
             // Now, assemble the formula.
             this.formula = reactantBuffer.toString() + " --> " + productBuffer.toString();
         }
+        // Finally, store the genome ID.
+        this.genomeId = genome;
     }
 
     /**
@@ -224,6 +229,7 @@ public class Reaction {
         retVal.put("formula", this.getFormula());
         retVal.put("gene_rule", this.getGeneRule());
         retVal.put("name", this.getName());
+        retVal.put("genome_id", this.genomeId);
         return retVal;
     }
 

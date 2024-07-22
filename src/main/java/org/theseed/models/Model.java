@@ -36,6 +36,8 @@ public class Model {
     private Map<String, Compound> compounds;
     /** reaction map */
     private Map<String, Reaction> reactions;
+    /** genome ID */
+    private String genomeId;
     /** empty JSON list */
     private static final JsonArray EMPTY_LIST = new JsonArray();
     /** empty JSON hash */
@@ -46,7 +48,8 @@ public class Model {
     public static enum ModelKeys implements JsonKey {
         METABOLITES(EMPTY_LIST),
         REACTIONS(EMPTY_LIST),
-        COMPARTMENTS(EMPTY_MAP);
+        COMPARTMENTS(EMPTY_MAP),
+        ID("unknown");
 
         private final Object m_value;
 
@@ -76,6 +79,8 @@ public class Model {
      * @param json		JSON object containing the model definition
      */
     public Model(JsonObject json) {
+        // Save the genome ID.
+        this.genomeId = json.getStringOrDefault(ModelKeys.ID);
         // Start with the compartments.
         this.getCompartments(json);
         // Since we have the compartments, we can read the compounds.
@@ -137,7 +142,7 @@ public class Model {
         for (var reactionEntry : reactionList) {
             JsonObject reactionJson = (JsonObject) reactionEntry;
             try {
-                Reaction reaction = new Reaction(reactionJson, this.compartments, this.compounds);
+                Reaction reaction = new Reaction(reactionJson, this.compartments, this.compounds, this.genomeId);
                 String reactionId = reaction.getId();
                 this.reactions.put(reactionId, reaction);
             } catch (IOException e) {
