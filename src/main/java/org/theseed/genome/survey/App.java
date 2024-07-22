@@ -18,6 +18,7 @@ import org.theseed.basic.BaseProcessor;
  * roleAdj		create a file that can be used to build role-adjacency training data
  * taxonScan	create a file that can be used to build taxonomic training data
  * dbWalk		generate a random walk of a database JSON dump using templates
+ * modelFix		fix up a model dump to make it more compatible with the template engine
  *
  */
 public class App
@@ -62,6 +63,9 @@ public class App
             break;
         case "dbWalk" :
             processor = new RandomWalkProcessor();
+            break;
+        case "modelFix" :
+            processor = new ModelDumpFixProcessor();
             break;
         default:
             throw new RuntimeException("Invalid command " + command);
