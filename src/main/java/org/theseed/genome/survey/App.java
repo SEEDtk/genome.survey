@@ -21,8 +21,25 @@ import org.theseed.basic.BaseProcessor;
  * modelFix		fix up a model dump to make it more compatible with the template engine
  *
  */
+
 public class App
 {
+
+    protected static final String[] COMMANDS = new String[] {
+             "tetra", "generate tetramer profiles for domain detection",
+             "goodCore", "generate a directory of the good coreSEED genomes",
+             "gaps", "categorize the gaps between genes in a GTO",
+             "fidCompare", "compare two feature lists and output the roles and subsystems of the differing features",
+             "bbh", "find bidirectional best hits between two genomes",
+             "validate", "test all genomes in a directory to make sure they load",
+             "rolePegs", "find all pegs in a genome directory containing roles in a specified role set",
+             "roleMap", "create a file of protein sequences and annotations from a set of genomes",
+             "roleAdj", "create a file that can be used to build role-adjacency training data",
+             "taxonScan", "create a file that can be used to build taxonomic training data",
+             "dbWalk", "generate a random walk of a database JSON dump using templates",
+             "modelFix", "fix up a model dump to make it more compatible with the template engine"
+    };
+
     public static void main( String[] args )
     {
         // Get the control parameter.
@@ -67,13 +84,20 @@ public class App
         case "modelFix" :
             processor = new ModelDumpFixProcessor();
             break;
-        default:
-            throw new RuntimeException("Invalid command " + command);
+        case "-h" :
+        case "--help" :
+            processor = null;
+            break;
+        default :
+            throw new RuntimeException("Invalid command " + command + ".");
         }
-        // Process it.
-        boolean ok = processor.parseCommand(newArgs);
-        if (ok) {
-            processor.run();
+        if (processor == null)
+            BaseProcessor.showCommands(COMMANDS);
+        else {
+            boolean ok = processor.parseCommand(newArgs);
+            if (ok) {
+                processor.run();
+            }
         }
     }
 }
