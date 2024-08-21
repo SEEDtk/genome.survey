@@ -5,13 +5,20 @@ package org.theseed.models;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonKey;
 import com.github.cliftonlabs.json_simple.JsonObject;
+
+
 
 /**
  * This object represents a single reaction.  It converts the incoming reaction JSON to a form that can be
@@ -33,12 +40,16 @@ public class Reaction {
     private List<String> reactants;
     /** list of product names */
     private List<String> products;
+    /** set of triggering feature ids */
+    private Set<String> features;
     /** chemical formula */
     private String formula;
     /** triggering rule */
     private String geneRule;
     /** empty JSON hash */
     private static final JsonObject EMPTY_MAP = new JsonObject();
+    /** pattern for finding FIG IDs */
+    private static final Pattern FID_PATTERN = Pattern.compile("fig\\|\\d+\\.\\w+\\.\\d+");
 
     /** This enum defines the keys used and their default values.
      */
@@ -117,7 +128,12 @@ public class Reaction {
             // Here we have a real reaction name.  Fix the compartment ID.
             this.name = Compound.fixCompartment(this.name, compartMap);
         }
+        // Get the gene rule and parse out the feature IDs.
         this.geneRule = json.getStringOrDefault(ReactionKeys.GENE_REACTION_RULE);
+        this.features = new TreeSet<String>();
+        Matcher m = FID_PATTERN.matcher(this.geneRule);
+        while (m.find())
+            this.features.add(m.group());
         // Now get the metabolites.
         JsonObject metabolites = json.getMapOrDefault(ReactionKeys.METABOLITES);
         if (metabolites.isEmpty())
@@ -244,6 +260,13 @@ public class Reaction {
         JsonArray compoundJson = new JsonArray();
         compoundJson.addAll(compoundList);
         json.put(key, compoundJson);
+    }
+
+    /**
+     * @return the list of triggering features
+     */
+    public Collection<String> getFeatures() {
+        return this.features;
     }
 
 }

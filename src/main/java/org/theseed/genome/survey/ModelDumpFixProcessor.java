@@ -169,10 +169,12 @@ public class ModelDumpFixProcessor extends BaseProcessor {
         String genomeId = gDir.getName();
         File modelFile = new File(this.modelDir, genomeId + ".json");
         File reactionFile = new File(gDir, "reactions.json");
+        File triggerFile = new File(gDir, "triggers.json");
         if (! modelFile.canRead()) {
             // No model file, so create an empty reaction list.
             log.info("No model file found for genome {}.", genomeId);
             MarkerFile.write(reactionFile, "[]");
+            MarkerFile.write(triggerFile, "[]");
             synchronized (this) {
                 this.missingModelCount++;
             }
@@ -189,13 +191,32 @@ public class ModelDumpFixProcessor extends BaseProcessor {
             }
             // Construct the model object.
             Model model = new Model(modelJson);
-            // Get the reactions and convert them to JSON.
+            // Get the reactions and convert them to JSON. We will also create the trigger list.
             JsonArray reactionJson = new JsonArray();
+            JsonArray triggerJson = new JsonArray();
             Collection<Reaction> reactions = model.getReactions().values();
             reactions.stream().forEach(x -> reactionJson.add(x.toJson()));
+            for (Reaction reaction : reactions) {
+                // Here we add the full reaction JSON.
+                reactionJson.add(reaction.toJson());
+                // Now we connect the reaction to its triggering features.
+                String reactionId = reaction.getId();
+                for (String fid : reaction.getFeatures()) {
+                    JsonObject trigger = new JsonObject();
+                    trigger.put("reaction_id", reactionId);
+                    trigger.put("patric_id", fid);
+                    triggerJson.add(trigger);
+                }
+            }
             // Write the reactions to the output.
             try (PrintWriter writer = new PrintWriter(reactionFile)) {
                 Jsoner.serialize(reactionJson, writer);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            // Now we write out the trigger file.
+            try (PrintWriter writer = new PrintWriter(triggerFile)) {
+                Jsoner.serialize(triggerJson, writer);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
