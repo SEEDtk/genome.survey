@@ -197,11 +197,16 @@ public class ModelDumpFixProcessor extends BaseProcessor {
             Collection<Reaction> reactions = model.getReactions().values();
             reactions.stream().forEach(x -> reactionJson.add(x.toJson()));
             for (Reaction reaction : reactions) {
-                // Here we add the full reaction JSON.
-                reactionJson.add(reaction.toJson());
+                // Get the list of triggering features.
+                Collection<String> fidList = reaction.getFeatures();
+                // Set the simple flag.
+                JsonObject reactionObject = reaction.toJson();
+                reactionObject.put("simple", fidList.size() <= 1);
+                // Here we add the full reaction JSON to the output list.
+                reactionJson.add(reactionObject);
                 // Now we connect the reaction to its triggering features.
                 String reactionId = reaction.getId();
-                for (String fid : reaction.getFeatures()) {
+                for (String fid : fidList) {
                     JsonObject trigger = new JsonObject();
                     trigger.put("reaction_id", reactionId);
                     trigger.put("patric_id", fid);
