@@ -43,7 +43,6 @@ import org.theseed.io.LineReader;
  *
  * The relationship definitions follow each entity.  A relationship definition describes a many-to-one
  * connection between entities and contains a template for the forward direction and the reverse direction.
- * Both of these templates are defined in terms of the source record (that is, the one on the "many" side.)
  * The Relationship command's parameters are (1) source entity type name, (2) column name for the source entity ID,
  * (3) target entity type name, and (4) column name for the target entity ID.  In a normal entity, the source
  * entity type name and ID column name describe the current entity itself.  Thus, a relationship in the Genome
@@ -52,7 +51,6 @@ import org.theseed.io.LineReader;
  * SubsystemCell ternary relationship entity never specifies itself as a source; rather, the source is either
  * Subsystem, Genome, or Role. The relationship definition is always three lines:  the header, the forward
  * template, and the converse template.
- *
  *
  * @author Bruce Parrello
  *
