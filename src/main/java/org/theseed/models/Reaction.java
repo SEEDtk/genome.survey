@@ -269,4 +269,11 @@ public class Reaction {
         return this.features;
     }
 
+    /**
+     * @return the ID of the genome containing the reaction
+     */
+    public String getGenomeId() {
+        return this.genomeId;
+    }
+
 }

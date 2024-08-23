@@ -209,6 +209,9 @@ public class ModelDumpFixProcessor extends BaseProcessor {
                     JsonObject trigger = new JsonObject();
                     trigger.put("reaction_id", reactionId);
                     trigger.put("patric_id", fid);
+                    trigger.put("name", reaction.getName());
+                    trigger.put("genome_id", reaction.getGenomeId());
+                    trigger.put("gene_rule", reaction.getGeneRule());
                     triggerJson.add(trigger);
                 }
             }
