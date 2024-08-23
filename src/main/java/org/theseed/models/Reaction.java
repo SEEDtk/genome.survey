@@ -49,7 +49,7 @@ public class Reaction {
     /** empty JSON hash */
     private static final JsonObject EMPTY_MAP = new JsonObject();
     /** pattern for finding FIG IDs */
-    private static final Pattern FID_PATTERN = Pattern.compile("fig\\|\\d+\\.\\w+\\.\\d+");
+    private static final Pattern FID_PATTERN = Pattern.compile("fig\\|\\d+\\.\\d+\\.\\w+\\.\\d+");
 
     /** This enum defines the keys used and their default values.
      */

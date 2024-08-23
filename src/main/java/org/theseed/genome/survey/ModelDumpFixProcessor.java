@@ -195,7 +195,6 @@ public class ModelDumpFixProcessor extends BaseProcessor {
             JsonArray reactionJson = new JsonArray();
             JsonArray triggerJson = new JsonArray();
             Collection<Reaction> reactions = model.getReactions().values();
-            reactions.stream().forEach(x -> reactionJson.add(x.toJson()));
             for (Reaction reaction : reactions) {
                 // Get the list of triggering features.
                 Collection<String> fidList = reaction.getFeatures();

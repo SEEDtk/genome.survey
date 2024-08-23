@@ -58,6 +58,7 @@ class TestModels {
         assertThat(r.getReactants(), containsInAnyOrder("PPi [Cytosol]", "H+ [Cytosol]",
                 "IMP [Cytosol]"));
         assertThat(r.getProducts(), containsInAnyOrder("PRPP [Cytosol]", "HYXN [Cytosol]"));
+        assertThat(r.getFeatures(), containsInAnyOrder("fig|1266996.3.peg.441"));
         JsonObject rJson = r.toJson();
         assertThat(rJson.get("id"), equalTo("rxn00836_c0"));
         assertThat(rJson.get("name"), equalTo("IMP:diphosphate phospho-D-ribosyltransferase [Cytosol]"));
