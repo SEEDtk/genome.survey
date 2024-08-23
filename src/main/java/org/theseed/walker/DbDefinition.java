@@ -289,19 +289,19 @@ public class DbDefinition {
                             log.info("Reading instances for {} from {}.", type.getName(), inFile);
                             long lastMsg = System.currentTimeMillis();
                             int inCount = 0;
-                            int skipCount = 0;
+                            int storeCount = 0;
                             for (var record : inStream) {
                                 inCount++;
                                 EntityInstance newInstance = builder.build(record, retVal);
-                                if (newInstance == null)
-                                    skipCount++;
+                                if (newInstance != null)
+                                    storeCount++;
                                 long now = System.currentTimeMillis();
                                 if (now - lastMsg >= 5000) {
                                     log.info("{} records processed in {}.", inCount, inFile);
                                     lastMsg = now;
                                 }
                             }
-                            log.info("{} total records processed in {}: {} skipped.", inCount, inFile, skipCount);
+                            log.info("{} total records processed in {}: {} storeed.", inCount, inFile, storeCount);
                             recordCount += inCount;
                         }
                     }
