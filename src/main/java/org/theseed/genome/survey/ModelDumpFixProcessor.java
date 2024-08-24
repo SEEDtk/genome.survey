@@ -72,6 +72,8 @@ public class ModelDumpFixProcessor extends BaseProcessor {
     private ForkJoinPool threadPool;
     /** genome directory name match pattern */
     private static final Pattern GENOME_ID_PATTERN = Pattern.compile("\\d+\\.\\d+");
+    /** array of two booleans */
+    private static final boolean[] BOOLS = new boolean[] { true, false };
     /** genome sub-directory file filter */
     private static final FileFilter GENOME_SUB_DIR_FILTER = new FileFilter() {
         @Override
@@ -168,8 +170,10 @@ public class ModelDumpFixProcessor extends BaseProcessor {
     private void processModel(File gDir) {
         String genomeId = gDir.getName();
         File modelFile = new File(this.modelDir, genomeId + ".json");
+        // We write out the reactions, the triggers (reaction to feature) and the linkages (reaction to compound).
         File reactionFile = new File(gDir, "reactions.json");
         File triggerFile = new File(gDir, "triggers.json");
+        File linkageFile = new File(gDir, "linkages.json");
         if (! modelFile.canRead()) {
             // No model file, so create an empty reaction list.
             log.info("No model file found for genome {}.", genomeId);
@@ -191,9 +195,11 @@ public class ModelDumpFixProcessor extends BaseProcessor {
             }
             // Construct the model object.
             Model model = new Model(modelJson);
-            // Get the reactions and convert them to JSON. We will also create the trigger list.
+            // Get the reactions and convert them to JSON. We will also create the trigger list
+            // and the linkage list.
             JsonArray reactionJson = new JsonArray();
             JsonArray triggerJson = new JsonArray();
+            JsonArray linkageJson = new JsonArray();
             Collection<Reaction> reactions = model.getReactions().values();
             for (Reaction reaction : reactions) {
                 // Get the list of triggering features.
@@ -205,14 +211,29 @@ public class ModelDumpFixProcessor extends BaseProcessor {
                 reactionJson.add(reactionObject);
                 // Now we connect the reaction to its triggering features.
                 String reactionId = reaction.getId();
+                String reactionName = reaction.getName();
                 for (String fid : fidList) {
                     JsonObject trigger = new JsonObject();
                     trigger.put("reaction_id", reactionId);
                     trigger.put("patric_id", fid);
-                    trigger.put("name", reaction.getName());
-                    trigger.put("genome_id", reaction.getGenomeId());
+                    trigger.put("name", reactionName);
+                    trigger.put("genome_id", genomeId);
                     trigger.put("gene_rule", reaction.getGeneRule());
                     triggerJson.add(trigger);
+                }
+                // Finally we connect the reaction to its compounds. We have a kludgy
+                // method here for getting both products and reactants.
+                for (boolean isProduct : BOOLS) {
+                    List<String> compounds = (isProduct ? reaction.getProducts() : reaction.getReactants());
+                    for (String compound : compounds) {
+                        JsonObject linkage = new JsonObject();
+                        linkage.put("genome_id", genomeId);
+                        linkage.put("reaction_id", reactionId);
+                        linkage.put("reaction_name", reactionName);
+                        linkage.put("product", isProduct);
+                        linkage.put("cname", compound);
+                        linkageJson.add(linkage);
+                    }
                 }
             }
             // Write the reactions to the output.
@@ -221,9 +242,15 @@ public class ModelDumpFixProcessor extends BaseProcessor {
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
-            // Now we write out the trigger file.
+            // Now we write out the trigger file, which connects features to reactions.
             try (PrintWriter writer = new PrintWriter(triggerFile)) {
                 Jsoner.serialize(triggerJson, writer);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+            // Finally we write the linkage file, which links reactions to compounds.
+            try (PrintWriter writer = new PrintWriter(linkageFile)) {
+                Jsoner.serialize(linkageJson, writer);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
