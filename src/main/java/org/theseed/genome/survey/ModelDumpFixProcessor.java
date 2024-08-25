@@ -205,9 +205,9 @@ public class ModelDumpFixProcessor extends BaseProcessor {
                 // Get the list of triggering features.
                 Collection<String> fidList = reaction.getFeatures();
                 // Set the simple flag.
-                JsonObject reactionObject = reaction.toJson();
-                reactionObject.put("simple", fidList.size() <= 1);
+                boolean simple = (fidList.size() <= 1);
                 // Here we add the full reaction JSON to the output list.
+                JsonObject reactionObject = reaction.toJson();
                 reactionJson.add(reactionObject);
                 // Now we connect the reaction to its triggering features.
                 String reactionId = reaction.getId();
@@ -219,6 +219,7 @@ public class ModelDumpFixProcessor extends BaseProcessor {
                     trigger.put("name", reactionName);
                     trigger.put("genome_id", genomeId);
                     trigger.put("gene_rule", reaction.getGeneRule());
+                    trigger.put("simple", simple);
                     triggerJson.add(trigger);
                 }
                 // Finally we connect the reaction to its compounds. We have a kludgy
