@@ -8,34 +8,28 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.FieldInputStream;
-import org.theseed.io.template.LineTemplate;
-
-import com.knuddels.jtokkit.Encodings;
-import com.knuddels.jtokkit.api.Encoding;
-import com.knuddels.jtokkit.api.EncodingRegistry;
-import com.knuddels.jtokkit.api.EncodingType;
 
 
 /**
  * An entity type contains instructions for reading an entity.  To read an entity, we need to know the
- * file name, the type name, the template strings for the attributes, and the definitions of the
- * relationships.  When we create an entity instance, we will use these to build the output sentences
- * for the attributes and the relationships.  In the case of the relationship, we will also need to
- * know the ID and type of the destination entity.  This information is in the relationship definition.
+ * file name, the type name, and the definitions of the relationships.  In the case of the relationship,
+ * we will also need to know the ID and type of the destination entity.  This information is in the
+ * relationship definition.
+ *
  * Note that some entities don't have files and are only built as a result of a relationship crossing.
  *
  * An entity type is identified solely by name.  The types are sorted by descending priority (0 is lowest)
  * followed by name.
  *
- * If the ID column name is "generated", then the entity IDs are generated at run-time.
+ * If the ID column name is "null", then the entity is actually a table representing a many-to-many relationship,
+ * and will not have any entity instances.
  *
  * @author Bruce Parrello
  *
  */
-public class EntityType implements Comparable<EntityType> {
+public abstract class EntityType implements Comparable<EntityType> {
 
     // FIELDS
     /** entity type name */
@@ -44,8 +38,6 @@ public class EntityType implements Comparable<EntityType> {
     private String fileName;
     /** ID column name */
     private String idColName;
-    /** list of attribute templates */
-    private List<String> attributeStrings;
     /** list of relationship definitions */
     private List<RelationshipType> relationships;
     /** priority */
@@ -53,109 +45,7 @@ public class EntityType implements Comparable<EntityType> {
     /** token counter */
     private long tokenCount;
     /** special ID for connector records */
-    private static final String NULL_ID = "<connector>";
-
-    /**
-     * This is a helper class for building an entity instance from an entity type.
-     */
-    public class Builder {
-
-        /** ID column index, or -1 for generated */
-        private int idColIdx;
-        /** attribute templates */
-        private Collection<LineTemplate> attributeBuilders;
-        /** relationship builders */
-        private Collection<RelationBuilder> relationBuilders;
-        /** encoding for token counter */
-        private Encoding encoder;
-
-        /**
-         * Create an instance builder for this entity type on a given input stream.
-         *
-         * @param instanceStream	input stream for entity instances
-         *
-         * @throws IOException
-         * @throws ParseFailureException
-         */
-        public Builder(FieldInputStream instanceStream) throws IOException, ParseFailureException {
-            this.attributeBuilders = EntityType.this.getAttributeTemplates(instanceStream);
-            this.relationBuilders = EntityType.this.getRelationshipBuilders(instanceStream);
-            if (EntityType.this.idColName == null)
-                this.idColIdx = -1;
-            else
-                this.idColIdx = instanceStream.findField(EntityType.this.idColName);
-            EncodingRegistry registry = Encodings.newDefaultEncodingRegistry();
-            this.encoder = registry.getEncoding(EncodingType.CL100K_BASE);
-        }
-
-        /**
-         * Compute the ID of the current entity instance.
-         *
-         * @param record	instance input record
-         */
-        protected String computeId(FieldInputStream.Record record) {
-             String retVal;
-             if (this.idColIdx < 0) {
-                 // Here we have a connector record with no ID.
-                 retVal = NULL_ID;
-             } else {
-                 // Here there is a natural ID in the input record.
-                 retVal = record.get(this.idColIdx);
-             }
-             return retVal;
-        }
-
-        /**
-         * Build an entity instance from an input record.
-         *
-         * @param record	input record to use
-         * @param db		database instance containing the entities
-         *
-         * @return the new entity instance, or NULL if there is none in this record
-         */
-        public EntityInstance build(FieldInputStream.Record record, DbInstance db) {
-            EntityInstance retVal = null;
-            // Get the entity ID.
-            String entityId = this.computeId(record);
-            // Only proceed if we have an ID for this entity.
-            if (! StringUtils.isBlank(entityId)) {
-                // We will count tokens in here.
-                int tokenCount = 0;
-                // If this is a real entity, set up the attributes and create an instance.
-                if (! entityId.contentEquals(NULL_ID)) {
-                    // Find or create the entity instance.
-                    retVal = db.findEntity(EntityType.this, entityId);
-                    // Loop through the attribute strings, creating the attributes.
-                    for (LineTemplate template : this.attributeBuilders) {
-                        String attributeString = template.apply(record);
-                        if (! StringUtils.isBlank(attributeString)) {
-                            retVal.addAttribute(attributeString);
-                            tokenCount += this.encoder.countTokens(attributeString);
-                        }
-                    }
-                }
-                // Loop through the relationship builders, creating the relationship instances
-                // in each direction.
-                for (RelationBuilder builder : this.relationBuilders) {
-                    String forwardString = builder.getForwardString(record);
-                    EntityInstance targetInstance = builder.getTarget(record, db);
-                    EntityInstance sourceInstance = builder.getSource(record, db);
-                    // Only proceed if there is a source and a target.
-                    if (sourceInstance != null && targetInstance != null) {
-                        String converseString = builder.getConverseString(record);
-                        sourceInstance.addConnection(new RelationshipInstance(forwardString, targetInstance));
-                        targetInstance.addConnection(new RelationshipInstance(converseString, sourceInstance));
-                        tokenCount += this.encoder.countTokens(forwardString) + this.encoder.countTokens(converseString);
-                    }
-                }
-                // Update the token count.
-                EntityType.this.tokenCount += tokenCount;
-            }
-            return retVal;
-        }
-
-    }
-
+    protected static final String NULL_ID = "<connector>";
 
     /**
      * Create a new, blank entity type.
@@ -166,7 +56,6 @@ public class EntityType implements Comparable<EntityType> {
         this.name = name;
         this.fileName = null;
         this.idColName = null;
-        this.attributeStrings = new ArrayList<String>();
         this.relationships = new ArrayList<RelationshipType>();
         this.tokenCount = 0;
         this.priority = 0;
@@ -221,9 +110,7 @@ public class EntityType implements Comparable<EntityType> {
      *
      * @param line	line containing the template string
      */
-    public void addAttribute(String line) {
-        this.attributeStrings.add(line);
-    }
+    protected abstract void addAttribute(String line);
 
     /**
      * Specify the name of this entity type's ID column
@@ -262,26 +149,6 @@ public class EntityType implements Comparable<EntityType> {
     }
 
     /**
-     * Compute the set of attribute line templates for this entity using the specified
-     * input stream.
-     *
-     * @param inStream		input stream for this entity's instances
-     *
-     * @return a collection of line templates for all the attribute sentences
-     *
-     * @throws ParseFailureException
-     * @throws IOException
-     */
-    public Collection<LineTemplate> getAttributeTemplates(FieldInputStream inStream) throws IOException, ParseFailureException {
-        List<LineTemplate> retVal = new ArrayList<LineTemplate>(this.attributeStrings.size());
-        for (String attributeString : this.attributeStrings) {
-            LineTemplate attributeTemplate = new LineTemplate(inStream, attributeString, null);
-            retVal.add(attributeTemplate);
-        }
-        return retVal;
-    }
-
-    /**
      * @return the name of the ID column in the entity's instance file
      */
     public String getIdColName() {
@@ -308,13 +175,6 @@ public class EntityType implements Comparable<EntityType> {
     }
 
     /**
-     * @return the number of attributes for this entity type
-     */
-    public int getAttributeCount() {
-        return this.attributeStrings.size();
-    }
-
-    /**
      * @return the number of tokens generated building this entity
      */
     public long getTokenCount() {
@@ -329,6 +189,13 @@ public class EntityType implements Comparable<EntityType> {
     public void addRelationship(RelationshipType rel) {
         this.relationships.add(rel);
     }
+
+    /**
+     * @return a set of attribute builders for this entity type
+     *
+     * @param instanceStream	input stream containing the records from which the attributes will be built
+     */
+    protected abstract Collection<AttributeBuilder> getAttributeBuilders(FieldInputStream instanceStream);
 
 
 }

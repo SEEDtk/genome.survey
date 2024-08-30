@@ -9,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.FieldInputStream;
 import org.theseed.io.FieldInputStream.Record;
-import org.theseed.io.template.LineTemplate;
 
 /**
  * A relationship builder contains the templates we need to build relationship instances.  Each builder will
@@ -21,10 +20,6 @@ import org.theseed.io.template.LineTemplate;
 public class RelationBuilder {
 
     // FIELDS
-    /** template for the forward sentence */
-    private LineTemplate forwardTemplate;
-    /** template for the converse sentence */
-    private LineTemplate converseTemplate;
     /** column index for source entity ID */
     private int sourceIdColIdx;
     /** source entity type */
@@ -33,6 +28,8 @@ public class RelationBuilder {
     private int targetIdColIdx;
     /** target entity type name */
     private EntityType targetType;
+    /** relationship type */
+    private RelationshipType relType;
 
     /**
      * Construct a relation builder for a specified relationship type from a given entity type.
@@ -45,23 +42,11 @@ public class RelationBuilder {
      * @throws IOException
      */
     public RelationBuilder(RelationshipType relType, FieldInputStream inStream) throws IOException, ParseFailureException {
-        this.forwardTemplate = new LineTemplate(inStream, relType.getForwardSentence(), null);
-        this.converseTemplate = new LineTemplate(inStream, relType.getConverseSentence(), null);
         this.targetIdColIdx = inStream.findField(relType.getTargetColName());
         this.targetType = relType.getTargetType();
         this.sourceIdColIdx = inStream.findField(relType.getSourceColName());
         this.sourceType = relType.getSourceType();
-    }
-
-    /**
-     * Compute the connection sentence for the relationship instance in the forward direction.
-     *
-     * @param record	entity instance input record
-     *
-     * @return the appropriate forward-direction sentence
-     */
-    public String getForwardString(Record record) {
-        return this.forwardTemplate.apply(record);
+        this.relType = relType;
     }
 
     /**
@@ -115,14 +100,11 @@ public class RelationBuilder {
     }
 
     /**
-     * Compute the connection sentence for the relationship instance in the converse direction.
-     *
-     * @param record	entity instance input record
-     *
-     * @return the appropriate forward-direction sentence
+     * @return the relationship type
      */
-    public String getConverseString(Record record) {
-        return this.converseTemplate.apply(record);
+    public RelationshipType getRelType() {
+        return this.relType;
     }
+
 
 }

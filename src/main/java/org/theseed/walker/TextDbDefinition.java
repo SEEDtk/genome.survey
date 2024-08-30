@@ -56,7 +56,7 @@ import org.theseed.io.LineReader;
  * @author Bruce Parrello
  *
  */
-public abstract class DbDefinition {
+public class TextDbDefinition extends DbDefinition {
 
     // FIELDS
     /** logging facility */
@@ -78,7 +78,8 @@ public abstract class DbDefinition {
      * @throws IOException
      * @throws ParseFailureException
      */
-    public DbDefinition(File fileName) throws IOException, ParseFailureException {
+    public TextDbDefinition(File fileName) throws IOException, ParseFailureException {
+        super(fileName);
         log.info("Reading database definition from {}.", fileName);
         // Create the entity map.
         this.entityMap = new TreeMap<String, EntityType>();
@@ -135,7 +136,7 @@ public abstract class DbDefinition {
         // Now we need to read through the attributes.  The method will return the next header line, or NULL if we hit
         // end-of-file.
         String retVal = this.readAttributes(entity, iter);
-        // Try to read the relationships, Again, we return the next header line or NULL.
+        // Try to read the relationships.
         retVal = this.readRelationships(entity, iter, retVal);
         // Return the next entity's header line.
         return retVal;
@@ -149,17 +150,8 @@ public abstract class DbDefinition {
      * @return an entity type definition for the given type name
      */
     public EntityType findEntityType(String typeName) {
-        return this.entityMap.computeIfAbsent(typeName, x -> this.createEntityType(x));
+        return this.entityMap.computeIfAbsent(typeName, x -> new EntityType(x));
     }
-
-    /**
-     * Create a blank entity type definition for the specified type name.
-     *
-     * @param name		the entity type name
-     *
-     * @return the entity type definition
-     */
-    protected abstract EntityType createEntityType(String name);
 
     /**
      * Read the next line and update the line count.
@@ -225,41 +217,31 @@ public abstract class DbDefinition {
             // the target ID column name.
             EntityType sourceType = this.findEntityType(parms[1]);
             EntityType targetType = this.findEntityType(parms[3]);
-            // Create the relationship and read its definition.
-            RelationshipType rel = this.createRelationshipType(sourceType, parms[2], targetType, parms[4]);
-            retVal = this.processRelationshipDefinition(rel, iter);
+//            RelationshipType rel = this.createRelationshipType(sourceType, parms[2], targetType, parms[4]);
+//            this.processRelationshipDefinition(rel, iter);
+//            // Read the forward-direction template sentence.
+//            if (! iter.hasNext())
+//                throw new ParseFailureException("Missing template strings for relationship in line " + this.lineCount + " of definition file.");
+//            String forward = iter.next();
+//            // Read the converse-direction template sentence.
+//            if (! iter.hasNext())
+//                throw new ParseFailureException("Missing converse-direction template string for relationship in line " +
+//                        this.lineCount + " of defition file.");
+//            String converse = iter.next();
+//            // Record the two lines read and the fact we have a new relationship type.
+//            this.lineCount += 2;
+//            this.relCount++;
+//            // Store the template strings.
+//            rel.setTemplateStrings(forward, converse);
+//            // Save the relationship.
+//            entity.addRelationship(rel);
             // Save the relationship.
-            entity.addRelationship(rel);
+//            entity.addRelationship(rel);
+            // Get the next record.
+            retVal = this.readNext(iter);
         }
         return retVal;
     }
-
-    /**
-     * This method gets control after the relationship header has been read and the relationship created.
-     * The relationship definition records are processed here.
-     *
-     * @param rel		relationship type
-     * @param iter		iterator through the input file, positioned before the first definintion record
-     *
-     * @return the next header record, or NULL if we have reached end-of-file
-     */
-    protected abstract String processRelationshipDefinition(RelationshipType rel, Iterator<String> iter);
-
-    /**
-     * Create a new relationship type definition. Note that a relationship is usually defined in terms of
-     * the source entity record, and the column names are from that record, implying the relationship is
-     * many-to-one. For a many-to-many relationship, however, the "entity" is a table containing
-     * records with both IDs.
-     *
-     * @param sourceType		source entity type
-     * @param sourceIdColname	name of the column containing the source ID
-     * @param targetType		target entity type
-     * @param targetIdColName	name of the column containing the target ID
-     *
-     * @return the new relationship type definition
-     */
-    protected abstract RelationshipType createRelationshipType(EntityType sourceType, String sourceIdColName,
-            EntityType targetType, String targetIdColName);
 
     /**
      * @return a sorted list of entity names, in priority order
@@ -284,7 +266,7 @@ public abstract class DbDefinition {
     public DbInstance readDatabase(File... inDirs) throws IOException, ParseFailureException {
         // Create the output database instance.
         List<String> typeNames = this.getEntityNameList();
-        DbInstance retVal = this.createDbInstance(typeNames);
+        DbInstance retVal = new TextDbInstance(typeNames);
         // Set up the file and directory counters.
         int dirCount = 0;
         int fileCount = 0;
@@ -332,26 +314,47 @@ public abstract class DbDefinition {
             }
         }
         log.info("{} directories and {} files processed.  {} total records processed.", dirCount, fileCount, recordCount);
-        this.postProcessEntities(retVal, this.entityMap.values());
+        // Now we loop through the entity instances.  For each one, we shuffle the attribute and relationship lists to
+        // get them in random order, and then we output the total token and instance counts for each entity type.
+        long tokenTotal = 0;
+        for (EntityType type : this.entityMap.values()) {
+            String typeName = type.getName();
+            long typeTokens = type.getTokenCount();
+            tokenTotal += typeTokens;
+               log.info("Entity type {} has {} instances and generated {} tokens.", typeName, retVal.getTypeCount(typeName), typeTokens);
+            for (EntityInstance instance : retVal.getAllEntities(typeName)) {
+                TextEntityInstance textInstance = (TextEntityInstance) instance;
+                textInstance.shuffleAll();
+            }
+        }
+        log.info("{} total tokens generated in database.", tokenTotal);
         // Return the built database.
         return retVal;
     }
 
-    /**
-     * Post-process all the entity types to perform final cleanup and compute totals.
-     *
-     * @param instance		database instance created
-     * @param entityTypes	list of entity type objects for the database
-     */
-    protected abstract void postProcessEntities(DbInstance instance, Collection<EntityType> entityTypes);
+    @Override
+    protected void processRelationshipDefinition(RelationshipType rel, Iterator<String> iter) {
+        // TODO code for processRelationshipDefinition
 
-    /**
-     * Create a new, empty database instance.
-     *
-     * @param typeNames		list of entity type names
-     *
-     * @return the empty database instance created
-     */
-    protected abstract DbInstance createDbInstance(List<String> typeNames);
+    }
+
+    @Override
+    protected RelationshipType createRelationshipType(EntityType sourceType, String string, EntityType targetType,
+            String string2) {
+        // TODO code for createRelationshipType
+        return null;
+    }
+
+    @Override
+    protected void postProcessEntities(Collection<EntityType> entityTypes) {
+        // TODO code for postProcessEntities
+
+    }
+
+    @Override
+    protected DbInstance createDbInstance(List<String> typeNames) {
+        // TODO code for createDbInstance
+        return null;
+    }
 
 }

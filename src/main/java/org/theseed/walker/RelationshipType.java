@@ -5,26 +5,23 @@ package org.theseed.walker;
 
 /**
  * A relationship type describes a connection between two entity types.  It only exists
- * for the many-to-one direction.  It consists of a template for producing the output sentence
- * in each direction, the source and target entity types, and the column name
- * for the ID of the target entity.  When we process an entity instance, we will use
- * the relationship types to compute the crossings to the target entities, and then
- * attach the converse crossing to those targets.
+ * for the many-to-one direction.  It consists of the source and target entity types, and
+ * the column name for the IDs of the source and target entities.  In most case the source
+ * entity ID will be the ID of the table used to compute the relationship instances. The
+ * exception is when a many-to-many relationship is stored in a table of its own.
+ * When we process an entity instance, we will use the entity's relationship types to compute
+ * the crossings to the target entities, and then attach the converse crossing to those targets.
  *
  * @author Bruce Parrello
  *
  */
-public class RelationshipType {
+public abstract class RelationshipType {
 
     // FIELDS
     /** source entity type */
     private EntityType source;
     /** target entity type */
     private EntityType target;
-    /** forward relationship template string */
-    private String forwardSentence;
-    /** converse relationship sentence string */
-    private String converseSentence;
     /** source entity column name */
     private String sourceColName;
     /** target entity column name */
@@ -43,33 +40,6 @@ public class RelationshipType {
         this.sourceColName = sourceCol;
         this.target = targetType;
         this.targetColName = targetCol;
-        this.forwardSentence = "";
-        this.converseSentence = "";
-    }
-
-    /**
-     * @return the forward-direction template string
-     */
-    public String getForwardSentence() {
-        return this.forwardSentence;
-    }
-
-    /**
-     * @return the converse-direction template string
-     */
-    public String getConverseSentence() {
-        return this.converseSentence;
-    }
-
-    /**
-     * Specify the forward and converse template strings.
-     *
-     * @param forward		forward-direction (many-to-one) template string
-     * @param converse		converse-direction (one-to-many) template string
-     */
-    public void setTemplateStrings(String forward, String converse) {
-        this.forwardSentence = forward;
-        this.converseSentence = converse;
     }
 
     /**
@@ -99,5 +69,21 @@ public class RelationshipType {
     public EntityType getSourceType() {
         return this.source;
     }
+
+    /**
+     * @param sourceInstance
+     * @param targetInstance
+     * @return
+     */
+    protected abstract RelationshipInstance getForwardInstance(EntityInstance sourceInstance,
+            EntityInstance targetInstance);
+
+    /**
+     * @param sourceInstance
+     * @param targetInstance
+     * @return
+     */
+    protected abstract RelationshipInstance getReverseInstance(EntityInstance sourceInstance,
+            EntityInstance targetInstance);
 
 }

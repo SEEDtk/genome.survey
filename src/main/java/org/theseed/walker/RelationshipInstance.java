@@ -3,19 +3,19 @@
  */
 package org.theseed.walker;
 
+import org.theseed.io.FieldInputStream.Record;
+
 /**
  * A relationship describes a unidirectional crossing between two entity instances.
- * It contains a sentence describing the crossing and the target entity instance
- * and is stored in the source entity instance.
+ * It contains data used to find the target entity instance and is stored in the
+ * source entity instance.
  *
  * @author Bruce Parrello
  *
  */
-public class RelationshipInstance {
+public abstract class RelationshipInstance {
 
     // FIELDS
-    /** relationship crossing sentence */
-    private String crossingSentence;
     /** target entity type */
     private String targetType;
     /** target entity ID */
@@ -25,24 +25,20 @@ public class RelationshipInstance {
     /**
      * Create a new relationship instance.
      *
-     * @param sentence		crossing sentence
      * @param destType		target entity type name
      * @param id			target instance ID
      */
-    public RelationshipInstance(String sentence, String destType, String id) {
-        this.crossingSentence = sentence;
+    public RelationshipInstance(String destType, String id) {
         this.targetType = destType;
         this.targetId = id;
     }
 
     /**
-     * Convstruct a relationship instance with the specified text string and target entity.
+     * Convstruct a relationship instance with the specified target entity instance
      *
-     * @param connectString		relationship description string
      * @param targetInstance	target entity instance
      */
-    public RelationshipInstance(String connectString, EntityInstance targetInstance) {
-        this.crossingSentence = connectString;
+    public RelationshipInstance(EntityInstance targetInstance) {
         this.targetType = targetInstance.getType();
         this.targetId = targetInstance.getId();
     }
@@ -59,10 +55,13 @@ public class RelationshipInstance {
     }
 
     /**
-     * @return the crossing sentence
+     * @param relType
+     * @param db
+     * @param record
+     * @param sourceInstance
+     * @param targetInstance
      */
-    public String getSentence() {
-        return this.crossingSentence;
-    }
+    protected abstract void addConnection(RelationshipType relType, DbInstance db, Record record,
+            EntityInstance sourceInstance, EntityInstance targetInstance);
 
 }
