@@ -93,9 +93,9 @@ public class EntityBuilder {
                 EntityInstance sourceInstance = builder.getSource(record, db);
                 // Only proceed if there is a source and a target.
                 if (sourceInstance != null && targetInstance != null) {
-                    RelationshipInstance forward = builder.getForwardInstance(record, sourceInstance, targetInstance);
+                    RelationshipInstance forward = builder.getForwardInstance(db, record, sourceInstance, targetInstance);
                     sourceInstance.addConnection(forward);
-                    RelationshipInstance reverse = builder.getReverseInstance(record, sourceInstance, targetInstance);
+                    RelationshipInstance reverse = builder.getReverseInstance(db, record, sourceInstance, targetInstance);
                     targetInstance.addConnection(reverse);
                 }
                 db.addRelCount(2);

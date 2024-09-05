@@ -8,6 +8,7 @@ import java.io.IOException;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.FieldInputStream;
 import org.theseed.io.template.LineTemplate;
+import org.theseed.memdb.DbInstance;
 import org.theseed.memdb.EntityInstance;
 import org.theseed.memdb.RelationBuilder;
 import org.theseed.memdb.RelationshipInstance;
@@ -41,13 +42,15 @@ public class TextRelationBuilder extends RelationBuilder {
     }
 
     @Override
-    protected RelationshipInstance getForwardInstance(FieldInputStream.Record record, EntityInstance sourceInstance, EntityInstance targetInstance) {
-        return this.buildInstance(this.forwardTemplate, record, targetInstance);
+    protected RelationshipInstance getForwardInstance(DbInstance db, FieldInputStream.Record record, EntityInstance sourceInstance,
+            EntityInstance targetInstance) {
+        return this.buildInstance(db, this.forwardTemplate, record, targetInstance);
     }
 
     @Override
-    protected RelationshipInstance getReverseInstance(FieldInputStream.Record record, EntityInstance sourceInstance, EntityInstance targetInstance) {
-        return this.buildInstance(this.reverseTemplate, record, sourceInstance);
+    protected RelationshipInstance getReverseInstance(DbInstance db, FieldInputStream.Record record, EntityInstance sourceInstance,
+            EntityInstance targetInstance) {
+        return this.buildInstance(db, this.reverseTemplate, record, sourceInstance);
     }
 
     /**
@@ -59,9 +62,11 @@ public class TextRelationBuilder extends RelationBuilder {
      *
      * @return the relationship instance built
      */
-    private RelationshipInstance buildInstance(LineTemplate template, FieldInputStream.Record record,
+    private RelationshipInstance buildInstance(DbInstance db, LineTemplate template, FieldInputStream.Record record,
             EntityInstance target) {
         String crossingText = template.apply(record);
+        TextDbInstance textDb = (TextDbInstance) db;
+        textDb.countTokens(crossingText);
         return new TextRelationshipInstance(crossingText, target);
     }
 

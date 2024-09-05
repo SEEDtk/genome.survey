@@ -106,20 +106,22 @@ public abstract class RelationBuilder {
     }
 
     /**
+     * @param db
      * @param record
      * @param sourceInstance
      * @param targetInstance
      * @return
      */
-    protected abstract RelationshipInstance getForwardInstance(FieldInputStream.Record record, EntityInstance sourceInstance,
+    protected abstract RelationshipInstance getForwardInstance(DbInstance db, FieldInputStream.Record record, EntityInstance sourceInstance,
             EntityInstance targetInstance);
 
     /**
+     * @param db
      * @param sourceInstance
      * @param targetInstance
      * @return
      */
-    protected abstract RelationshipInstance getReverseInstance(FieldInputStream.Record record, EntityInstance sourceInstance,
+    protected abstract RelationshipInstance getReverseInstance(DbInstance db, FieldInputStream.Record record, EntityInstance sourceInstance,
             EntityInstance targetInstance);
 
 
