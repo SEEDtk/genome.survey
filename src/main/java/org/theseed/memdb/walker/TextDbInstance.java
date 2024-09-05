@@ -4,8 +4,10 @@
 package org.theseed.memdb.walker;
 
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.knuddels.jtokkit.Encodings;
 import com.knuddels.jtokkit.api.Encoding;
@@ -67,13 +69,77 @@ public class TextDbInstance extends DbInstance {
     }
 
     /**
-     * Generate a random walk and output it to the specified output stream.
+     * Generate a random walk and output it to the specified output stream.  Note that the
+     * random walk destroys the database instance as it goes.
      *
      * @param writer	print writer for the walk output
      */
     public void generateWalk(PrintWriter writer) {
-        // TODO code for generateWalk
+        this.attrCount = 0;
+        this.crossCount = 0;
+        long walkCount = 0;
+        // Link all the entity instances into a master list.  We process the types in priority order.
+        List<TextEntityInstance> masterList = new ArrayList<TextEntityInstance>();
+        for (String typeName : this.getTypeNames()) {
+            var entityMap = this.getEntityMap(typeName);
+            // Only proceed if this is a real entity. We get all of its instances.
+            if (entityMap != null) {
+                for (EntityInstance x : entityMap.values())
+                    masterList.add((TextEntityInstance) x);
+            }
+        }
+        int passCount = 0;
+        while (! masterList.isEmpty()) {
+            passCount++;
+            log.info("{} entity instances in master list for pass {}.", masterList.size(), passCount);
+            long lastMsg = System.currentTimeMillis();
+            // Loop through the entities, processing the undeleted ones.
+            for (TextEntityInstance curr : masterList) {
+                if (! curr.isDeleted()) {
+                    this.processEntity(writer, curr);
+                    walkCount++;
+                    long now = System.currentTimeMillis();
+                    if (now - lastMsg >= 5000) {
+                        log.info("{} walks completed. {} attributes written, {} crossings.", walkCount,
+                                this.attrCount, this.crossCount);
+                        lastMsg = now;
+                    }
+                }
+            }
+            // Clean deleted entities from the list.
+            log.info("Cleaning the list.");
+            List<TextEntityInstance> newList = masterList.stream().filter(x -> ! x.isDeleted()).collect(Collectors.toList());
+            masterList = newList;
+        }
+        log.info("{} total walks completed in {} passes. {} attributes written, {} crossings.",
+                walkCount, passCount, this.attrCount, this.crossCount);
+    }
 
+    /**
+     * Produce the longest possible walk from the specified entity instance.
+     *
+     * @param writer	current output text writer
+     * @param first		entity instance from which to start the walk.
+     */
+    private void processEntity(PrintWriter writer, TextEntityInstance first) {
+        TextEntityInstance nextEntity = first;
+        while (nextEntity != null) {
+            // Check for an attribute to write.
+            boolean found = nextEntity.popAttribute(writer);
+            // Check for a relationship to write.
+            TextEntityInstance target = nextEntity.popRelationship(writer, this);
+            if (target == null && ! found) {
+                // Here we have no more data on this entity, so we need to delete it.
+                this.removeFromMap(nextEntity);
+            } else {
+                if (target != null)
+                    this.crossCount++;
+                if (found)
+                    this.attrCount++;
+            }
+            // Keep walking.  If the target was NULL, we will stop.
+            nextEntity = target;
+        }
     }
 
     /**
