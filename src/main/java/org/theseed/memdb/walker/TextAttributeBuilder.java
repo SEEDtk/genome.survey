@@ -5,6 +5,7 @@ package org.theseed.memdb.walker;
 
 import java.io.IOException;
 
+import org.apache.commons.lang3.StringUtils;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.FieldInputStream;
 import org.theseed.io.template.LineTemplate;
@@ -48,11 +49,15 @@ public class TextAttributeBuilder extends AttributeBuilder {
     @Override
     protected void processAttribute(DbInstance db, FieldInputStream.Record record, EntityInstance instance) {
         String attribute = template.apply(record);
-        TextEntityInstance textInstance = (TextEntityInstance) instance;
-        textInstance.addAttribute(attribute);
-        TextDbInstance textDb = (TextDbInstance) db;
-        long count = textDb.countTokens(attribute);
-        this.entityType.countTokens(count);
+        // Only process the attribute if it is non-blank. Some attributes are empty for certain entity instances
+        // (for example, a genome with a missing family taxon).
+        if (! StringUtils.isBlank(attribute)) {
+            TextEntityInstance textInstance = (TextEntityInstance) instance;
+            textInstance.addAttribute(attribute);
+            TextDbInstance textDb = (TextDbInstance) db;
+            long count = textDb.countTokens(attribute);
+            this.entityType.countTokens(count);
+        }
     }
 
 }
