@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.theseed.walker;
+package org.theseed.memdb;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -42,8 +42,6 @@ public abstract class EntityType implements Comparable<EntityType> {
     private List<RelationshipType> relationships;
     /** priority */
     private int priority;
-    /** token counter */
-    private long tokenCount;
     /** special ID for connector records */
     protected static final String NULL_ID = "<connector>";
 
@@ -57,7 +55,6 @@ public abstract class EntityType implements Comparable<EntityType> {
         this.fileName = null;
         this.idColName = null;
         this.relationships = new ArrayList<RelationshipType>();
-        this.tokenCount = 0;
         this.priority = 0;
     }
 
@@ -165,20 +162,14 @@ public abstract class EntityType implements Comparable<EntityType> {
      * @throws ParseFailureException
      * @throws IOException
      */
-    public Collection<RelationBuilder> getRelationshipBuilders(FieldInputStream inStream) throws IOException, ParseFailureException {
+    public Collection<RelationBuilder> getRelationBuilders(FieldInputStream inStream)
+            throws IOException, ParseFailureException {
         List<RelationBuilder> retVal = new ArrayList<RelationBuilder>(this.relationships.size());
         for (RelationshipType relType : this.relationships) {
-            RelationBuilder builder = new RelationBuilder(relType, inStream);
+            RelationBuilder builder = relType.createRelationBuilder(inStream);
             retVal.add(builder);
         }
         return retVal;
-    }
-
-    /**
-     * @return the number of tokens generated building this entity
-     */
-    public long getTokenCount() {
-        return this.tokenCount;
     }
 
     /**
@@ -194,8 +185,11 @@ public abstract class EntityType implements Comparable<EntityType> {
      * @return a set of attribute builders for this entity type
      *
      * @param instanceStream	input stream containing the records from which the attributes will be built
+     *
+     * @throws ParseFailureException
+     * @throws IOException
      */
-    protected abstract Collection<AttributeBuilder> getAttributeBuilders(FieldInputStream instanceStream);
+    protected abstract Collection<? extends AttributeBuilder> getAttributeBuilders(FieldInputStream instanceStream) throws IOException, ParseFailureException;
 
 
 }

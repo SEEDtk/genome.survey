@@ -16,9 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.basic.BaseReportProcessor;
 import org.theseed.basic.ParseFailureException;
-import org.theseed.walker.DbDefinition;
-import org.theseed.walker.TextDbDefinition;
-import org.theseed.walker.TextDbInstance;
+import org.theseed.memdb.DbDefinition;
+import org.theseed.memdb.walker.TextDbDefinition;
+import org.theseed.memdb.walker.TextDbInstance;
 
 /**
  * This command will use an entity-relationship model to guide a random walk of a JSON database dump.  The model

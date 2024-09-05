@@ -1,23 +1,22 @@
 /**
  *
  */
-package org.theseed.walker;
+package org.theseed.memdb;
 
 import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.FieldInputStream;
-import org.theseed.io.FieldInputStream.Record;
 
 /**
- * A relationship builder contains the templates we need to build relationship instances.  Each builder will
+ * A relationship builder contains the information we need to build relationship instances.  Each builder will
  * produce two instances-- one for each direction.
  *
  * @author Bruce Parrello
  *
  */
-public class RelationBuilder {
+public abstract class RelationBuilder {
 
     // FIELDS
     /** column index for source entity ID */
@@ -58,7 +57,7 @@ public class RelationBuilder {
      *
      * @return the target entity instance, or NULL if there is none
      */
-    public EntityInstance getTarget(Record record, DbInstance db) {
+    public EntityInstance getTarget(FieldInputStream.Record record, DbInstance db) {
         return getInstance(record, db, this.targetType, this.targetIdColIdx);
     }
 
@@ -71,7 +70,7 @@ public class RelationBuilder {
      *
      * @return the target entity instance, or NULL if there is none
      */
-    public EntityInstance getSource(Record record, DbInstance db) {
+    public EntityInstance getSource(FieldInputStream.Record record, DbInstance db) {
         return getInstance(record, db, this.sourceType, this.sourceIdColIdx);
     }
 
@@ -85,7 +84,7 @@ public class RelationBuilder {
      *
      * @return the desired instance, or NULL if there is none
      */
-    private static EntityInstance getInstance(Record record, DbInstance db, EntityType type, int idColIdx) {
+    private static EntityInstance getInstance(FieldInputStream.Record record, DbInstance db, EntityType type, int idColIdx) {
         EntityInstance retVal;
         // Get the entity ID.
         String id = record.get(idColIdx);
@@ -105,6 +104,23 @@ public class RelationBuilder {
     public RelationshipType getRelType() {
         return this.relType;
     }
+
+    /**
+     * @param record
+     * @param sourceInstance
+     * @param targetInstance
+     * @return
+     */
+    protected abstract RelationshipInstance getForwardInstance(FieldInputStream.Record record, EntityInstance sourceInstance,
+            EntityInstance targetInstance);
+
+    /**
+     * @param sourceInstance
+     * @param targetInstance
+     * @return
+     */
+    protected abstract RelationshipInstance getReverseInstance(FieldInputStream.Record record, EntityInstance sourceInstance,
+            EntityInstance targetInstance);
 
 
 }

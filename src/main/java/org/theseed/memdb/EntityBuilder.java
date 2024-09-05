@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.theseed.walker;
+package org.theseed.memdb;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -22,9 +22,9 @@ public class EntityBuilder {
     /** ID column index, or -1 for generated */
     private int idColIdx;
     /** relationship builders */
-    private Collection<RelationBuilder> relationBuilders;
+    private Collection<? extends RelationBuilder> relationBuilders;
     /** attribute builders */
-    private Collection<AttributeBuilder> attributeBuilders;
+    private Collection<? extends AttributeBuilder> attributeBuilders;
 
     /**
      * Create an instance builder for this entity type on a given input stream.
@@ -38,7 +38,7 @@ public class EntityBuilder {
     public EntityBuilder(EntityType entityType, FieldInputStream instanceStream) throws IOException, ParseFailureException {
         this.entityType = entityType;
         this.attributeBuilders = this.entityType.getAttributeBuilders(instanceStream);
-        this.relationBuilders = this.entityType.getRelationshipBuilders(instanceStream);
+        this.relationBuilders = this.entityType.getRelationBuilders(instanceStream);
         final String entityIdCol = this.entityType.getIdColName();
         if (entityIdCol == null)
             this.idColIdx = -1;
@@ -84,20 +84,21 @@ public class EntityBuilder {
                 // Loop through the attribute builders, creating the attributes.
                 for (AttributeBuilder template : this.attributeBuilders)
                     template.processAttribute(db, record, retVal);
+                db.addEntityCount(1);
             }
             // Loop through the relationship builders, creating the relationship instances
             // in each direction.
             for (RelationBuilder builder : this.relationBuilders) {
                 EntityInstance targetInstance = builder.getTarget(record, db);
                 EntityInstance sourceInstance = builder.getSource(record, db);
-                RelationshipType relType = builder.getRelType();
                 // Only proceed if there is a source and a target.
                 if (sourceInstance != null && targetInstance != null) {
-                    RelationshipInstance forward = relType.getForwardInstance(sourceInstance, targetInstance);
-                    RelationshipInstance reverse = relType.getReverseInstance(sourceInstance, targetInstance);
-                    forward.addConnection(relType, db, record, sourceInstance, targetInstance);
-                    reverse.addConnection(relType, db, record, targetInstance, sourceInstance);
+                    RelationshipInstance forward = builder.getForwardInstance(record, sourceInstance, targetInstance);
+                    sourceInstance.addConnection(forward);
+                    RelationshipInstance reverse = builder.getReverseInstance(record, sourceInstance, targetInstance);
+                    targetInstance.addConnection(reverse);
                 }
+                db.addRelCount(2);
             }
         }
         return retVal;

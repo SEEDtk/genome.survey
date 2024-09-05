@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.theseed.walker;
+package org.theseed.memdb;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -29,6 +29,10 @@ public abstract class DbInstance {
     private Map<String, Map<String, EntityInstance>> masterMap;
     /** list of entity type names in priority order */
     private List<String> typeNames;
+    /** entity instance count */
+    private int entityCount;
+    /** relationship instance count */
+    private int relCount;
 
     /**
      * Create a blank, empty database instance.
@@ -41,23 +45,9 @@ public abstract class DbInstance {
     }
 
     /**
-     * Remove the specified entity instance from the master map.
-     *
-     * @param curr		entity instance to remove
+     * Set up tracking data for the database load.
      */
-    protected void removeFromMap(EntityInstance curr) {
-        String type = curr.getType();
-        var entityMap = this.masterMap.get(type);
-        if (entityMap != null) {
-            String id = curr.getId();
-            entityMap.remove(id);
-            // Denote this entity instance is gone.
-            curr.setDeleted();
-            // If there are no more instances of this type, remove the map.
-            if (entityMap.isEmpty())
-                this.masterMap.remove(type);
-        }
-    }
+    protected abstract void preProcess();
 
     /**
      * Find the specified entity instance.
@@ -160,5 +150,46 @@ public abstract class DbInstance {
             retVal = new TreeMap<String, EntityInstance>();
         return retVal;
     }
+
+    /**
+     * Post-process all the entity types after a load to perform final cleanup and compute totals.
+     *
+     * @param entityTypes	list of entity type objects for the database
+     */
+    protected abstract void postProcessEntities(Collection<EntityType> entityTypes);
+
+    /**
+     * @return the number of entity instances created
+     */
+    public int getEntityCount() {
+        return this.entityCount;
+    }
+
+    /**
+     * Increment the entity instance count.
+     *
+     * @param entityCount 	amount to increment
+     */
+    protected void addEntityCount(int entityCount) {
+        this.entityCount += entityCount;
+    }
+
+    /**
+     * @return the number of relationship instances created
+     */
+    protected int getRelCount() {
+        return this.relCount;
+    }
+
+    /**
+     * Increment the relationship instance count.
+     *
+     * @param relCount 	amount to increment
+     */
+    protected void addRelCount(int relCount) {
+        this.relCount += relCount;
+    }
+
+
 
 }

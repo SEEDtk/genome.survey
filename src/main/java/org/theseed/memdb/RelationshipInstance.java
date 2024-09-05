@@ -1,9 +1,7 @@
 /**
  *
  */
-package org.theseed.walker;
-
-import org.theseed.io.FieldInputStream.Record;
+package org.theseed.memdb;
 
 /**
  * A relationship describes a unidirectional crossing between two entity instances.
@@ -53,15 +51,5 @@ public abstract class RelationshipInstance {
     public EntityInstance getTarget(DbInstance db) {
         return db.getEntity(this.targetType, this.targetId);
     }
-
-    /**
-     * @param relType
-     * @param db
-     * @param record
-     * @param sourceInstance
-     * @param targetInstance
-     */
-    protected abstract void addConnection(RelationshipType relType, DbInstance db, Record record,
-            EntityInstance sourceInstance, EntityInstance targetInstance);
 
 }

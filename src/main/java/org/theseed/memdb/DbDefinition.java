@@ -1,12 +1,11 @@
 /**
  *
  */
-package org.theseed.walker;
+package org.theseed.memdb;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -25,22 +24,22 @@ import org.theseed.io.LineReader;
  * A database definition contains the entity and relationship types.  Its primary purpose is to
  * facilitate creating the types from the definition file.
  *
- * The definition file contains commands (denoted by "#" in the first column) and templates.  The
+ * The definition file contains commands (denoted by "#" in the first column) and descriptions.  The
  * commands have a command name (currently "Entity" or "Relationship") immediately after the pound
  * sign, and one or more space-delimited parameters.
  *
  * The Entity command's parameters are (1) entity type name, (2) entity ID column name, (3) priority
  * number (with 0 being the lowest), and (4) a file name.  The file name should be the base name of
  * the file in each directory.  The priority is used to determine which entities should be chosen first
- * when beginning a random walk.  Thus, if "Genome" has the highest priority, the walker will choose
- * Genome records to start each walk until they run out.
+ * when traversing the database.
  *
- * Some entities are actually many-to-many or ternary relationship.  We don't want these put into the
+ * Some entities are actually many-to-many or ternary relationships.  We don't want these put into the
  * database; rather they are used to generate relationship records in other entities.  For these,
- * we specify "null" for the ID column.
+ * we specify "null" for the ID column.  Other entities are relationships targets or sources, but
+ * there are no data records associated with them. For these, the file names are missing.
  *
- * Immediately after the entity header are zero or more attribute templates.  These are used to generate
- * attribute descriptions for the entity.
+ * Immediately after the entity header are zero or more attribute descriptions. These vary depending on
+ * the database type.
  *
  * The relationship definitions follow each entity.  A relationship definition describes a many-to-one
  * connection between entities and contains a template for the forward direction and the reverse direction.
@@ -48,15 +47,15 @@ import org.theseed.io.LineReader;
  * (3) target entity type name, and (4) column name for the target entity ID.  In a normal entity, the source
  * entity type name and ID column name describe the current entity itself.  Thus, a relationship in the Genome
  * entity will specify "Genome" as the source entity type and "genome_id" as the source ID column name.  In
- * the case of a relationship entity, however, the source entity type must be a different entity.  Thus, the
+ * the case of a many-to-many relationship entity, however, the source entity type must be a different entity.  Thus, the
  * SubsystemCell ternary relationship entity never specifies itself as a source; rather, the source is either
  * Subsystem, Genome, or Role. The relationship definition is always three lines:  the header, the forward
- * template, and the converse template.
+ * relationship descriptor, and the converse relationship descriptor.
  *
  * @author Bruce Parrello
  *
  */
-public class TextDbDefinition extends DbDefinition {
+public abstract class DbDefinition {
 
     // FIELDS
     /** logging facility */
@@ -69,6 +68,8 @@ public class TextDbDefinition extends DbDefinition {
     private int attrCount;
     /** number of relationships processed */
     private int relCount;
+    /** iterator through the definition file */
+    private Iterator<String> iter;
 
     /**
      * Create a database definition from a definition file.
@@ -78,18 +79,17 @@ public class TextDbDefinition extends DbDefinition {
      * @throws IOException
      * @throws ParseFailureException
      */
-    public TextDbDefinition(File fileName) throws IOException, ParseFailureException {
-        super(fileName);
+    public DbDefinition(File fileName) throws IOException, ParseFailureException {
         log.info("Reading database definition from {}.", fileName);
         // Create the entity map.
         this.entityMap = new TreeMap<String, EntityType>();
         // Open up the input file and read the definition lines.
         try (LineReader inStream = new LineReader(fileName)) {
             // Prepare an iterator through the file.
-            Iterator<String> iter = inStream.iterator();
-            if (! iter.hasNext())
+            this.iter = inStream.iterator();
+            if (! this.iter.hasNext())
                 throw new IOException("No data found in database definition file " + fileName + ".");
-            String line = iter.next();
+            String line = this.iter.next();
             // Initialize our counters.
             this.lineCount = 1;
             this.attrCount = 0;
@@ -98,8 +98,10 @@ public class TextDbDefinition extends DbDefinition {
             while (line != null) {
                 if (! line.startsWith("#Entity"))
                     throw new ParseFailureException("Expecting an #Entity line at line " + lineCount + " in " + fileName + ".");
-                line = this.processEntityDefinition(line, iter);
+                line = this.processEntityDefinition(line);
             }
+            // Release the memory for the iterator.
+            this.iter = null;
         }
         log.info("{} lines read from {}.  {} entities, {} relationships, and {} attributes found.", this.lineCount, fileName,
                 this.entityMap.size(), this.relCount, this.attrCount);
@@ -110,13 +112,12 @@ public class TextDbDefinition extends DbDefinition {
      * or a new entity header.
      *
      * @param line		line containing the entity header
-     * @param iter		input file iterator
      *
      * @return the line containing the next entity header, or NULL if we hit end-of-file
      *
      * @throws ParseFailureException
      */
-    private String processEntityDefinition(String line, Iterator<String> iter) throws ParseFailureException {
+    private String processEntityDefinition(String line) throws ParseFailureException {
         String[] parms = StringUtils.split(line, " ", 5);
         if (parms.length < 4)
             throw new ParseFailureException("Entity header i line " + this.lineCount + " of definition file has fewer than 3 parameters.");
@@ -135,9 +136,9 @@ public class TextDbDefinition extends DbDefinition {
             entity.setFileName(parms[4]);
         // Now we need to read through the attributes.  The method will return the next header line, or NULL if we hit
         // end-of-file.
-        String retVal = this.readAttributes(entity, iter);
-        // Try to read the relationships.
-        retVal = this.readRelationships(entity, iter, retVal);
+        String retVal = this.readAttributes(entity);
+        // Try to read the relationships, Again, we return the next header line or NULL.
+        retVal = this.readRelationships(entity, retVal);
         // Return the next entity's header line.
         return retVal;
     }
@@ -150,20 +151,27 @@ public class TextDbDefinition extends DbDefinition {
      * @return an entity type definition for the given type name
      */
     public EntityType findEntityType(String typeName) {
-        return this.entityMap.computeIfAbsent(typeName, x -> new EntityType(x));
+        return this.entityMap.computeIfAbsent(typeName, x -> this.createEntityType(x));
     }
+
+    /**
+     * Create a blank entity type definition for the specified type name.
+     *
+     * @param name		the entity type name
+     *
+     * @return the entity type definition
+     */
+    protected abstract EntityType createEntityType(String name);
 
     /**
      * Read the next line and update the line count.
      *
-     * @param iter	iterator through the input file
-     *
      * @return the next input line, or NULL if we are at end-of-file
      */
-    private String readNext(Iterator<String> iter) {
+    public String readNext() {
         String line;
-        if (iter.hasNext()) {
-            line = iter.next();
+        if (this.iter.hasNext()) {
+            line = this.iter.next();
             this.lineCount++;
         } else
             line = null;
@@ -174,24 +182,18 @@ public class TextDbDefinition extends DbDefinition {
      * Process the attributes of the current entity.
      *
      * @param entity	entity type to contain the attributes
-     * @param iter		iterator through the input file
      *
      * @return the first relationship header for this entity, the next entity header, or NULL for end-of-file
      */
-    private String readAttributes(EntityType entity, Iterator<String> iter) {
-        String retVal = null;
-        if (iter.hasNext()) {
-            String line = iter.next();
-            this.lineCount++;
-            while (line != null && ! line.startsWith("#")) {
-                // Here we have an attribute line.
-                entity.addAttribute(line);
-                this.attrCount++;
-                line = this.readNext(iter);
-            }
-            // Save the last line read.  It belongs to the next groupo.
-            retVal = line;
+    private String readAttributes(EntityType entity) {
+        String retVal = this.readNext();
+        while (retVal != null && ! retVal.startsWith("#")) {
+            // Here we have an attribute line.
+            entity.addAttribute(retVal);
+            this.attrCount++;
+            retVal = this.readNext();
         }
+        // Save the last line read.  It belongs to the next groupo.
         return retVal;
     }
 
@@ -199,14 +201,13 @@ public class TextDbDefinition extends DbDefinition {
      * Process the relationships for the current entity.
      *
      * @param entity	entity type to contain the attributes
-     * @param iter		iterator through the input file
      * @param line		header line for the first relationship, the next entity, or NULL for end-of-file
      *
      * @return the next entity header, or NULL for end-of-file
      *
      * @throws ParseFailureException
      */
-    private String readRelationships(EntityType entity, Iterator<String> iter, String line) throws ParseFailureException {
+    private String readRelationships(EntityType entity, String line) throws ParseFailureException {
         String retVal = line;
         while (retVal != null && retVal.startsWith("#Relationship")) {
             // Here we have a relationship header.
@@ -217,31 +218,43 @@ public class TextDbDefinition extends DbDefinition {
             // the target ID column name.
             EntityType sourceType = this.findEntityType(parms[1]);
             EntityType targetType = this.findEntityType(parms[3]);
-//            RelationshipType rel = this.createRelationshipType(sourceType, parms[2], targetType, parms[4]);
-//            this.processRelationshipDefinition(rel, iter);
-//            // Read the forward-direction template sentence.
-//            if (! iter.hasNext())
-//                throw new ParseFailureException("Missing template strings for relationship in line " + this.lineCount + " of definition file.");
-//            String forward = iter.next();
-//            // Read the converse-direction template sentence.
-//            if (! iter.hasNext())
-//                throw new ParseFailureException("Missing converse-direction template string for relationship in line " +
-//                        this.lineCount + " of defition file.");
-//            String converse = iter.next();
-//            // Record the two lines read and the fact we have a new relationship type.
-//            this.lineCount += 2;
-//            this.relCount++;
-//            // Store the template strings.
-//            rel.setTemplateStrings(forward, converse);
-//            // Save the relationship.
-//            entity.addRelationship(rel);
+            // Create the relationship and read its definition.
+            RelationshipType rel = this.createRelationshipType(sourceType, parms[2], targetType, parms[4]);
+            retVal = this.processRelationshipDefinition(rel, this);
             // Save the relationship.
-//            entity.addRelationship(rel);
-            // Get the next record.
-            retVal = this.readNext(iter);
+            entity.addRelationship(rel);
         }
         return retVal;
     }
+
+    /**
+     * This method gets control after the relationship header has been read and the relationship created.
+     * The relationship definition records are processed here.
+     *
+     * @param rel		relationship type
+     * @param db		database definition being processed
+     *
+     * @return the next header record, or NULL if we have reached end-of-file
+     *
+     * @throws ParseFailureException
+     */
+    protected abstract String processRelationshipDefinition(RelationshipType rel, DbDefinition db) throws ParseFailureException;
+
+    /**
+     * Create a new relationship type definition. Note that a relationship is usually defined in terms of
+     * the source entity record, and the column names are from that record, implying the relationship is
+     * many-to-one. For a many-to-many relationship, however, the "entity" is a table containing
+     * records with both IDs.
+     *
+     * @param sourceType		source entity type
+     * @param sourceIdColname	name of the column containing the source ID
+     * @param targetType		target entity type
+     * @param targetIdColName	name of the column containing the target ID
+     *
+     * @return the new relationship type definition
+     */
+    protected abstract RelationshipType createRelationshipType(EntityType sourceType, String sourceIdColName,
+            EntityType targetType, String targetIdColName);
 
     /**
      * @return a sorted list of entity names, in priority order
@@ -266,7 +279,9 @@ public class TextDbDefinition extends DbDefinition {
     public DbInstance readDatabase(File... inDirs) throws IOException, ParseFailureException {
         // Create the output database instance.
         List<String> typeNames = this.getEntityNameList();
-        DbInstance retVal = new TextDbInstance(typeNames);
+        DbInstance retVal = this.createDbInstance(typeNames);
+        // Initialize the subclass tracking structures.
+        retVal.preProcess();
         // Set up the file and directory counters.
         int dirCount = 0;
         int fileCount = 0;
@@ -294,19 +309,17 @@ public class TextDbDefinition extends DbDefinition {
                             log.info("Reading instances for {} from {}.", type.getName(), inFile);
                             long lastMsg = System.currentTimeMillis();
                             int inCount = 0;
-                            int storeCount = 0;
                             for (var record : inStream) {
                                 inCount++;
-                                EntityInstance newInstance = builder.build(record, retVal);
-                                if (newInstance != null)
-                                    storeCount++;
+                                builder.build(record, retVal);
                                 long now = System.currentTimeMillis();
                                 if (now - lastMsg >= 5000) {
                                     log.info("{} records processed in {}.", inCount, inFile);
                                     lastMsg = now;
                                 }
                             }
-                            log.info("{} total records processed in {}: {} storeed.", inCount, inFile, storeCount);
+                            log.info("{} total records processed in {}: new totals are {} entity instances, {} relationship instances.",
+                                    inCount, inFile, retVal.getEntityCount(), retVal.getRelCount());
                             recordCount += inCount;
                         }
                     }
@@ -314,47 +327,25 @@ public class TextDbDefinition extends DbDefinition {
             }
         }
         log.info("{} directories and {} files processed.  {} total records processed.", dirCount, fileCount, recordCount);
-        // Now we loop through the entity instances.  For each one, we shuffle the attribute and relationship lists to
-        // get them in random order, and then we output the total token and instance counts for each entity type.
-        long tokenTotal = 0;
-        for (EntityType type : this.entityMap.values()) {
-            String typeName = type.getName();
-            long typeTokens = type.getTokenCount();
-            tokenTotal += typeTokens;
-               log.info("Entity type {} has {} instances and generated {} tokens.", typeName, retVal.getTypeCount(typeName), typeTokens);
-            for (EntityInstance instance : retVal.getAllEntities(typeName)) {
-                TextEntityInstance textInstance = (TextEntityInstance) instance;
-                textInstance.shuffleAll();
-            }
-        }
-        log.info("{} total tokens generated in database.", tokenTotal);
+        retVal.postProcessEntities(this.entityMap.values());
         // Return the built database.
         return retVal;
     }
 
-    @Override
-    protected void processRelationshipDefinition(RelationshipType rel, Iterator<String> iter) {
-        // TODO code for processRelationshipDefinition
+    /**
+     * Create a new, empty database instance.
+     *
+     * @param typeNames		list of entity type names
+     *
+     * @return the empty database instance created
+     */
+    protected abstract DbInstance createDbInstance(List<String> typeNames);
 
-    }
-
-    @Override
-    protected RelationshipType createRelationshipType(EntityType sourceType, String string, EntityType targetType,
-            String string2) {
-        // TODO code for createRelationshipType
-        return null;
-    }
-
-    @Override
-    protected void postProcessEntities(Collection<EntityType> entityTypes) {
-        // TODO code for postProcessEntities
-
-    }
-
-    @Override
-    protected DbInstance createDbInstance(List<String> typeNames) {
-        // TODO code for createDbInstance
-        return null;
+    /**
+     * @return the number of input lines read
+     */
+    public int getLineCount() {
+        return this.lineCount;
     }
 
 }

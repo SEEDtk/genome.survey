@@ -1,7 +1,12 @@
 /**
  *
  */
-package org.theseed.walker;
+package org.theseed.memdb;
+
+import java.io.IOException;
+
+import org.theseed.basic.ParseFailureException;
+import org.theseed.io.FieldInputStream;
 
 /**
  * A relationship type describes a connection between two entity types.  It only exists
@@ -71,19 +76,15 @@ public abstract class RelationshipType {
     }
 
     /**
-     * @param sourceInstance
-     * @param targetInstance
-     * @return
+     * Creater a relation builder that can build instances of this relationship in both directions.
+     *
+     * @param inStream	input file containing source records for the relationship
+     *
+     * @return the relation builder needed
+     *
+     * @throws ParseFailureException
+     * @throws IOException
      */
-    protected abstract RelationshipInstance getForwardInstance(EntityInstance sourceInstance,
-            EntityInstance targetInstance);
-
-    /**
-     * @param sourceInstance
-     * @param targetInstance
-     * @return
-     */
-    protected abstract RelationshipInstance getReverseInstance(EntityInstance sourceInstance,
-            EntityInstance targetInstance);
+    protected abstract RelationBuilder createRelationBuilder(FieldInputStream inStream) throws IOException, ParseFailureException;
 
 }
