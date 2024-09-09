@@ -68,8 +68,7 @@ public class TextDbDefinition extends DbDefinition {
 
     @Override
     protected DbInstance createDbInstance(List<String> typeNames) {
-        DbInstance retVal = new TextDbInstance(typeNames);
-        return retVal;
+        return new TextDbInstance(typeNames);
     }
 
 
