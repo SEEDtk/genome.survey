@@ -223,6 +223,7 @@ public abstract class DbDefinition {
             retVal = this.processRelationshipDefinition(rel, this);
             // Save the relationship.
             entity.addRelationship(rel);
+            this.relCount++;
         }
         return retVal;
     }

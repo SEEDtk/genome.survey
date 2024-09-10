@@ -30,7 +30,7 @@ public class QueryEntityType extends EntityType {
     /** list of attribute names */
     private Set<String> attributeNames;
     /** pattern for matching up to the first whitespace */
-    private static final Pattern ATTR_NAME = Pattern.compile("(\\S+)\\s.+");
+    private static final Pattern ATTR_NAME = Pattern.compile("(\\S+).*");
 
     /**
      * Construct a new entity type for a query-generation database.

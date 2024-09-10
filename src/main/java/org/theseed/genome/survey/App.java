@@ -19,6 +19,7 @@ import org.theseed.basic.BaseProcessor;
  * taxonScan	create a file that can be used to build taxonomic training data
  * dbWalk		generate a random walk of a database JSON dump using templates
  * modelFix		fix up a model dump to make it more compatible with the template engine
+ * queryGen		generate questions for testing a large language model
  *
  */
 
@@ -37,7 +38,8 @@ public class App
              "roleAdj", "create a file that can be used to build role-adjacency training data",
              "taxonScan", "create a file that can be used to build taxonomic training data",
              "dbWalk", "generate a random walk of a database JSON dump using templates",
-             "modelFix", "fix up a model dump to make it more compatible with the template engine"
+             "modelFix", "fix up a model dump to make it more compatible with the template engine",
+             "queryGen", "generate questions for testing a large language model"
     };
 
     public static void main( String[] args )
@@ -83,6 +85,9 @@ public class App
             break;
         case "modelFix" :
             processor = new ModelDumpFixProcessor();
+            break;
+        case "queryGen" :
+            processor = new QueryGenerateProcessor();
             break;
         case "-h" :
         case "--help" :
