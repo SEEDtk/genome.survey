@@ -15,10 +15,10 @@ import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.basic.ParseFailureException;
-import org.theseed.io.TabbedLineReader;
+import org.theseed.io.LineReader;
 import org.theseed.memdb.query.QueryDbDefinition;
 import org.theseed.memdb.query.QueryDbInstance;
-import org.theseed.utils.BasePipeProcessor;
+import org.theseed.utils.BaseTextProcessor;
 
 /**
  * This command will accept as input a list of instructions for generating queries and output
@@ -43,7 +43,7 @@ import org.theseed.utils.BasePipeProcessor;
  * @author Bruce Parrello
  *
  */
-public class QueryGenerateProcessor extends BasePipeProcessor {
+public class QueryGenerateProcessor extends BaseTextProcessor {
 
     // FIELDS
     /** logging facility */
@@ -75,17 +75,12 @@ public class QueryGenerateProcessor extends BasePipeProcessor {
     private File dataDir;
 
     @Override
-    protected void setPipeDefaults() {
+    protected void setTextDefaults() {
         this.recursive = false;
     }
 
     @Override
-    protected void validatePipeInput(TabbedLineReader inputStream) throws IOException {
-        // TODO validate query input file (type, tables, fields)
-    }
-
-    @Override
-    protected void validatePipeParms() throws IOException, ParseFailureException {
+    protected void validateTextParms() throws IOException, ParseFailureException {
         if (! this.dbdFile.canRead())
             throw new FileNotFoundException("Database definition file " + this.dbdFile + " is not found or unreadable.");
         if (! this.dataDir.isDirectory())
@@ -103,7 +98,7 @@ public class QueryGenerateProcessor extends BasePipeProcessor {
     }
 
     @Override
-    protected void runPipeline(TabbedLineReader inputStream, PrintWriter writer) throws Exception {
+    protected void runPipeline(LineReader inputStream, PrintWriter writer) throws Exception {
         // Load the database.
         this.loadDatabase();
         // TODO generate the queries
