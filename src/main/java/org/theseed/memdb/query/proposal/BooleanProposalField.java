@@ -11,7 +11,7 @@ import org.theseed.basic.ParseFailureException;
  * @author Bruce Parrello
  *
  */
-public class BooleanProposalField extends ProposalField {
+public class BooleanProposalField extends BinaryProposalField {
 
     /**
      * Construct a boolean proposal field.

@@ -3,6 +3,8 @@
  */
 package org.theseed.memdb.query.proposal;
 
+import java.io.PrintWriter;
+
 import org.theseed.basic.ParseFailureException;
 
 /**
@@ -23,6 +25,11 @@ public class CountProposalQuery extends ProposalQuery {
      */
     public CountProposalQuery(String templateString, String entityPath) throws ParseFailureException {
         super(templateString, entityPath);
+    }
+
+    @Override
+    public void writeResponse(ProposalResponseSet response, PrintWriter writer) {
+        // TODO code for writeResponse Count
     }
 
 }

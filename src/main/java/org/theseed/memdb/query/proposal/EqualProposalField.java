@@ -3,6 +3,7 @@
  */
 package org.theseed.memdb.query.proposal;
 
+import org.apache.commons.lang3.StringUtils;
 import org.theseed.basic.ParseFailureException;
 
 /**
@@ -12,7 +13,11 @@ import org.theseed.basic.ParseFailureException;
  * @author Bruce Parrello
  *
  */
-public class EqualProposalField extends ProposalField {
+public class EqualProposalField extends BinaryProposalField {
+
+    // FIELDS
+    /** target numeric value */
+    private double target;
 
     /**
      * Construct a numeric-equality field proposal
@@ -22,7 +27,12 @@ public class EqualProposalField extends ProposalField {
      * @throws ParseFailureException
      */
     public EqualProposalField(String fieldSpec) throws ParseFailureException {
-        super(fieldSpec);
+        super(StringUtils.substringBefore(fieldSpec, ":"));
+        try {
+            this.target = Double.valueOf(StringUtils.substringAfter(fieldSpec, ":"));
+        } catch (NumberFormatException e) {
+            throw new ParseFailureException("Invalid target on field specification \"" + fieldSpec + "\".");
+        }
     }
 
 }

@@ -9,7 +9,10 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.Duration;
+import java.util.Iterator;
+import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
@@ -18,6 +21,10 @@ import org.theseed.basic.ParseFailureException;
 import org.theseed.io.LineReader;
 import org.theseed.memdb.query.QueryDbDefinition;
 import org.theseed.memdb.query.QueryDbInstance;
+import org.theseed.memdb.query.proposal.CountProposalQuery;
+import org.theseed.memdb.query.proposal.ListProposalQuery;
+import org.theseed.memdb.query.proposal.ProposalQuery;
+import org.theseed.memdb.query.proposal.ProposalResponseSet;
 import org.theseed.utils.BaseTextProcessor;
 
 /**
@@ -40,8 +47,9 @@ import org.theseed.utils.BaseTextProcessor;
  * Embedded field names in the questions are enclosed in double curly braces. All fields are expressed
  * as an entity name followed by a period and the field name. If a prefix of ">", "<", or "=" is specified for
  * a field name, then the field is interpreted as numeric, and it is expected we are asking for a relation
- * of greater than, less than, or equal, respectively. If a prefix of "?" is specified, then the field is
- * interpreted as boolean, and only satisfied if it is true.
+ * of greater than, less than, or equal, respectively. The field name must be followed by a colon and a
+ * value. In this case, the value is fixed, so the field is effectively treated as a boolean. If a prefix of
+ * "?" is specified, then the field is interpreted as a real boolean, and only satisfied if it is true.
  *
  * The command-line options are
  * -h	display command-line usage
@@ -126,8 +134,26 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
         // Load the database.
         this.loadDatabase();
         // Loop through the input file, reading query specifications.
+        Iterator<String> inputIter = inputStream.iterator();
+        while (inputIter.hasNext()) {
+            // Get the three query lines.
+            String qString = inputIter.next();
+            String pathString = this.safeGet(inputIter);
+            String resultString = this.safeGet(inputIter);
+            // Create the query proposal.
+            ProposalQuery proposal;
+            if (StringUtils.compareIgnoreCase(resultString, "count") == 0)
+                proposal = new CountProposalQuery(qString, pathString);
+            else
+                proposal = new ListProposalQuery(qString, pathString, resultString);
+            log.info("Computing responses for query: {}", qString);
+            List<ProposalResponseSet> responses = proposal.computeSets(this.db);
+            log.info("{} response sets found.", responses.size());
+            // Loop through the response sets, writing the questions.
+            for (ProposalResponseSet response : responses)
+                proposal.writeResponse(response, writer);
+        }
 
-        // TODO generate the queries
     }
 
     /**
@@ -146,5 +172,21 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
         this.db = (QueryDbInstance) dbd.readDatabase(this.dataDirs);
         log.info("{} to load database.", Duration.ofMillis(System.currentTimeMillis() - start));
     }
+
+    /**
+     * This gets the next record and throws an IO error if we are at end-of-file.
+     *
+     * @param inputIter		iterator for the input file
+     *
+     * @return the next record in the input file
+     *
+     * @throws IOException
+     */
+    private String safeGet(Iterator<String> inputIter) throws IOException {
+        if (! inputIter.hasNext())
+            throw new IOException("Early end-of-file on input.");
+        return inputIter.next();
+    }
+
 
 }

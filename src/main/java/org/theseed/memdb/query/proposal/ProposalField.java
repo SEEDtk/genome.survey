@@ -22,10 +22,19 @@ public abstract class ProposalField {
     /** attribute name */
     private String attributeName;
 
+    /**
+     * Construct a proposal for a specified field's use as a parameter.
+     *
+     * @param fieldSpec		field specification
+     *
+     * @throws ParseFailureException
+     */
     public ProposalField(String fieldSpec) throws ParseFailureException {
         String[] pieces = StringUtils.split(fieldSpec, ".");
         if (pieces.length != 2)
             throw new ParseFailureException("Invalid field specification \"" + fieldSpec + "\".");
+        if (StringUtils.contains(pieces[1], ":"))
+            throw new ParseFailureException("Invalid use of colon in \"" + fieldSpec + "\".");
         this.entityType = pieces[0];
         this.attributeName = pieces[1];
     }

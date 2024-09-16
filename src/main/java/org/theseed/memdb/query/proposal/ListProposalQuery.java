@@ -3,6 +3,8 @@
  */
 package org.theseed.memdb.query.proposal;
 
+import java.io.PrintWriter;
+
 import org.theseed.basic.ParseFailureException;
 
 /**
@@ -29,6 +31,11 @@ public class ListProposalQuery extends ProposalQuery {
     public ListProposalQuery(String templateString, String entityPath, String fieldSpec) throws ParseFailureException {
         super(templateString, entityPath);
         this.outputField = new ExactProposalField(fieldSpec);
+    }
+
+    @Override
+    public void writeResponse(ProposalResponseSet response, PrintWriter writer) {
+        // TODO code for writeResponse List
     }
 
 }

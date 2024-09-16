@@ -3,6 +3,7 @@
  */
 package org.theseed.memdb.query.proposal;
 
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -11,6 +12,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.theseed.basic.ParseFailureException;
+import org.theseed.memdb.query.QueryDbInstance;
 
 /**
  * This object represents an actual proposal. The proposals come in two types-- list and count.
@@ -28,7 +30,7 @@ public abstract class ProposalQuery {
     /** template string */
     private String questionString;
     /** pattern for finding attribute substitution elements */
-    private static final Pattern FIELD_PATTERN = Pattern.compile("\\{\\{([=<>?])?(\\w+\\.\\w+)\\}\\}");
+    private static final Pattern FIELD_PATTERN = Pattern.compile("\\{\\{([=<>?])?(\\w+\\.\\w+)(?::([^{}]+))?\\}\\}");
 
     /**
      * Initialize the proposal query.
@@ -82,5 +84,32 @@ public abstract class ProposalQuery {
         }
 
     }
+
+    /**
+     * @return the size of the entity path
+     */
+    public int getPathSize() {
+        return this.path.size();
+    }
+
+    /**
+     * Compute good response sets for this proposal against the specified database instance.
+     *
+     * @param db	target database instance
+     *
+     * @return a list of proposal response sets containing valid answers
+     */
+    public List<ProposalResponseSet> computeSets(QueryDbInstance db) {
+        // TODO code for computeSets
+        return null;
+    }
+
+    /**
+     * Write a response for this proposal to the output.
+     *
+     * @param response	response set containing answers
+     * @param writer	output print writer
+     */
+    public abstract void writeResponse(ProposalResponseSet response, PrintWriter writer);
 
 }
