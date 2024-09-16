@@ -40,6 +40,9 @@ import org.theseed.utils.BaseTextProcessor;
  * -R	if specified, the input data directory contains multiple sub-directories with identical
  * 		file structures
  *
+ * --target		maximum number of desirable results for a query (default 10)
+ *
+ *
  * @author Bruce Parrello
  *
  */
@@ -66,6 +69,10 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
     @Option(name = "--recursive", aliases = { "-R" }, usage = "if specified, data is in subdirectories of the input data dir")
     private boolean recursive;
 
+    /** target result set size */
+    @Option(name = "--target", metaVar = "20", usage = "maximum desired target set size")
+    private int targetSize;
+
     /** database definition file */
     @Argument(index = 0, metaVar = "dbdFile.txt", usage = "database definition file", required = true)
     private File dbdFile;
@@ -77,14 +84,20 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
     @Override
     protected void setTextDefaults() {
         this.recursive = false;
+        this.targetSize = 10;
     }
 
     @Override
     protected void validateTextParms() throws IOException, ParseFailureException {
+        // Verify the input files.
         if (! this.dbdFile.canRead())
             throw new FileNotFoundException("Database definition file " + this.dbdFile + " is not found or unreadable.");
         if (! this.dataDir.isDirectory())
             throw new FileNotFoundException("Data directory " + this.dataDir + " is not found or invalid.");
+        // Validate the target size.
+        if (this.targetSize < 1)
+            throw new ParseFailureException("Invalid target size: must be positive.");
+        // Assemble the list of input directories.
         if (! this.recursive) {
             // Here we are just reading data from one directory.
             this.dataDirs = new File[] { this.dataDir };
