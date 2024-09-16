@@ -32,6 +32,17 @@ import org.theseed.utils.BaseTextProcessor;
  * a master directory with multiple sub-directories containing more-or-less identical file
  * sets.
  *
+ * The queries are described in the standard input with three lines of information per query.  The
+ * first line contains a text question with embedded field names. The second line contains a path
+ * through the entity-relationship model. The third line describes the field containing the answer.
+ * This last can be "count" if the answer is a count of the applicable records.
+ *
+ * Embedded field names in the questions are enclosed in double curly braces. All fields are expressed
+ * as an entity name followed by a period and the field name. If a prefix of ">", "<", or "=" is specified for
+ * a field name, then the field is interpreted as numeric, and it is expected we are asking for a relation
+ * of greater than, less than, or equal, respectively. If a prefix of "?" is specified, then the field is
+ * interpreted as boolean, and only satisfied if it is true.
+ *
  * The command-line options are
  * -h	display command-line usage
  * -v	display more frequent log messages
@@ -101,6 +112,8 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
     protected void runPipeline(LineReader inputStream, PrintWriter writer) throws Exception {
         // Load the database.
         this.loadDatabase();
+        // Loop through the input file, reading query specifications.
+
         // TODO generate the queries
     }
 
