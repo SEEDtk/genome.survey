@@ -4,7 +4,6 @@
 package org.theseed.memdb.query.proposal;
 
 import java.io.PrintWriter;
-
 import org.theseed.basic.ParseFailureException;
 
 /**
@@ -29,7 +28,12 @@ public class CountProposalQuery extends ProposalQuery {
 
     @Override
     public void writeResponse(ProposalResponseSet response, PrintWriter writer) {
-        // TODO code for writeResponse Count
+        // Write the question string.
+        this.writeQuestion(response, writer);
+        // Get the answer.
+        int count = response.size();
+        // Write it out.
+        writer.println("* Correct answer: " + count);
     }
 
 }

@@ -166,4 +166,53 @@ public abstract class ProposalQuery {
      */
     public abstract void writeResponse(ProposalResponseSet response, PrintWriter writer);
 
+    /**
+     * Write the question statement for this proposal to the output.
+     *
+     * @param response	response set containing answers
+     * @param writer	output print writer
+     */
+    protected void writeQuestion(ProposalResponseSet response, PrintWriter writer) {
+        // Get the parameterization.
+        Parameterization parms = response.getParameters();
+        // We will build the output line in here.
+        StringBuilder outputLine = new StringBuilder(this.questionString.length());
+        // We need to loop through the question string, putting in the parameters.
+        Matcher m = FIELD_PATTERN.matcher(this.questionString);
+        // Denote we're starting at the beginning of the string.
+        int processed = 0;
+        // Find the next parameter mark.
+        while (m.find()) {
+            // Get the field specification.
+            String fieldSpec = m.group(2);
+            // Copy the clear text.
+            outputLine.append(this.questionString.subSequence(processed, m.start()));
+            // Get the parameter value.
+            String value = parms.getValue(this, fieldSpec);
+            outputLine.append(value);
+            // Set up for the next search.
+            processed = m.end();
+        }
+        // Copy the residual.
+        outputLine.append(this.questionString.substring(processed));
+        // Write this output line as a question.
+        writer.println(outputLine.toString());
+    }
+
+    /**
+     * Find the proposal for the specified entity name.
+     *
+     * @param name	target entity name
+     *
+     * @return the proposal for the entity with that name
+     */
+    public ProposalEntity getEntity(String name) {
+        ProposalEntity retVal = null;
+        for (ProposalEntity entity : this.path) {
+            if (name.equals(entity.getName()))
+                retVal = entity;
+        }
+        return retVal;
+    }
+
 }

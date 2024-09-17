@@ -4,7 +4,11 @@
 package org.theseed.memdb.query.proposal;
 
 import java.io.PrintWriter;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
+import org.apache.commons.lang3.StringUtils;
 import org.theseed.basic.ParseFailureException;
 
 /**
@@ -34,8 +38,17 @@ public class ListProposalQuery extends ProposalQuery {
     }
 
     @Override
-    public void writeResponse(ProposalResponseSet response, PrintWriter writer) {
-        // TODO code for writeResponse List
+    public void writeResponse(ProposalResponseSet responses, PrintWriter writer) {
+        // Write the question string.
+        this.writeQuestion(responses, writer);
+        // Now we need to get the list of valid answers.
+        Set<String> answers = new TreeSet<String>();
+        for (ProposalResponse response : responses.getResponses()) {
+            List<String> values = response.getValue(outputField.getEntityType(), outputField.getName());
+            answers.addAll(values);
+        }
+        // Write all the answers.
+        writer.println("* Correct answers: " + StringUtils.join(answers, ", "));
     }
 
 }

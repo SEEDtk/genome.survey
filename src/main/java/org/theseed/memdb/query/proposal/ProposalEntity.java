@@ -51,6 +51,17 @@ public class ProposalEntity {
     }
 
     /**
+     * @return the index of a field's proposal, or -1 if the proposal does not exist
+     *
+     * @param name		field name
+     */
+    public int getFieldIdx(String name) {
+        int retVal = this.fields.size() - 1;
+        while (retVal >= 0 && ! name.equals(this.fields.get(retVal).getName())) retVal--;
+        return retVal;
+    }
+
+    /**
      * @return the number of proposal fields in this entity proposal
      */
     public int size() {

@@ -11,6 +11,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
+import org.apache.commons.lang3.StringUtils;
 import org.theseed.memdb.query.QueryEntityInstance;
 
 /**
@@ -106,6 +108,36 @@ public class Parameterization {
         List<String> vList = this.valueMap.computeIfAbsent(proposal.getName(),
                 x -> new ArrayList<String>(proposal.size()));
         vList.add(vString);
+    }
+
+    /**
+     * Compute the value to substitute in for this parameterization given an entity and attribute name.
+     *
+     * @param query				governing proposal query
+     * @param fieldSpec			field specification (entity.name)
+     *
+     * @return the field value to output
+     */
+    public String getValue(ProposalQuery query, String fieldSpec) {
+        // Split the field spec into an entity name and an attribute name.
+        String[] parts = StringUtils.split(fieldSpec, ".");
+        // Get the entity proposal.
+        ProposalEntity entity = query.getEntity(parts[0]);
+        if (entity == null)
+            throw new IllegalArgumentException("Cannot find entity for field specification \"" + fieldSpec + "\".");
+        // Find the parameter value index.
+        int idx = entity.getFieldIdx(parts[1]);
+        String retVal;
+        if (idx < 0) {
+            // Invalid attribute name, so just plug in the field spec.
+            retVal = fieldSpec;
+        } else {
+            // Get the value list for this entity.
+            List<String> parms = this.valueMap.get(parts[0]);
+            // Extract the listed parameter.
+            retVal = parms.get(idx);
+        }
+        return retVal;
     }
 
     @Override

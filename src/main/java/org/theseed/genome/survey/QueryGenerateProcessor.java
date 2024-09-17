@@ -149,8 +149,18 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
             List<ProposalResponseSet> responses = proposal.computeSets(this.db);
             log.info("{} response sets found.", responses.size());
             // Loop through the response sets, writing the questions.
-            for (ProposalResponseSet response : responses)
-                proposal.writeResponse(response, writer);
+            int skipCount = 0;
+            int outCount = 0;
+            for (ProposalResponseSet response : responses) {
+                // Only proceed if the response is small enough.
+                if (response.size() > this.targetSize)
+                    skipCount++;
+                else {
+                    outCount++;
+                    proposal.writeResponse(response, writer);
+                }
+            }
+            log.info("{} responses output, {} skipped.", outCount, skipCount);
         }
 
     }

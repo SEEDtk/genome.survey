@@ -4,8 +4,10 @@
 package org.theseed.memdb.query.proposal;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import org.theseed.io.Attribute;
 import org.theseed.memdb.query.QueryEntityInstance;
 
 /**
@@ -21,6 +23,8 @@ public class ProposalResponse {
     // FIELDS
     /** sequence of related entity instances for this response */
     private List<QueryEntityInstance> instancePath;
+    /** empty string for failure case */
+    private List<String> EMPTY_LIST = Collections.emptyList();
 
     /**
      * Construct a proposal response with a single entity instance.
@@ -56,6 +60,28 @@ public class ProposalResponse {
     public QueryEntityInstance getLastEntity() {
         final int n = this.instancePath.size() - 1;
         return this.instancePath.get(n);
+    }
+
+    /**
+     * @return the value of the named entity attribute as a list
+     *
+     * @param entityName	name of the entity of interest
+     * @param attrName		name of the attribute of interest
+     */
+    public List<String> getValue(String entityName, String attrName) {
+        List<String> retVal;
+        QueryEntityInstance entityInstance = null;
+        for (QueryEntityInstance qInstance : this.instancePath) {
+            if (entityName.equals(qInstance.getType()))
+                entityInstance = qInstance;
+        }
+        if (entityInstance == null)
+            retVal = EMPTY_LIST;
+        else {
+            Attribute attr = entityInstance.getAtttribute(attrName);
+            retVal = attr.getList();
+        }
+        return retVal;
     }
 
 }
