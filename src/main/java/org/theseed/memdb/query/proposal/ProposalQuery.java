@@ -58,9 +58,6 @@ public abstract class ProposalQuery {
             if (typeChar == null) {
                 proposalField = new ExactProposalField(fieldSpec);
             } else switch (typeChar) {
-            case "?" :
-                proposalField = new BooleanProposalField(fieldSpec);
-                break;
             case "<" :
                 proposalField = new LessThanProposalField(fieldSpec);
                 break;

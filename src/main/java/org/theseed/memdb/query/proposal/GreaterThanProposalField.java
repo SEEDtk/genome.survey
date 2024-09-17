@@ -3,7 +3,6 @@
  */
 package org.theseed.memdb.query.proposal;
 
-import org.apache.commons.lang3.StringUtils;
 import org.theseed.basic.ParseFailureException;
 
 /**
@@ -15,9 +14,6 @@ import org.theseed.basic.ParseFailureException;
  */
 public class GreaterThanProposalField extends BinaryProposalField {
 
-    /** lower bound for values that satisfy this proposal */
-    private double bound;
-
     /**
      * Construct a numerically-greater field proposal.
      *
@@ -26,12 +22,12 @@ public class GreaterThanProposalField extends BinaryProposalField {
      * @throws ParseFailureException
      */
     public GreaterThanProposalField(String fieldSpec) throws ParseFailureException {
-        super(StringUtils.substringBefore(fieldSpec, ":"));
-        try {
-            this.bound = Double.valueOf(StringUtils.substringAfter(fieldSpec, ":"));
-        } catch (NumberFormatException e) {
-            throw new ParseFailureException("Invalid bound on field specification \"" + fieldSpec + "\".");
-        }
+        super(fieldSpec);
+    }
+
+    @Override
+    protected boolean isSatisfied(double actualVal, double targetVal) {
+        return (actualVal > targetVal);
     }
 
 }

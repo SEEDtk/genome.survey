@@ -22,6 +22,8 @@ public class QueryEntityInstance extends EntityInstance {
     // FIELDS
     /** map of attribute names to values */
     private Map<String, Attribute> attributes;
+    /** default attribute (always false and empty */
+    private static final Attribute NULL_ATTRIBUTE = new Attribute();
 
     /**
      * Create a query-generation entity instance of the specified type with the specified ID.
@@ -43,6 +45,13 @@ public class QueryEntityInstance extends EntityInstance {
      */
     protected void addAttribute(String name, Attribute attr) {
         this.attributes.put(name, attr);
+    }
+
+    /**
+     * @return an attribute with the specified name
+     */
+    public Attribute getAtttribute(String name) {
+        return this.attributes.getOrDefault(name, NULL_ATTRIBUTE);
     }
 
 }

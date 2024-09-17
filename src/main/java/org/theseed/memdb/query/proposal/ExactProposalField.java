@@ -3,7 +3,11 @@
  */
 package org.theseed.memdb.query.proposal;
 
+import java.util.List;
+
 import org.theseed.basic.ParseFailureException;
+import org.theseed.io.Attribute;
+import org.theseed.memdb.query.QueryEntityInstance;
 
 /**
  * This field proposal is satisfied when the value of the field contains the parameter value,
@@ -22,6 +26,12 @@ public class ExactProposalField extends ProposalField {
      */
     public ExactProposalField(String fieldSpec) throws ParseFailureException {
         super(fieldSpec);
+    }
+
+    @Override
+    protected List<String> getValue(QueryEntityInstance instance) {
+        Attribute instanceVal = instance.getAtttribute(this.getName());
+        return instanceVal.getList();
     }
 
 }

@@ -3,8 +3,10 @@
  */
 package org.theseed.memdb.query.proposal;
 
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.theseed.basic.ParseFailureException;
+import org.theseed.memdb.query.QueryEntityInstance;
 
 /**
  * This object represents a field of interest in a query proposal. We need to know the
@@ -45,5 +47,21 @@ public abstract class ProposalField {
     public String getEntityType() {
         return this.entityType;
     }
+
+    /**
+     * @return the name of the desired attribute
+     */
+    public String getName() {
+        return this.attributeName;
+    }
+
+    /**
+     * Extract the appropriate value for this field proposal from the specified entity instance.
+     *
+     * @param instance	entity instance of interest
+     *
+     * @return the string representation of the value, or nothing if the instance fails the criteria
+     */
+    protected abstract List<String> getValue(QueryEntityInstance instance);
 
 }

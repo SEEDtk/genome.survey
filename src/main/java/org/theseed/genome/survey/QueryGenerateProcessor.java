@@ -48,8 +48,7 @@ import org.theseed.utils.BaseTextProcessor;
  * as an entity name followed by a period and the field name. If a prefix of ">", "<", or "=" is specified for
  * a field name, then the field is interpreted as numeric, and it is expected we are asking for a relation
  * of greater than, less than, or equal, respectively. The field name must be followed by a colon and a
- * value. In this case, the value is fixed, so the field is effectively treated as a boolean. If a prefix of
- * "?" is specified, then the field is interpreted as a real boolean, and only satisfied if it is true.
+ * value. In this case, the value is fixed, so the field is effectively treated as a boolean.
  *
  * The command-line options are
  * -h	display command-line usage

@@ -43,4 +43,18 @@ public class ProposalEntity {
         return this.entityName;
     }
 
+    /**
+     * @return the list of attribute proposals
+     */
+    protected List<ProposalField> getProposals() {
+        return this.fields;
+    }
+
+    /**
+     * @return the number of proposal fields in this entity proposal
+     */
+    public int size() {
+        return this.fields.size();
+    }
+
 }
