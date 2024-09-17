@@ -52,4 +52,11 @@ public abstract class RelationshipInstance {
         return db.getEntity(this.targetType, this.targetId);
     }
 
+    /**
+     * @return the target entity type
+     */
+    public String getTargetType() {
+        return this.targetType;
+    }
+
 }

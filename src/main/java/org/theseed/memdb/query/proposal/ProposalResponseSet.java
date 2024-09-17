@@ -14,7 +14,6 @@ import java.util.List;
  *
  */
 public class ProposalResponseSet {
-
     // FIELDS
     /** parameterization of this response set */
     private Parameterization parameters;
@@ -37,5 +36,28 @@ public class ProposalResponseSet {
     public void addResponse(ProposalResponse response) {
         this.responses.add(response);
     }
+
+    /**
+     * @return the number of responses in this set
+     */
+    public int size() {
+        return this.responses.size();
+    }
+
+
+    /**
+     * @return the parameters
+     */
+    public Parameterization getParameters() {
+        return this.parameters;
+    }
+
+    /**
+     * @return the responses
+     */
+    public List<ProposalResponse> getResponses() {
+        return this.responses;
+    }
+
 
 }

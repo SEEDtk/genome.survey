@@ -66,4 +66,19 @@ public abstract class EntityInstance {
         return this.connections;
     }
 
+    /**
+     * @return the list of related entity instances of the specified type
+     *
+     * @param db		relevant database instance
+     * @param typeName	name of the desired target entity type
+     */
+    public List<EntityInstance> getTargetsOfType(DbInstance db, String typeName) {
+        List<EntityInstance> retVal = new ArrayList<EntityInstance>();
+        for (RelationshipInstance connection : this.connections) {
+            if (typeName.equals(connection.getTargetType()))
+                retVal.add(connection.getTarget(db));
+        }
+        return retVal;
+    }
+
 }

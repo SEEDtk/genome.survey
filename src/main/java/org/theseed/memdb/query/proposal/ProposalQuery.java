@@ -5,14 +5,20 @@ package org.theseed.memdb.query.proposal;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.theseed.basic.ParseFailureException;
+import org.theseed.memdb.EntityInstance;
 import org.theseed.memdb.query.QueryDbInstance;
+import org.theseed.memdb.query.QueryEntityInstance;
 
 /**
  * This object represents an actual proposal. The proposals come in two types-- list and count.
@@ -97,8 +103,59 @@ public abstract class ProposalQuery {
      * @return a list of proposal response sets containing valid answers
      */
     public List<ProposalResponseSet> computeSets(QueryDbInstance db) {
-        // TODO code for computeSets
-        return null;
+        // Create a map of parameterizations to response sets.
+        Map<Parameterization, ProposalResponseSet> currentMap = new HashMap<Parameterization, ProposalResponseSet>();
+        // We start with the first entity in the query and process all its records into response sets.
+        ProposalEntity originEntity = this.path.get(0);
+        // Get the instances for that entity.
+        Collection<EntityInstance> originInstances = db.getAllEntities(originEntity.getName());
+        for (var originInstance : originInstances) {
+            // Get this instance as a query entity instance.
+            QueryEntityInstance queryInstance = (QueryEntityInstance) originInstance;
+            // Compute all its parameterizations.
+            Parameterization instanceParms = new Parameterization();
+            Set<Parameterization> allInstanceParms = instanceParms.addInstance(queryInstance, originEntity);
+            // Now we have all the parameterizations for which this entity instance should be included in a
+            // proposal response set. It's possible this could be zero. It is usually one.
+            for (Parameterization parms : allInstanceParms) {
+                ProposalResponseSet responses = currentMap.computeIfAbsent(parms, x -> new ProposalResponseSet(x));
+                responses.addResponse(new ProposalResponse(queryInstance));
+            }
+        }
+        // Now we need to add records for the remaining entities of the path. We will build these in this
+        // new map.
+        Map<Parameterization, ProposalResponseSet> newMap = new HashMap<Parameterization, ProposalResponseSet>();
+        for (int i = 1; i < this.path.size(); i++) {
+            ProposalEntity currEntity = this.path.get(i);
+            // We need to process each response. Note that a response is a sequence of entity instances along the
+            // path. For each response, we cross the relationship of interest and parameterize the entity instances
+            // found there.
+            for (ProposalResponseSet responseSet : currentMap.values()) {
+                // Get this response set's parameterization.
+                Parameterization mainParms = responseSet.getParameters();
+                for (ProposalResponse response : responseSet.getResponses()) {
+                    // Here we have a response containing instances of all the previous entities on
+                    // the path. Get all the new entity instances further down the path.
+                    QueryEntityInstance endInstance = response.getLastEntity();
+                    Collection<EntityInstance> newInstances = endInstance.getTargetsOfType(db, currEntity.getName());
+                    for (var newInstance : newInstances) {
+                        // Create a response that has the new entity instance in it.
+                        QueryEntityInstance queryInstance = (QueryEntityInstance) newInstance;
+                        // Get the parameterizations for this new response.
+                        Set<Parameterization> newParms = mainParms.addInstance(queryInstance, currEntity);
+                        // Put them in the map.
+                        for (Parameterization parms : newParms) {
+                            ProposalResponseSet responses = currentMap.computeIfAbsent(parms, x -> new ProposalResponseSet(x));
+                            responses.addResponse(new ProposalResponse(response, queryInstance));
+                        }
+                    }
+                }
+            }
+            // Discard the old map and use the new one next time.
+            currentMap = newMap;
+        }
+        // Return a list of the response sets found.
+        return new ArrayList<ProposalResponseSet>(currentMap.values());
     }
 
     /**

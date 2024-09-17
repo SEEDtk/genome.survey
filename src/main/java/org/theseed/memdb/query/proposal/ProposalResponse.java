@@ -19,7 +19,7 @@ import org.theseed.memdb.query.QueryEntityInstance;
 public class ProposalResponse {
 
     // FIELDS
-    /** list of entity instances for this response */
+    /** sequence of related entity instances for this response */
     private List<QueryEntityInstance> instancePath;
 
     /**
@@ -48,6 +48,14 @@ public class ProposalResponse {
      */
     public int size() {
         return this.instancePath.size();
+    }
+
+    /**
+     * @return the instance of the last entity in the path.
+     */
+    public QueryEntityInstance getLastEntity() {
+        final int n = this.instancePath.size() - 1;
+        return this.instancePath.get(n);
     }
 
 }

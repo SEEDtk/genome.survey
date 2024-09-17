@@ -52,12 +52,12 @@ public class Parameterization {
      * @param instance	entity instance of interest
      * @param proposal	query proposal relevant to the entity instance
      *
-     * @return the resulting set of parameterizations
+     * @return the resulting set of parameterizations, none of which will be this one
      */
     public Set<Parameterization> addInstance(QueryEntityInstance instance, ProposalEntity proposal) {
         // Start off returning just this parameterization. This is the most common case.
         Set<Parameterization> retVal = new TreeSet<Parameterization>();
-        retVal.add(this);
+        retVal.add(new Parameterization(this));
         // Loop through the field proposals.
         Iterator<ProposalField> iter = proposal.getProposals().iterator();
         while (iter.hasNext() && retVal != null) {
