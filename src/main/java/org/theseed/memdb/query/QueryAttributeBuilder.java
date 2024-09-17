@@ -49,9 +49,6 @@ public class QueryAttributeBuilder extends AttributeBuilder {
         Attribute attr = new Attribute(record, attrColIdx);
         // Store it in the entity instance.
         qInstance.addAttribute(this.attrName, attr);
-        // Record the values in the counts.
-        QueryDbInstance qDb = (QueryDbInstance) db;
-        qDb.recordAttribute(instance.getType(), this.attrName, attr.getList());
     }
 
 }
