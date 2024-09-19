@@ -17,12 +17,13 @@ public class GreaterThanProposalField extends BinaryProposalField {
     /**
      * Construct a numerically-greater field proposal.
      *
-     * @param fieldSpec		field specification
+     * @param fieldSpec		field specification (entity.name)
+     * @param value			number parameter
      *
      * @throws ParseFailureException
      */
-    public GreaterThanProposalField(String fieldSpec) throws ParseFailureException {
-        super(fieldSpec);
+    public GreaterThanProposalField(String fieldSpec, String value) throws ParseFailureException {
+        super(fieldSpec, value);
     }
 
     @Override

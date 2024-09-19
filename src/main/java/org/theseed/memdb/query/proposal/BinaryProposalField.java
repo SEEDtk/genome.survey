@@ -6,7 +6,6 @@ package org.theseed.memdb.query.proposal;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.Attribute;
 import org.theseed.memdb.query.QueryEntityInstance;
@@ -32,13 +31,14 @@ public abstract class BinaryProposalField extends ProposalField {
     /**
      * Construct a binary proposal field.
      *
-     * @param fieldSpec
+     * @param fieldSpec		field specification (entity.name)
+     * @param value			number parameter
+     *
      * @throws ParseFailureException
      */
-    public BinaryProposalField(String fieldSpec) throws ParseFailureException {
-        super(StringUtils.substringBefore(fieldSpec, ":"));
+    public BinaryProposalField(String fieldSpec, String value) throws ParseFailureException {
+        super(fieldSpec);
         try {
-            String value = StringUtils.substringAfter(fieldSpec, ":");
             this.valueReturn = List.of(value);
             this.target = Double.valueOf(value);
         } catch (NumberFormatException e) {

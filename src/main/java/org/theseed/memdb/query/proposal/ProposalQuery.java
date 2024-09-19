@@ -60,18 +60,19 @@ public abstract class ProposalQuery {
             // is the second group.
             String typeChar = m.group(1);
             String fieldSpec = m.group(2);
+            String parm = m.group(3);
             ProposalField proposalField;
             if (typeChar == null) {
                 proposalField = new ExactProposalField(fieldSpec);
             } else switch (typeChar) {
             case "<" :
-                proposalField = new LessThanProposalField(fieldSpec);
+                proposalField = new LessThanProposalField(fieldSpec, parm);
                 break;
             case "=" :
-                proposalField = new EqualProposalField(fieldSpec);
+                proposalField = new EqualProposalField(fieldSpec, parm);
                 break;
             case ">" :
-                proposalField = new GreaterThanProposalField(fieldSpec);
+                proposalField = new GreaterThanProposalField(fieldSpec, parm);
                 break;
             default :
                 throw new ParseFailureException("Invalid field specification character \"" + typeChar + "\".");

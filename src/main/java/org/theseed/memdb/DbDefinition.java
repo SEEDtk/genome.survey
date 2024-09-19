@@ -303,7 +303,7 @@ public abstract class DbDefinition {
                             // The builder creates all the line templates for this entity.  Each record
                             // is applied to every template.  Setting up the templates also tells the
                             // input stream the columns we are using.
-                            log.info("Compiling templates for {}.", inFile);
+                            log.info("Processing instance data from {}.", inFile);
                             EntityBuilder builder = new EntityBuilder(type, inStream);
                             // Loop through the records, executing the builder.  This creates all the
                             // entity and relationship instances and compiles the attributes.

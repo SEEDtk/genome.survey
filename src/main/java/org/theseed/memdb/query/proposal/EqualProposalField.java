@@ -18,11 +18,12 @@ public class EqualProposalField extends BinaryProposalField {
      * Construct a numeric-equality field proposal
      *
      * @param fieldSpec		field specification (entity.name)
+     * @param value			number parameter
      *
      * @throws ParseFailureException
      */
-    public EqualProposalField(String fieldSpec) throws ParseFailureException {
-        super(fieldSpec);
+    public EqualProposalField(String fieldSpec, String value) throws ParseFailureException {
+        super(fieldSpec, value);
     }
 
     @Override

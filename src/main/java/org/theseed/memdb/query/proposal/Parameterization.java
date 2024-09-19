@@ -3,12 +3,14 @@
  */
 package org.theseed.memdb.query.proposal;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
@@ -22,11 +24,16 @@ import org.theseed.memdb.query.QueryEntityInstance;
  * @author Bruce Parrello
  *
  */
-public class Parameterization {
+public class Parameterization implements Comparable<Parameterization> {
 
     // FIELDS
     /** map from entity type names to value lists */
-    private Map<String, List<String>> valueMap;
+    private SortedMap<String, List<String>> valueMap;
+    /** default empty string list */
+    private static final List<String> EMPTY_LIST = Collections.emptyList();
+    /** default end-of-stream object for comparisons; note entity names must begin with a letter */
+    private static final Map.Entry<String, List<String>> MAX_ENTRY =
+            new AbstractMap.SimpleEntry<String, List<String>>("~~", EMPTY_LIST);
 
     /**
      * Construct a blank parameterization.
@@ -172,6 +179,54 @@ public class Parameterization {
             }
         }
         return true;
+    }
+
+    @Override
+    public int compareTo(Parameterization o) {
+        // To compare parameterizations, we compare the value strings by key.  Note that the
+        // key sets are sorted, and we use a standard data-processing merge algorithm.
+        int retVal = 0;
+        var thisIter = this.valueMap.entrySet().iterator();
+        var oIter = o.valueMap.entrySet().iterator();
+        var thisEntry = getNextEntry(thisIter);
+        var oEntry = getNextEntry(oIter);
+        while (retVal == 0 && thisEntry != MAX_ENTRY || oEntry != MAX_ENTRY) {
+            // Compare the keys.
+            retVal = thisEntry.getKey().compareTo(oEntry.getKey());
+            if (retVal == 0) {
+                // Here we have matching keys, so we need to compare the value lists.
+                List<String> thisValue = thisEntry.getValue();
+                List<String> oValue = oEntry.getValue();
+                final int n = (thisValue.size() < oValue.size() ? thisValue.size() : oValue.size());
+                for (int i = 0; retVal == 0 && i < n; i++)
+                    retVal = thisValue.get(i).compareTo(oValue.get(i));
+                // Handle unequal lengths.
+                if (retVal == 0) {
+                    if (n < thisValue.size())
+                        retVal = 1;
+                    else if (n < oValue.size())
+                        retVal = -1;
+                }
+            }
+
+        }
+        return retVal;
+    }
+
+    /**
+     * Get the next entry in a map iterator, or the trailer entry if the iterator is at the end.
+     *
+     * @param iter		iterator through a map entry set
+     *
+     * @return the next map entry, or a dummy trailer entry if we are at the end
+     */
+    private static Map.Entry<String, List<String>> getNextEntry(Iterator<Map.Entry<String, List<String>>> iter) {
+        Map.Entry<String, List<String>> retVal;
+        if (iter.hasNext())
+            retVal = iter.next();
+        else
+            retVal = MAX_ENTRY;
+        return retVal;
     }
 
 }

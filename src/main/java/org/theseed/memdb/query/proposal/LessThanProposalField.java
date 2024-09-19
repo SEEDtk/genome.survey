@@ -18,11 +18,12 @@ public class LessThanProposalField extends BinaryProposalField {
      * Construct a numerically-less field proposal.
      *
      * @param fieldSpec		field specification (entity.name)
+     * @param value			number parameter
      *
      * @throws ParseFailureException
      */
-    public LessThanProposalField(String fieldSpec) throws ParseFailureException {
-        super(fieldSpec);
+    public LessThanProposalField(String fieldSpec, String value) throws ParseFailureException {
+        super(fieldSpec, value);
     }
 
     @Override
