@@ -25,6 +25,7 @@ import org.theseed.memdb.query.proposal.CountProposalQuery;
 import org.theseed.memdb.query.proposal.ListProposalQuery;
 import org.theseed.memdb.query.proposal.ProposalQuery;
 import org.theseed.memdb.query.proposal.ProposalResponseSet;
+import org.theseed.stats.Shuffler;
 import org.theseed.utils.BaseTextProcessor;
 
 /**
@@ -66,7 +67,7 @@ import org.theseed.utils.BaseTextProcessor;
  *
  * --target		maximum number of desirable results for a query (default 10)
  * --limit		maximum intermediate result set size (default 20000)
- *
+ * --max		maximum number of examples to output per query template (default 100)
  *
  * @author Bruce Parrello
  *
@@ -98,9 +99,13 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
     @Option(name = "--target", metaVar = "20", usage = "maximum desired target set size")
     private int targetSize;
 
-    /** maximum result set size */
+    /** maximum intermediate result set size */
     @Option(name = "--limit", metaVar = "10000", usage = "maximum intermediate result set size")
     private int maxLimit;
+
+    /** maximum number of output questions per query template */
+    @Option(name = "--max", metaVar = "10", usage = "maximum number of output questions per query template")
+    private int maxOutput;
 
     /** database definition file */
     @Argument(index = 0, metaVar = "dbdFile.txt", usage = "database definition file", required = true)
@@ -115,6 +120,7 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
         this.recursive = false;
         this.targetSize = 10;
         this.maxLimit = 5000;
+        this.maxOutput = 100;
     }
 
     @Override
@@ -124,9 +130,13 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
             throw new FileNotFoundException("Database definition file " + this.dbdFile + " is not found or unreadable.");
         if (! this.dataDir.isDirectory())
             throw new FileNotFoundException("Data directory " + this.dataDir + " is not found or invalid.");
-        // Validate the target size.
+        // Validate the limit parameters.
         if (this.targetSize < 1)
             throw new ParseFailureException("Invalid target size: must be positive.");
+        if (this.maxLimit < 1)
+            throw new ParseFailureException("Invalid intermediate-set limit: must be positive.");
+        if (this.maxOutput < 1)
+            throw new ParseFailureException("Invalid output limit: must be positive.");
         // Assemble the list of input directories.
         if (! this.recursive) {
             // Here we are just reading data from one directory.
@@ -160,19 +170,24 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
             log.info("Computing responses for query: {}", qString);
             List<ProposalResponseSet> responses = proposal.computeSets(this.db);
             log.info("{} response sets found.", responses.size());
-            // Loop through the response sets, writing the questions.
+            // Loop through the response sets, removing bad sets.
             int skipCount = 0;
             int outCount = 0;
-            for (ProposalResponseSet response : responses) {
-                // Only proceed if the response is small enough.
-                if (proposal.getResponseSize(response) > this.targetSize)
-                    skipCount++;
-                else {
+            Iterator<ProposalResponseSet> iter = responses.iterator();
+            while (iter.hasNext()) {
+                ProposalResponseSet response = iter.next();
+                if (proposal.getResponseSize(response) <= this.targetSize)
                     outCount++;
-                    proposal.writeResponse(response, writer);
+                else {
+                    iter.remove();
+                    skipCount++;
                 }
             }
-            log.info("{} responses output, {} skipped.", outCount, skipCount);
+            // Insure we don't output too many responses for this query.
+            var finalResponses = Shuffler.selectPart(responses, this.maxOutput);
+            // Finally, write the responses.
+            finalResponses.stream().forEach(x -> proposal.writeResponse(x, writer));
+            log.info("{} responses kept, {} skipped, {} written.", outCount, skipCount, finalResponses.size());
             // Insure our output is stored.
             writer.flush();
         }
