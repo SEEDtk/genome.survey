@@ -6,6 +6,7 @@ package org.theseed.memdb.query.proposal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.theseed.io.Attribute;
 import org.theseed.memdb.query.QueryEntityInstance;
@@ -24,7 +25,7 @@ public class ProposalResponse {
     /** sequence of related entity instances for this response */
     private List<QueryEntityInstance> instancePath;
     /** empty string for failure case */
-    private List<String> EMPTY_LIST = Collections.emptyList();
+    private static List<String> EMPTY_LIST = Collections.emptyList();
 
     /**
      * Construct a proposal response with a single entity instance.
@@ -78,9 +79,19 @@ public class ProposalResponse {
         if (entityInstance == null)
             retVal = EMPTY_LIST;
         else {
-            Attribute attr = entityInstance.getAtttribute(attrName);
+            Attribute attr = entityInstance.getAttribute(attrName);
             retVal = attr.getList();
         }
+        return retVal;
+    }
+
+    @Override
+    public String toString() {
+        String retVal;
+        if (this.instancePath.isEmpty())
+            retVal = "<null>";
+        else
+            retVal = this.instancePath.stream().map(x -> x.toString()).collect(Collectors.joining(",", "Response:", ""));
         return retVal;
     }
 

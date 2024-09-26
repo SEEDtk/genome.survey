@@ -30,7 +30,7 @@ public class ExactProposalField extends ProposalField {
 
     @Override
     protected List<String> getValue(QueryEntityInstance instance) {
-        Attribute instanceVal = instance.getAtttribute(this.getName());
+        Attribute instanceVal = instance.getAttribute(this.getName());
         return instanceVal.getList();
     }
 

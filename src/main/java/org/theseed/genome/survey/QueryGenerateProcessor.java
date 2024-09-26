@@ -45,10 +45,15 @@ import org.theseed.utils.BaseTextProcessor;
  * This last can be "count" if the answer is a count of the applicable records.
  *
  * Embedded field names in the questions are enclosed in double curly braces. All fields are expressed
- * as an entity name followed by a period and the field name. If a prefix of ">", "<", or "=" is specified for
+ * as an entity name followed by a period and the field name. If a prefix of ">" or "<" is specified for
  * a field name, then the field is interpreted as numeric, and it is expected we are asking for a relation
- * of greater than, less than, or equal, respectively. The field name must be followed by a colon and a
- * value. In this case, the value is fixed, so the field is effectively treated as a boolean.
+ * of greater than or less than, respectively. The field name must be followed by a colon and a value. In
+ * this case, the value is fixed, so the field is effectively treated as a boolean.
+ *
+ * To prevent memory from being overwhelmed, a cutoff limit is specified for the size of an intermediate result
+ * set during the search. As the algorithm travels down the path, it builds a set of all the instance sets with
+ * identical parameters. If one of these sets gets too big, we discard it before proceeding. This may cause us to
+ * lose acceptable results, but it is a concession to what we can do with limited memory.
  *
  * The command-line options are
  * -h	display command-line usage
@@ -59,6 +64,7 @@ import org.theseed.utils.BaseTextProcessor;
  * 		file structures
  *
  * --target		maximum number of desirable results for a query (default 10)
+ * --limit		maximum intermediate result set size (default 20000)
  *
  *
  * @author Bruce Parrello
@@ -91,6 +97,10 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
     @Option(name = "--target", metaVar = "20", usage = "maximum desired target set size")
     private int targetSize;
 
+    /** maximum result set size */
+    @Option(name = "--limit", metaVar = "10000", usage = "maximum intermediate result set size")
+    private int maxLimit;
+
     /** database definition file */
     @Argument(index = 0, metaVar = "dbdFile.txt", usage = "database definition file", required = true)
     private File dbdFile;
@@ -103,6 +113,7 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
     protected void setTextDefaults() {
         this.recursive = false;
         this.targetSize = 10;
+        this.maxLimit = 5000;
     }
 
     @Override
@@ -142,9 +153,9 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
             // Create the query proposal.
             ProposalQuery proposal;
             if (StringUtils.compareIgnoreCase(resultString, "count") == 0)
-                proposal = new CountProposalQuery(qString, pathString);
+                proposal = new CountProposalQuery(qString, pathString, this.maxLimit);
             else
-                proposal = new ListProposalQuery(qString, pathString, resultString);
+                proposal = new ListProposalQuery(qString, pathString, this.maxLimit, resultString);
             log.info("Computing responses for query: {}", qString);
             List<ProposalResponseSet> responses = proposal.computeSets(this.db);
             log.info("{} response sets found.", responses.size());
@@ -153,7 +164,7 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
             int outCount = 0;
             for (ProposalResponseSet response : responses) {
                 // Only proceed if the response is small enough.
-                if (response.size() > this.targetSize)
+                if (proposal.getResponseSize(response) > this.targetSize)
                     skipCount++;
                 else {
                     outCount++;
@@ -161,6 +172,8 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
                 }
             }
             log.info("{} responses output, {} skipped.", outCount, skipCount);
+            // Insure our output is stored.
+            writer.flush();
         }
 
     }

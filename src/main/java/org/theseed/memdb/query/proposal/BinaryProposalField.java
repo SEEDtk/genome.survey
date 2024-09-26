@@ -49,7 +49,7 @@ public abstract class BinaryProposalField extends ProposalField {
     @Override
     protected List<String> getValue(QueryEntityInstance instance) {
         List<String> retVal;
-        Attribute instanceVal = instance.getAtttribute(this.getName());
+        Attribute instanceVal = instance.getAttribute(this.getName());
         double actualVal = instanceVal.getDouble();
         if (this.isSatisfied(actualVal, this.target))
             retVal = valueReturn;

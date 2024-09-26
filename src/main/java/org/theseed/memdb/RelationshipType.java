@@ -87,4 +87,12 @@ public abstract class RelationshipType {
      */
     protected abstract RelationBuilder createRelationBuilder(FieldInputStream inStream) throws IOException, ParseFailureException;
 
+    /**
+     * The string representation is the two entity type names, in order.
+     */
+    @Override
+    public String toString() {
+        return this.source.getName() + "-" + this.target.getName();
+    }
+
 }

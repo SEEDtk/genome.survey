@@ -81,4 +81,9 @@ public abstract class EntityInstance {
         return retVal;
     }
 
+    @Override
+    public String toString() {
+        return this.entityType + "[" + this.entityId + "]";
+    }
+
 }

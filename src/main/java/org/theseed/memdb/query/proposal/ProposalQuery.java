@@ -13,8 +13,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.memdb.EntityInstance;
 import org.theseed.memdb.query.QueryDbInstance;
@@ -31,10 +34,14 @@ import org.theseed.memdb.query.QueryEntityInstance;
 public abstract class ProposalQuery {
 
     // FIELDS
+    /** logging facility */
+    protected static Logger log = LoggerFactory.getLogger(ProposalQuery.class);
     /** list of entity proposals along the query path */
     private List<ProposalEntity> path;
     /** template string */
     private String questionString;
+    /** cutoff limit for response set sizes */
+    private int maxResponseLimit;
     /** pattern for finding attribute substitution elements */
     private static final Pattern FIELD_PATTERN = Pattern.compile("\\{\\{([=<>?])?(\\w+\\.\\w+)(?::([^{}]+))?\\}\\}");
 
@@ -43,10 +50,11 @@ public abstract class ProposalQuery {
      *
      * @param templateString	question template string
      * @param entityPath		path through the entities for the proposed query
+     * @param maxLimit			maximum acceptable response limit (for performance)
      *
      * @throws ParseFailureException
      */
-    public ProposalQuery(String templateString, String entityPath) throws ParseFailureException {
+    public ProposalQuery(String templateString, String entityPath, int maxLimit) throws ParseFailureException {
         this.questionString = templateString;
         // Set up the path through the database.
         String[] pathNames = StringUtils.split(entityPath);
@@ -86,6 +94,8 @@ public abstract class ProposalQuery {
             // Add the attribute to the entity.
             targetEntity.get().addAttribute(proposalField);
         }
+        // Save the response set size cutoff.
+        this.maxResponseLimit = maxLimit;
 
     }
 
@@ -117,16 +127,20 @@ public abstract class ProposalQuery {
             Parameterization instanceParms = new Parameterization();
             Set<Parameterization> allInstanceParms = instanceParms.addInstance(queryInstance, originEntity);
             // Now we have all the parameterizations for which this entity instance should be included in a
-            // proposal response set. It's possible this could be zero. It is usually one.
+            // proposal response set. It's possible this could be zero. It is usually one. We need to add it
+            // to any pre-existing response set with the same parameters, or create a new response set if there
+            // is none.
             for (Parameterization parms : allInstanceParms) {
                 ProposalResponseSet responses = currentMap.computeIfAbsent(parms, x -> new ProposalResponseSet(x));
-                responses.addResponse(new ProposalResponse(queryInstance));
+                // If this response set is acceptable, add the new response.
+                if (responses.checkStatus(this.maxResponseLimit))
+                    responses.addResponse(new ProposalResponse(queryInstance));
             }
         }
         // Now we need to add records for the remaining entities of the path. We will build these in this
         // new map.
-        Map<Parameterization, ProposalResponseSet> newMap = new HashMap<Parameterization, ProposalResponseSet>();
         for (int i = 1; i < this.path.size(); i++) {
+            Map<Parameterization, ProposalResponseSet> newMap = new HashMap<Parameterization, ProposalResponseSet>();
             ProposalEntity currEntity = this.path.get(i);
             // We need to process each response. Note that a response is a sequence of entity instances along the
             // path. For each response, we cross the relationship of interest and parameterize the entity instances
@@ -146,8 +160,10 @@ public abstract class ProposalQuery {
                         Set<Parameterization> newParms = mainParms.addInstance(queryInstance, currEntity);
                         // Put them in the map.
                         for (Parameterization parms : newParms) {
-                            ProposalResponseSet responses = currentMap.computeIfAbsent(parms, x -> new ProposalResponseSet(x));
-                            responses.addResponse(new ProposalResponse(response, queryInstance));
+                            ProposalResponseSet responses = newMap.computeIfAbsent(parms, x -> new ProposalResponseSet(x));
+                            // If this response set is acceptable, add the new response.
+                            if (responses.checkStatus(this.maxResponseLimit))
+                                responses.addResponse(new ProposalResponse(response, queryInstance));
                         }
                     }
                 }
@@ -156,7 +172,8 @@ public abstract class ProposalQuery {
             currentMap = newMap;
         }
         // Return a list of the response sets found.
-        return new ArrayList<ProposalResponseSet>(currentMap.values());
+        List<ProposalResponseSet> retVal = currentMap.values().stream().filter(x -> x.isActive()).collect(Collectors.toList());
+        return retVal;
     }
 
     /**
@@ -215,5 +232,12 @@ public abstract class ProposalQuery {
         }
         return retVal;
     }
+
+    /**
+     * @return the size of the output for this proposal query given the specified response set
+     *
+     * @param responseSet	response set to check
+     */
+    public abstract int getResponseSize(ProposalResponseSet responseSet);
 
 }

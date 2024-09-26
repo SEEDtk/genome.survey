@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.memdb.DbDefinition;
 import org.theseed.memdb.DbInstance;
@@ -18,8 +19,13 @@ import org.theseed.memdb.RelationshipType;
  * answers for LLM training. For each attribute we need to know how often each
  * value occurs, and for each entity type how many connections to each other type.
  * In the definition file, all we keep are the entity attributes. Currently, these are
- * described only by a column name (which is also the attribute name). Each attribute
- * name should be on a single line below the entity header.
+ * described two ways. First, by a column name in the entity type definition (which is also the
+ * attribute name). Each attribute name should be on a single line below the entity header.
+ * Second, by a specification in a relationship definition. This is used when a many-to-many
+ * relationship contains data that has to be stored in one of the connecting entities. This
+ * is almost always identifying data in a target entity that has no source file of its own. The
+ * specification consists of the field name in the data file input record and the attribute name
+ * in the target entity itself.
  *
  * @author Bruce Parrello
  *
@@ -45,8 +51,21 @@ public class QueryDbDefinition extends DbDefinition {
 
     @Override
     protected String processRelationshipDefinition(RelationshipType rel, DbDefinition db) throws ParseFailureException {
-        // There is no relationship data in this type of database.
-        return db.readNext();
+        // Get the relationship type as a query-relationship type.
+        QueryRelationshipType qRel = (QueryRelationshipType) rel;
+        // Loop through the target-attribute definitions (if any).
+        String retVal = db.readNext();
+        while (retVal != null && ! retVal.startsWith("#")) {
+            // Here we have a target attribute definition. We put this in the map. The key is the input field name and the
+            // value is the target-instance field name.
+            String[] parts = StringUtils.split(retVal);
+            if (parts.length != 2)
+                throw new ParseFailureException("Target-field spec in relationship definition for " + qRel.toString()
+                + " has an invalid format.");
+            qRel.storeFieldMapping(parts[0], parts[1]);
+            retVal = db.readNext();
+        }
+        return retVal;
     }
 
     @Override

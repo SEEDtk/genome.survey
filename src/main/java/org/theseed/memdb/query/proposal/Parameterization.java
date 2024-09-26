@@ -208,7 +208,8 @@ public class Parameterization implements Comparable<Parameterization> {
                         retVal = -1;
                 }
             }
-
+            thisEntry = getNextEntry(thisIter);
+            oEntry = getNextEntry(oIter);
         }
         return retVal;
     }

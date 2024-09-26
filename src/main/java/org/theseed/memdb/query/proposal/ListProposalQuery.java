@@ -4,11 +4,7 @@
 package org.theseed.memdb.query.proposal;
 
 import java.io.PrintWriter;
-import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
-
-import org.apache.commons.lang3.StringUtils;
 import org.theseed.basic.ParseFailureException;
 
 /**
@@ -28,12 +24,13 @@ public class ListProposalQuery extends ProposalQuery {
      *
      * @param templateString		question template string
      * @param entityPath			path through the entities
+     * @param maxLimit				maximum acceptable response limit (for performance)
      * @param fieldSpec				result field specification
      *
      * @throws ParseFailureException
      */
-    public ListProposalQuery(String templateString, String entityPath, String fieldSpec) throws ParseFailureException {
-        super(templateString, entityPath);
+    public ListProposalQuery(String templateString, String entityPath, int maxLimit, String fieldSpec) throws ParseFailureException {
+        super(templateString, entityPath, maxLimit);
         this.outputField = new ExactProposalField(fieldSpec);
     }
 
@@ -42,13 +39,18 @@ public class ListProposalQuery extends ProposalQuery {
         // Write the question string.
         this.writeQuestion(responses, writer);
         // Now we need to get the list of valid answers.
-        Set<String> answers = new TreeSet<String>();
-        for (ProposalResponse response : responses.getResponses()) {
-            List<String> values = response.getValue(outputField.getEntityType(), outputField.getName());
-            answers.addAll(values);
-        }
+        Set<String> answers = responses.getOutputValues(this.outputField.getEntityType(), this.outputField.getName());
         // Write all the answers.
-        writer.println("* Correct answers: " + StringUtils.join(answers, ", "));
+        writer.println("* Correct answers:");
+        for (String answer : answers)
+            writer.println("\t" + answer);
+    }
+
+    @Override
+    public int getResponseSize(ProposalResponseSet responseSet) {
+        // The number of distinct output values is the size of a list proposal response.
+        Set<String> retVal = responseSet.getOutputValues(this.outputField.getEntityType(), this.outputField.getName());
+        return retVal.size();
     }
 
 }

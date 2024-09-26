@@ -19,11 +19,12 @@ public class CountProposalQuery extends ProposalQuery {
      *
      * @param templateString	question template string
      * @param entityPath		path through the entities
+     * @param maxLimit			maximum acceptable response limit (for performance)
      *
      * @throws ParseFailureException
      */
-    public CountProposalQuery(String templateString, String entityPath) throws ParseFailureException {
-        super(templateString, entityPath);
+    public CountProposalQuery(String templateString, String entityPath, int maxLimit) throws ParseFailureException {
+        super(templateString, entityPath, maxLimit);
     }
 
     @Override
@@ -34,6 +35,12 @@ public class CountProposalQuery extends ProposalQuery {
         int count = response.size();
         // Write it out.
         writer.println("* Correct answer: " + count);
+    }
+
+    @Override
+    public int getResponseSize(ProposalResponseSet responseSet) {
+        // The number of records in the response set is the output of a count proposal.
+        return responseSet.size();
     }
 
 }

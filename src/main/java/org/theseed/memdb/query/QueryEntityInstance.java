@@ -50,7 +50,7 @@ public class QueryEntityInstance extends EntityInstance {
     /**
      * @return an attribute with the specified name
      */
-    public Attribute getAtttribute(String name) {
+    public Attribute getAttribute(String name) {
         return this.attributes.getOrDefault(name, NULL_ATTRIBUTE);
     }
 
