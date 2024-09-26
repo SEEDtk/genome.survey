@@ -52,7 +52,8 @@ import org.theseed.utils.BaseTextProcessor;
  *
  * To prevent memory from being overwhelmed, a cutoff limit is specified for the size of an intermediate result
  * set during the search. As the algorithm travels down the path, it builds a set of all the instance sets with
- * identical parameters. If one of these sets gets too big, we discard it before proceeding. This may cause us to
+ * identical parameters. If one of these sets gets too big, we discard it before proceeding. If the initial
+ * entity instance set is too big, we pare it down by selecting random elements. Both of these measures may cause us to
  * lose acceptable results, but it is a concession to what we can do with limited memory.
  *
  * The command-line options are

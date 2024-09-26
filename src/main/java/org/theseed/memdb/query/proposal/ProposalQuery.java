@@ -119,7 +119,7 @@ public abstract class ProposalQuery {
         // We start with the first entity in the query and process all its records into response sets.
         ProposalEntity originEntity = this.path.get(0);
         // Get the instances for that entity.
-        Collection<EntityInstance> originInstances = db.getAllEntities(originEntity.getName());
+        Collection<EntityInstance> originInstances = db.getSomeEntities(originEntity.getName(), this.maxResponseLimit);
         for (var originInstance : originInstances) {
             // Get this instance as a query entity instance.
             QueryEntityInstance queryInstance = (QueryEntityInstance) originInstance;

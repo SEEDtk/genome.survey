@@ -3,11 +3,14 @@
  */
 package org.theseed.memdb;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +36,8 @@ public abstract class DbInstance {
     private int entityCount;
     /** relationship instance count */
     private int relCount;
+    /** randomizer for selection method */
+    private final Random rand;
 
     /**
      * Create a blank, empty database instance.
@@ -42,6 +47,7 @@ public abstract class DbInstance {
     public DbInstance(List<String> types) {
         this.typeNames = types;
         this.masterMap = new TreeMap<String, Map<String, EntityInstance>>();
+        this.rand = new Random();
     }
 
     /**
@@ -104,7 +110,7 @@ public abstract class DbInstance {
     /**
      * Return a collection of entity instances for a given entity type.
      *
-     * @param 	typeName	entity type name
+     * @param typeName	entity type name
      *
      * @return a collection of the entity instances from the entity map
      */
@@ -115,6 +121,41 @@ public abstract class DbInstance {
             retVal = Collections.emptyList();
         else
             retVal = entityMap.values();
+        return retVal;
+    }
+
+    /**
+     * Return a collection of randomly-selected entity instances for a given entity type.
+     *
+     * @param typeName		entity type name
+     * @param limit			maximum number of instances to return
+     *
+     * @return a collection of the entity instances from the entity map
+     */
+    public Collection<EntityInstance> getSomeEntities(String typeName, int limit) {
+        Collection<EntityInstance> retVal = this.getAllEntities(typeName);
+        if (retVal.size() > limit) {
+            // Here we have to select a random subset of the instances to return. We do not have
+            // efficient random access to the instance list, so we run through them in order,
+            // using a probability function to select based on the number of instances we still
+            // need over the number of instances left. If this becomes greater than 1, we pick
+            // everything remaining.
+            double remaining = retVal.size();
+            Iterator<EntityInstance> iter = retVal.iterator();
+            // We'll put the instances we keep in here. Note that we don't need the old value of
+            // "retVal" since we only access it via the iterator.
+            retVal = new ArrayList<EntityInstance>(limit);
+            while (retVal.size() < limit && iter.hasNext()) {
+                // Get the current instance.
+                EntityInstance curr = iter.next();
+                // Determine how much we want to keep it.
+                double desire = (limit - retVal.size()) / remaining;
+                remaining -= 1.0;
+                // Roll a die to see if we keep it.
+                if (this.rand.nextDouble() < desire)
+                    retVal.add(curr);
+            }
+        }
         return retVal;
     }
 
