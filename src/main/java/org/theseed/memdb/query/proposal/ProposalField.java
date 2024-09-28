@@ -3,6 +3,7 @@
  */
 package org.theseed.memdb.query.proposal;
 
+import java.util.Collections;
 import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.theseed.basic.ParseFailureException;
@@ -23,6 +24,8 @@ public abstract class ProposalField {
     private String entityType;
     /** attribute name */
     private String attributeName;
+    /** empty list, sometimes used as a return value */
+    protected static final List<String> EMPTY_LIST = Collections.emptyList();
 
     /**
      * Construct a proposal for a specified field's use as a parameter.

@@ -4,6 +4,8 @@
 package org.theseed.memdb.query.proposal;
 
 import java.io.PrintWriter;
+import java.util.List;
+
 import org.theseed.basic.ParseFailureException;
 
 /**
@@ -28,7 +30,7 @@ public class CountProposalQuery extends ProposalQuery {
     }
 
     @Override
-    public void writeResponse(ProposalResponseSet response, PrintWriter writer) {
+    public void writeResponse(ProposalResponseSet response, PrintWriter writer, List<ProposalResponseSet> responses) {
         // Write the question string.
         this.writeQuestion(response, writer);
         // Get the answer.
@@ -41,6 +43,13 @@ public class CountProposalQuery extends ProposalQuery {
     public int getResponseSize(ProposalResponseSet responseSet) {
         // The number of records in the response set is the output of a count proposal.
         return responseSet.size();
+    }
+
+    @Override
+    protected ProposalEntity getResponseEntity() {
+        // The count is based on entity instances at the end of the path, since the entire path
+        // is counted.
+        return this.getEndOfPath();
     }
 
 }

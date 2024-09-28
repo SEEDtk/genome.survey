@@ -3,7 +3,6 @@
  */
 package org.theseed.memdb.query.proposal;
 
-import java.util.Collections;
 import java.util.List;
 
 import org.theseed.basic.ParseFailureException;
@@ -25,8 +24,6 @@ public abstract class BinaryProposalField extends ProposalField {
     private double target;
     /** value return */
     private List<String> valueReturn;
-    /** empty list */
-    private static final List<String> EMPTY_LIST = Collections.emptyList();
 
     /**
      * Construct a binary proposal field.
@@ -54,7 +51,7 @@ public abstract class BinaryProposalField extends ProposalField {
         if (this.isSatisfied(actualVal, this.target))
             retVal = valueReturn;
         else
-            retVal = EMPTY_LIST;
+            retVal = ProposalField.EMPTY_LIST;
         return retVal;
     }
 

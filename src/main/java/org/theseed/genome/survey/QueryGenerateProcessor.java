@@ -43,7 +43,8 @@ import org.theseed.utils.BaseTextProcessor;
  * The queries are described in the standard input with three lines of information per query.  The
  * first line contains a text question with embedded field names. The second line contains a path
  * through the entity-relationship model. The third line describes the field containing the answer.
- * This last can be "count" if the answer is a count of the applicable records.
+ * This last can be "count" if the answer is a count of the applicable records, or it can be
+ * "choice" followed by a space and a field specification if a multiple-choice query is desired.
  *
  * Embedded field names in the questions are enclosed in double curly braces. All fields are expressed
  * as an entity name followed by a period and the field name. If a prefix of ">" or "<" is specified for
@@ -165,6 +166,8 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
             ProposalQuery proposal;
             if (StringUtils.compareIgnoreCase(resultString, "count") == 0)
                 proposal = new CountProposalQuery(qString, pathString, this.maxLimit);
+            else if (resultString.startsWith("choice"))
+                proposal = new ChoiceProposalQuery(qString, pathString, this.maxLimit, resultString, this.db);
             else
                 proposal = new ListProposalQuery(qString, pathString, this.maxLimit, resultString);
             log.info("Computing responses for query: {}", qString);
@@ -186,7 +189,7 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
             // Insure we don't output too many responses for this query.
             var finalResponses = Shuffler.selectPart(responses, this.maxOutput);
             // Finally, write the responses.
-            finalResponses.stream().forEach(x -> proposal.writeResponse(x, writer));
+            finalResponses.stream().forEach(x -> proposal.writeResponse(x, writer, responses));
             log.info("{} responses kept, {} skipped, {} written.", outCount, skipCount, finalResponses.size());
             // Insure our output is stored.
             writer.flush();

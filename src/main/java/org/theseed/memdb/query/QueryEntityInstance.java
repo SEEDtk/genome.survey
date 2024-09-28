@@ -9,6 +9,7 @@ import java.util.TreeMap;
 import org.theseed.io.Attribute;
 import org.theseed.memdb.EntityInstance;
 import org.theseed.memdb.EntityType;
+import org.theseed.memdb.query.proposal.ProposalEntity;
 
 /**
  * The query-generation entity instance contains the attribute map and a count of
@@ -52,6 +53,13 @@ public class QueryEntityInstance extends EntityInstance {
      */
     public Attribute getAttribute(String name) {
         return this.attributes.getOrDefault(name, NULL_ATTRIBUTE);
+    }
+
+    /**
+     * @return TRUE if this is an instance of the specified proposal entity
+     */
+    public boolean isProposedType(ProposalEntity proposal) {
+        return this.getType().equals(proposal.getName());
     }
 
 }

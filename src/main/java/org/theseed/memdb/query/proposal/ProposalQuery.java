@@ -116,6 +116,8 @@ public abstract class ProposalQuery {
     public List<ProposalResponseSet> computeSets(QueryDbInstance db) {
         // Create a map of parameterizations to response sets.
         Map<Parameterization, ProposalResponseSet> currentMap = new HashMap<Parameterization, ProposalResponseSet>();
+        // Compute the response entity type.
+        ProposalEntity responseEntity = this.getResponseEntity();
         // We start with the first entity in the query and process all its records into response sets.
         ProposalEntity originEntity = this.path.get(0);
         // Get the instances for that entity.
@@ -126,6 +128,10 @@ public abstract class ProposalQuery {
             // Compute all its parameterizations.
             Parameterization instanceParms = new Parameterization();
             Set<Parameterization> allInstanceParms = instanceParms.addInstance(queryInstance, originEntity);
+            if (log.isDebugEnabled() && originEntity.equals(responseEntity)) {
+                String action = (allInstanceParms.isEmpty() ? "Rejecting" : "Accepting");
+                log.debug("{} instance {}.", action, queryInstance);
+            }
             // Now we have all the parameterizations for which this entity instance should be included in a
             // proposal response set. It's possible this could be zero. It is usually one. We need to add it
             // to any pre-existing response set with the same parameters, or create a new response set if there
@@ -158,6 +164,10 @@ public abstract class ProposalQuery {
                         QueryEntityInstance queryInstance = (QueryEntityInstance) newInstance;
                         // Get the parameterizations for this new response.
                         Set<Parameterization> newParms = mainParms.addInstance(queryInstance, currEntity);
+                        if (log.isDebugEnabled()) {
+                            String action = (newParms.isEmpty() ? "Rejecting" : "Accepting");
+                            log.debug("{} response {} with {} parameterizations.", action, response, newParms.size());
+                        }
                         // Put them in the map.
                         for (Parameterization parms : newParms) {
                             ProposalResponseSet responses = newMap.computeIfAbsent(parms, x -> new ProposalResponseSet(x));
@@ -177,12 +187,18 @@ public abstract class ProposalQuery {
     }
 
     /**
+     * @return the proposal for the entity relevant to the response
+     */
+    protected abstract ProposalEntity getResponseEntity();
+
+    /**
      * Write a response for this proposal to the output.
      *
      * @param response	response set containing answers
      * @param writer	output print writer
+     * @param others	full list of response sets for this query
      */
-    public abstract void writeResponse(ProposalResponseSet response, PrintWriter writer);
+    public abstract void writeResponse(ProposalResponseSet response, PrintWriter writer, List<ProposalResponseSet> others);
 
     /**
      * Write the question statement for this proposal to the output.
@@ -239,5 +255,17 @@ public abstract class ProposalQuery {
      * @param responseSet	response set to check
      */
     public abstract int getResponseSize(ProposalResponseSet responseSet);
+
+    /**
+     * @return the last proposal entity on the query path
+     */
+    public ProposalEntity getEndOfPath() {
+        return this.path.get(this.path.size() - 1);
+    }
+
+    @Override
+    public String toString() {
+        return String.format("ProposalQuery [%s]", this.questionString);
+    }
 
 }

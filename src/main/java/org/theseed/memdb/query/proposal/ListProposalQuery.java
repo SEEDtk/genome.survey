@@ -4,6 +4,7 @@
 package org.theseed.memdb.query.proposal;
 
 import java.io.PrintWriter;
+import java.util.List;
 import java.util.Set;
 import org.theseed.basic.ParseFailureException;
 
@@ -35,7 +36,7 @@ public class ListProposalQuery extends ProposalQuery {
     }
 
     @Override
-    public void writeResponse(ProposalResponseSet responses, PrintWriter writer) {
+    public void writeResponse(ProposalResponseSet responses, PrintWriter writer, List<ProposalResponseSet> otherResponses) {
         // Write the question string.
         this.writeQuestion(responses, writer);
         // Now we need to get the list of valid answers.
@@ -51,6 +52,13 @@ public class ListProposalQuery extends ProposalQuery {
         // The number of distinct output values is the size of a list proposal response.
         Set<String> retVal = responseSet.getOutputValues(this.outputField.getEntityType(), this.outputField.getName());
         return retVal.size();
+    }
+
+    @Override
+    protected ProposalEntity getResponseEntity() {
+        // Here the response entity is obvious: it's the one containing the output field.
+        String responseType = this.outputField.getEntityType();
+        return this.getEntity(responseType);
     }
 
 }
