@@ -36,7 +36,8 @@ public class EqualProposalField extends ProposalField {
      */
     public EqualProposalField(String fieldSpec, String value) throws ParseFailureException {
         super(fieldSpec);
-        this.valueList = List.of(comparand);
+        this.comparand = value;
+        this.valueList = List.of(value);
     }
 
     @Override
