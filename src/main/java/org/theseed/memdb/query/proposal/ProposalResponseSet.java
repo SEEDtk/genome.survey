@@ -127,4 +127,9 @@ public class ProposalResponseSet {
         return this.activeFlag;
     }
 
+    @Override
+    public String toString() {
+        return String.format("ProposalResponseSet (size=%d) [parameters=%s]", this.responses.size(), this.parameters);
+    }
+
 }

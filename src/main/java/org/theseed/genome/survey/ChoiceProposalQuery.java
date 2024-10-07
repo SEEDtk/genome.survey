@@ -85,48 +85,52 @@ public class ChoiceProposalQuery extends ProposalQuery {
         final String outEntityAttr = this.outputField.getName();
         // Get the possible correct responses.
         Set<String> correct = response.getOutputValues(outEntityType, outEntityAttr);
-        // Now get the possible incorrect responses. Note this only works if the reponse sets are for the this query,
-        // and we filter out incorrect responses on the way.
-        Set<String> incorrect = others.stream().flatMap(x -> x.getOutputValues(outEntityType, outEntityAttr).stream())
-                .filter(x -> ! correct.contains(x)).collect(Collectors.toSet());
-        // Select the one correct answer we want to use.
-        List<String> answers = new ArrayList<String>(4);
-        int desired = this.rand.nextInt(correct.size());
-        String answer1 = Shuffler.selectItem(correct, desired);
-        answers.add(answer1);
-        if (incorrect.size() > 3) {
-            // The best case: we have enough answers.
-            Collection<String> selected = Shuffler.selectPart(incorrect, 3);
-            answers.addAll(selected);
-        } else if (incorrect.size() > 0) {
-            // At least one incorrect answer, but not more than 3.
-            answers.addAll(incorrect);
-        } else {
-            // Here we have no incorrect answers, so we need to get some from the whole database.
-            log.warn("Slow method for alternative answers required in {}.", this);
-            incorrect = new HashSet<String>();
-            for (var instance : this.db.getAllEntities(outEntityType)) {
-                QueryEntityInstance qInstance = (QueryEntityInstance) instance;
-                var values = qInstance.getAttribute(outEntityAttr).getList();
-                for (String value : values) {
-                    if (! correct.contains(value))
-                        incorrect.add(value);
+        if (correct.size() <= 0)
+            log.warn("No correct responses found in set {}.", response);
+        else {
+            // Now get the possible incorrect responses. Note this only works if the reponse sets are for the this query,
+            // and we filter out incorrect responses on the way.
+            Set<String> incorrect = others.stream().flatMap(x -> x.getOutputValues(outEntityType, outEntityAttr).stream())
+                    .filter(x -> ! correct.contains(x)).collect(Collectors.toSet());
+            // Select the one correct answer we want to use.
+            List<String> answers = new ArrayList<String>(4);
+            int desired = this.rand.nextInt(correct.size());
+            String answer1 = Shuffler.selectItem(correct, desired);
+            answers.add(answer1);
+            if (incorrect.size() > 3) {
+                // The best case: we have enough answers.
+                Collection<String> selected = Shuffler.selectPart(incorrect, 3);
+                answers.addAll(selected);
+            } else if (incorrect.size() > 0) {
+                // At least one incorrect answer, but not more than 3.
+                answers.addAll(incorrect);
+            } else {
+                // Here we have no incorrect answers, so we need to get some from the whole database.
+                log.warn("Slow method for alternative answers required in {}.", this);
+                incorrect = new HashSet<String>();
+                for (var instance : this.db.getAllEntities(outEntityType)) {
+                    QueryEntityInstance qInstance = (QueryEntityInstance) instance;
+                    var values = qInstance.getAttribute(outEntityAttr).getList();
+                    for (String value : values) {
+                        if (! correct.contains(value))
+                            incorrect.add(value);
+                    }
                 }
+                Collection<String> selected = Shuffler.selectPart(incorrect, 3);
+                answers.addAll(selected);
             }
-            Collection<String> selected = Shuffler.selectPart(incorrect, 3);
-            answers.addAll(selected);
+            // Randomize the order of the answers.
+            Collections.shuffle(answers, this.rand);
+            // Now output the choices, remembering the correct one.
+            String choice1 = "";
+            for (int i = 0; i < answers.size(); i++) {
+                String answer = answers.get(i);
+                writer.println("\t" + LABELS[i] + ") " + answer);
+                if (answer1.equals(answer))
+                    choice1 = LABELS[i];
+            }
+            writer.println("* Correct answer: " + choice1);
         }
-        // Randomize the order of the answers.
-        Collections.shuffle(answers, this.rand);
-        // Now output the choices, remembering the correct one.
-        String choice1 = "";
-        for (int i = 0; i < answers.size(); i++) {
-            String answer = answers.get(i);
-            writer.println("\t" + LABELS[i] + ") " + answer);
-            if (answer1.equals(answer))
-                choice1 = LABELS[i];
-        }
-        writer.println("* Correct answer: " + choice1);
     }
 
     @Override
