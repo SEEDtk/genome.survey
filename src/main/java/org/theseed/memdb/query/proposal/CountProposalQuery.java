@@ -36,7 +36,7 @@ public class CountProposalQuery extends ProposalQuery {
         // Get the answer.
         int count = response.size();
         // Write it out.
-        reporter.writeQuestion(questionText, Integer.toString(count));
+        reporter.writeQuestion(questionText, count);
     }
 
     @Override

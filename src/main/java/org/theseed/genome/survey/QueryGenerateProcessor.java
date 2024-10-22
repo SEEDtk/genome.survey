@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -29,6 +30,9 @@ import org.theseed.memdb.query.proposal.ProposalResponseSet;
 import org.theseed.reports.QueryGenReporter;
 import org.theseed.stats.Shuffler;
 import org.theseed.utils.BaseTextProcessor;
+
+import com.github.cliftonlabs.json_simple.JsonArray;
+import com.github.cliftonlabs.json_simple.JsonObject;
 
 /**
  * This command will accept as input a list of instructions for generating queries and output
@@ -72,6 +76,8 @@ import org.theseed.utils.BaseTextProcessor;
  * --limit		maximum intermediate result set size (default 20000)
  * --max		maximum number of examples to output per query template (default 100)
  * --format		output report format (default JSON)
+ * --domain		question domains to list in JSON output (may occur multiple times)
+ * --support	support string to include in JSON output
  *
  * @author Bruce Parrello
  *
@@ -117,6 +123,14 @@ public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGe
     @Option(name = "--format", usage = "output report format")
     private QueryGenReporter.Type reportType;
 
+    /** domain for output questions (JSON report only) */
+    @Option(name = "--domain", metaVar = "chemistry", usage = "for JSON output, domain to specify for each question")
+    private List<String> domains;
+
+    /** support string for output questions (JSON report only) */
+    @Option(name = "--support", metaVar = "U_Chicago", usage = "for JSON output, support organization to specify for each question")
+    private String support;
+
     /** database definition file */
     @Argument(index = 0, metaVar = "dbdFile.txt", usage = "database definition file", required = true)
     private File dbdFile;
@@ -132,6 +146,8 @@ public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGe
         this.maxLimit = 5000;
         this.maxOutput = 100;
         this.reportType = QueryGenReporter.Type.JSON;
+        this.domains = new ArrayList<String>();
+        this.support = "";
     }
 
     @Override
@@ -242,6 +258,22 @@ public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGe
         if (! inputIter.hasNext())
             throw new IOException("Early end-of-file on input.");
         return inputIter.next();
+    }
+
+    @Override
+    public JsonObject getConstantJson() {
+        JsonObject retVal = new JsonObject();
+        if (! this.domains.isEmpty()) {
+            // Here we have one or more domains to include.
+            JsonArray domainList = new JsonArray();
+            domainList.addAll(this.domains);
+            retVal.put("domains", domainList);
+        }
+        if (! this.support.isBlank()) {
+            // Here we have a support organization to include.
+            retVal.put("support", this.support);
+        }
+        return retVal;
     }
 
 

@@ -6,6 +6,8 @@ package org.theseed.reports;
 import java.io.PrintWriter;
 import java.util.Collection;
 
+import com.github.cliftonlabs.json_simple.JsonObject;
+
 /**
  * This is the report writer for query generation. Query reports are generally designed to be read by
  * other software, so they are not as structured as a normal report.
@@ -23,17 +25,18 @@ public abstract class QueryGenReporter {
      * This enumeration selects the different report types.
      */
     public static enum Type {
+        /** line-by-line text display of questions and answers */
         TEXT {
             @Override
             public QueryGenReporter create(IParms processor) {
-                // TODO code for create
-                return null;
+                return new TextQueryGenReporter(processor);
             }
-        }, JSON {
+        },
+        /** standard json-format questions and answers */
+        JSON {
             @Override
             public QueryGenReporter create(IParms processor) {
-                // TODO code for create
-                return null;
+                return new JsonQueryGenReporter(processor);
             }
         };
 
@@ -50,6 +53,11 @@ public abstract class QueryGenReporter {
      * Command processors that use this reporter must support this interface.
      */
     public interface IParms {
+
+        /**
+         * @return a JSON object containing the constant fields for each output question
+         */
+        JsonObject getConstantJson();
 
     }
 
@@ -85,12 +93,12 @@ public abstract class QueryGenReporter {
     public abstract void writeQuestion(String questionText, Collection<String> answers);
 
     /**
-     * Write a question with a single correct answer.
+     * Write a question with a single numeric answer.
      *
      * @param questionText		text of the question
      * @param answer			correct answer
      */
-    public abstract void writeQuestion(String questionText, String answer);
+    public abstract void writeQuestion(String questionText, int answer);
 
     /**
      * Write a multiple-choice question.
@@ -121,6 +129,13 @@ public abstract class QueryGenReporter {
      */
     public void write(String line) {
         this.writer.println(line);
+    }
+
+    /**
+     * @return the output print writer
+     */
+    protected PrintWriter getWriter() {
+        return this.writer;
     }
 
 }

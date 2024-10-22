@@ -35,8 +35,6 @@ public class ChoiceProposalQuery extends ProposalQuery {
     private Random rand;
     /** database instance for emergencies */
     private QueryDbInstance db;
-    /** labels for possible choices */
-    private String[] LABELS = new String[] { "A", "B", "C", "D" };
     /** match pattern for field specification */
     private static final Pattern SPEC_PATTERN = Pattern.compile("choice\\s+(.+)");
 
