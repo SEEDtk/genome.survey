@@ -21,10 +21,12 @@ import org.theseed.basic.ParseFailureException;
 import org.theseed.io.LineReader;
 import org.theseed.memdb.query.QueryDbDefinition;
 import org.theseed.memdb.query.QueryDbInstance;
+import org.theseed.memdb.query.proposal.ChoiceProposalQuery;
 import org.theseed.memdb.query.proposal.CountProposalQuery;
 import org.theseed.memdb.query.proposal.ListProposalQuery;
 import org.theseed.memdb.query.proposal.ProposalQuery;
 import org.theseed.memdb.query.proposal.ProposalResponseSet;
+import org.theseed.reports.QueryGenReporter;
 import org.theseed.stats.Shuffler;
 import org.theseed.utils.BaseTextProcessor;
 
@@ -69,11 +71,12 @@ import org.theseed.utils.BaseTextProcessor;
  * --target		maximum number of desirable results for a query (default 10)
  * --limit		maximum intermediate result set size (default 20000)
  * --max		maximum number of examples to output per query template (default 100)
+ * --format		output report format (default JSON)
  *
  * @author Bruce Parrello
  *
  */
-public class QueryGenerateProcessor extends BaseTextProcessor {
+public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGenReporter.IParms {
 
     // FIELDS
     /** logging facility */
@@ -82,6 +85,8 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
     QueryDbInstance db;
     /** array of input data diretories to scan */
     private File[] dataDirs;
+    /** output report writer */
+    private QueryGenReporter reporter;
     /** filter for data subdirectories */
     private static final FileFilter SUB_DIR_FILTER = new FileFilter() {
         @Override
@@ -108,6 +113,10 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
     @Option(name = "--max", metaVar = "10", usage = "maximum number of output questions per query template")
     private int maxOutput;
 
+    /** output report format */
+    @Option(name = "--format", usage = "output report format")
+    private QueryGenReporter.Type reportType;
+
     /** database definition file */
     @Argument(index = 0, metaVar = "dbdFile.txt", usage = "database definition file", required = true)
     private File dbdFile;
@@ -122,6 +131,7 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
         this.targetSize = 10;
         this.maxLimit = 5000;
         this.maxOutput = 100;
+        this.reportType = QueryGenReporter.Type.JSON;
     }
 
     @Override
@@ -149,12 +159,17 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
                 throw new FileNotFoundException("No subdirectories found for " + this.dataDir + ".");
             log.info("{} data directories found in {}.", this.dataDirs.length, this.dataDir);
         }
+        // Create the output report writer.
+        log.info("Initializing report type {}.", this.reportType);
+        this.reporter = this.reportType.create(this);
     }
 
     @Override
     protected void runPipeline(LineReader inputStream, PrintWriter writer) throws Exception {
         // Load the database.
         this.loadDatabase();
+        // Start the output report.
+        this.reporter.open(writer);
         // Loop through the input file, reading query specifications.
         Iterator<String> inputIter = inputStream.iterator();
         while (inputIter.hasNext()) {
@@ -189,10 +204,10 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
             // Insure we don't output too many responses for this query.
             var finalResponses = Shuffler.selectPart(responses, this.maxOutput);
             // Finally, write the responses.
-            finalResponses.stream().forEach(x -> proposal.writeResponse(x, writer, responses));
+            finalResponses.stream().forEach(x -> proposal.writeResponse(x, this.reporter, responses));
             log.info("{} responses kept, {} skipped, {} written.", outCount, skipCount, finalResponses.size());
-            // Insure our output is stored.
-            writer.flush();
+            // Insure our output is complete.
+            this.reporter.close();
         }
 
     }

@@ -3,10 +3,10 @@
  */
 package org.theseed.memdb.query.proposal;
 
-import java.io.PrintWriter;
 import java.util.List;
 import java.util.Set;
 import org.theseed.basic.ParseFailureException;
+import org.theseed.reports.QueryGenReporter;
 
 /**
  * This is a query proposal where the result is a list of field values from the response set.
@@ -36,15 +36,13 @@ public class ListProposalQuery extends ProposalQuery {
     }
 
     @Override
-    public void writeResponse(ProposalResponseSet responses, PrintWriter writer, List<ProposalResponseSet> otherResponses) {
-        // Write the question string.
-        this.writeQuestion(responses, writer);
+    public void writeResponse(ProposalResponseSet responses, QueryGenReporter reporter, List<ProposalResponseSet> otherResponses) {
+        // Get the question string.
+        String questionText = this.computeQuestion(responses);
         // Now we need to get the list of valid answers.
         Set<String> answers = responses.getOutputValues(this.outputField.getEntityType(), this.outputField.getName());
         // Write all the answers.
-        writer.println("* Correct answers:");
-        for (String answer : answers)
-            writer.println("\t" + answer);
+        reporter.writeQuestion(questionText, answers);
     }
 
     @Override

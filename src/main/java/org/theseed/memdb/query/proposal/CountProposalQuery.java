@@ -3,10 +3,10 @@
  */
 package org.theseed.memdb.query.proposal;
 
-import java.io.PrintWriter;
 import java.util.List;
 
 import org.theseed.basic.ParseFailureException;
+import org.theseed.reports.QueryGenReporter;
 
 /**
  * This is a proposal query that outputs the number of responses that match the criteria.
@@ -30,13 +30,13 @@ public class CountProposalQuery extends ProposalQuery {
     }
 
     @Override
-    public void writeResponse(ProposalResponseSet response, PrintWriter writer, List<ProposalResponseSet> responses) {
-        // Write the question string.
-        this.writeQuestion(response, writer);
+    public void writeResponse(ProposalResponseSet response, QueryGenReporter reporter, List<ProposalResponseSet> responses) {
+        // Get the question string.
+        String questionText = this.computeQuestion(response);
         // Get the answer.
         int count = response.size();
         // Write it out.
-        writer.println("* Correct answer: " + count);
+        reporter.writeQuestion(questionText, Integer.toString(count));
     }
 
     @Override

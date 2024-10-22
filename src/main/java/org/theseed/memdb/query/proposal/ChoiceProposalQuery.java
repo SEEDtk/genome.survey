@@ -1,12 +1,10 @@
 /**
  *
  */
-package org.theseed.genome.survey;
+package org.theseed.memdb.query.proposal;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
@@ -18,10 +16,7 @@ import java.util.regex.Matcher;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.memdb.query.QueryDbInstance;
 import org.theseed.memdb.query.QueryEntityInstance;
-import org.theseed.memdb.query.proposal.ExactProposalField;
-import org.theseed.memdb.query.proposal.ProposalEntity;
-import org.theseed.memdb.query.proposal.ProposalQuery;
-import org.theseed.memdb.query.proposal.ProposalResponseSet;
+import org.theseed.reports.QueryGenReporter;
 import org.theseed.stats.Shuffler;
 
 /**
@@ -77,9 +72,9 @@ public class ChoiceProposalQuery extends ProposalQuery {
     }
 
     @Override
-    public void writeResponse(ProposalResponseSet response, PrintWriter writer, List<ProposalResponseSet> others) {
+    public void writeResponse(ProposalResponseSet response, QueryGenReporter reporter, List<ProposalResponseSet> others) {
         // Write the question string.
-        this.writeQuestion(response, writer);
+        String questionText = this.computeQuestion(response);
         // Get the output field specs.
         final String outEntityType = this.outputField.getEntityType();
         final String outEntityAttr = this.outputField.getName();
@@ -93,17 +88,17 @@ public class ChoiceProposalQuery extends ProposalQuery {
             Set<String> incorrect = others.stream().flatMap(x -> x.getOutputValues(outEntityType, outEntityAttr).stream())
                     .filter(x -> ! correct.contains(x)).collect(Collectors.toSet());
             // Select the one correct answer we want to use.
-            List<String> answers = new ArrayList<String>(4);
             int desired = this.rand.nextInt(correct.size());
             String answer1 = Shuffler.selectItem(correct, desired);
-            answers.add(answer1);
+            // Now we need the wrong answers.
+            Collection<String> distractors = new ArrayList<String>(4);
             if (incorrect.size() > 3) {
                 // The best case: we have enough answers.
                 Collection<String> selected = Shuffler.selectPart(incorrect, 3);
-                answers.addAll(selected);
+                distractors.addAll(selected);
             } else if (incorrect.size() > 0) {
                 // At least one incorrect answer, but not more than 3.
-                answers.addAll(incorrect);
+                distractors.addAll(incorrect);
             } else {
                 // Here we have no incorrect answers, so we need to get some from the whole database.
                 log.warn("Slow method for alternative answers required in {}.", this);
@@ -116,20 +111,10 @@ public class ChoiceProposalQuery extends ProposalQuery {
                             incorrect.add(value);
                     }
                 }
-                Collection<String> selected = Shuffler.selectPart(incorrect, 3);
-                answers.addAll(selected);
+                distractors = Shuffler.selectPart(incorrect, 3);
             }
-            // Randomize the order of the answers.
-            Collections.shuffle(answers, this.rand);
-            // Now output the choices, remembering the correct one.
-            String choice1 = "";
-            for (int i = 0; i < answers.size(); i++) {
-                String answer = answers.get(i);
-                writer.println("\t" + LABELS[i] + ") " + answer);
-                if (answer1.equals(answer))
-                    choice1 = LABELS[i];
-            }
-            writer.println("* Correct answer: " + choice1);
+            // Write the question.
+            reporter.writeQuestion(questionText, answer1, distractors);
         }
     }
 

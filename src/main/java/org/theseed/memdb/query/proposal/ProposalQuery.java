@@ -3,7 +3,6 @@
  */
 package org.theseed.memdb.query.proposal;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -22,6 +21,7 @@ import org.theseed.basic.ParseFailureException;
 import org.theseed.memdb.EntityInstance;
 import org.theseed.memdb.query.QueryDbInstance;
 import org.theseed.memdb.query.QueryEntityInstance;
+import org.theseed.reports.QueryGenReporter;
 
 /**
  * This object represents an actual proposal. The proposals come in two types-- list and count.
@@ -195,22 +195,21 @@ public abstract class ProposalQuery {
      * Write a response for this proposal to the output.
      *
      * @param response	response set containing answers
-     * @param writer	output print writer
+     * @param reporter	output report writer
      * @param others	full list of response sets for this query
      */
-    public abstract void writeResponse(ProposalResponseSet response, PrintWriter writer, List<ProposalResponseSet> others);
+    public abstract void writeResponse(ProposalResponseSet response, QueryGenReporter reporter, List<ProposalResponseSet> others);
 
     /**
-     * Write the question statement for this proposal to the output.
+     * Formulate the question statement for this proposal.
      *
      * @param response	response set containing answers
-     * @param writer	output print writer
      */
-    protected void writeQuestion(ProposalResponseSet response, PrintWriter writer) {
+    protected String computeQuestion(ProposalResponseSet response) {
         // Get the parameterization.
         Parameterization parms = response.getParameters();
-        // We will build the output line in here.
-        StringBuilder outputLine = new StringBuilder(this.questionString.length());
+        // We will build the question text in here.
+        StringBuilder retVal = new StringBuilder(this.questionString.length());
         // We need to loop through the question string, putting in the parameters.
         Matcher m = FIELD_PATTERN.matcher(this.questionString);
         // Denote we're starting at the beginning of the string.
@@ -220,17 +219,17 @@ public abstract class ProposalQuery {
             // Get the field specification.
             String fieldSpec = m.group(2);
             // Copy the clear text.
-            outputLine.append(this.questionString.subSequence(processed, m.start()));
+            retVal.append(this.questionString.subSequence(processed, m.start()));
             // Get the parameter value.
             String value = parms.getValue(this, fieldSpec);
-            outputLine.append(value);
+            retVal.append(value);
             // Set up for the next search.
             processed = m.end();
         }
         // Copy the residual.
-        outputLine.append(this.questionString.substring(processed));
-        // Write this output line as a question.
-        writer.println(outputLine.toString());
+        retVal.append(this.questionString.substring(processed));
+        // Return the question text.
+        return retVal.toString();
     }
 
     /**
