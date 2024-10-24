@@ -3,10 +3,8 @@
  */
 package org.theseed.reports;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Random;
+import java.util.List;
 
 /**
  * This reporter produces a simple line-by-line text file of the questions, designed to be human-readable.
@@ -19,12 +17,9 @@ public class TextQueryGenReporter extends QueryGenReporter {
     // FIELDS
     /** labels for possible choices */
     private static String[] LABELS = new String[] { "A", "B", "C", "D" };
-    /** random number generator */
-    private Random rand;
 
     public TextQueryGenReporter(IParms processor) {
         super(processor);
-        this.rand = new Random();
     }
 
     @Override
@@ -52,10 +47,7 @@ public class TextQueryGenReporter extends QueryGenReporter {
         // Here we have a multiple-choice question, the most complicated one.
         this.write(questionText);
         // Put the answer in with the distractors and shuffle the result.
-        ArrayList<String> choices = new ArrayList<String>(distractors.size() + 1);
-        choices.add(answer);
-        choices.addAll(distractors);
-        Collections.shuffle(choices, this.rand);
+        List<String> choices = this.randomizeChoices(answer, distractors);
         // Write the choices.
         String correctChoice = "";
         for (int i = 0; i < choices.size(); i++) {

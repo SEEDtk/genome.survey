@@ -3,10 +3,20 @@
  */
 package org.theseed.reports;
 
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.StringReader;
+import java.io.UncheckedIOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Random;
 
+import com.github.cliftonlabs.json_simple.JsonArray;
+import com.github.cliftonlabs.json_simple.JsonException;
 import com.github.cliftonlabs.json_simple.JsonObject;
+import com.github.cliftonlabs.json_simple.Jsoner;
 
 /**
  * This is the report writer for query generation. Query reports are generally designed to be read by
@@ -20,6 +30,8 @@ public abstract class QueryGenReporter {
     // FIELDS
     /** output print writer */
     private PrintWriter writer;
+    /** random number generator */
+    private Random rand;
 
     /**
      * This enumeration selects the different report types.
@@ -37,6 +49,13 @@ public abstract class QueryGenReporter {
             @Override
             public QueryGenReporter create(IParms processor) {
                 return new JsonQueryGenReporter(processor);
+            }
+        },
+        /** conversational json-format questions and answers */
+        CONVO {
+            @Override
+            public QueryGenReporter create(IParms processor) {
+                return new ConvoQueryGenReporter(processor);
             }
         };
 
@@ -67,6 +86,7 @@ public abstract class QueryGenReporter {
      * @param processor		controlling command processor
      */
     public QueryGenReporter(IParms processor) {
+        this.rand = new Random();
     }
 
     /**
@@ -138,4 +158,37 @@ public abstract class QueryGenReporter {
         return this.writer;
     }
 
+    /**
+     * This is a utility method that randomizes the correct answer and the distractors
+     * in a multiple-choice question.
+     *
+     * @param answer		correct answers
+     * @param distractors	alternate answers
+     *
+     * @return a shuffled list of all the answers
+     */
+    public List<String> randomizeChoices(String answer, Collection<String> distractors) {
+        ArrayList<String> choices = new ArrayList<String>(distractors.size() + 1);
+        choices.add(answer);
+        choices.addAll(distractors);
+        Collections.shuffle(choices, this.rand);
+        return choices;
+    }
+
+    /**
+     * This is a utility method that outputs a JSON array.
+     *
+     * @param outJson	JSON array to output
+     */
+    protected void outputAllJson(JsonArray outJson) {
+        try {
+            String jsonString = Jsoner.serialize(outJson);
+            StringReader jsonReader = new StringReader(jsonString);
+            Jsoner.prettyPrint(jsonReader, this.writer, "    ", "\n");
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } catch (JsonException e) {
+            throw new RuntimeException("JSON output error: " + e.getMessage());
+        }
+    }
 }

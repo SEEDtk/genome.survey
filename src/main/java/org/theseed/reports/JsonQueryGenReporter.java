@@ -3,15 +3,10 @@
  */
 package org.theseed.reports;
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.io.UncheckedIOException;
 import java.util.Collection;
 
 import com.github.cliftonlabs.json_simple.JsonArray;
-import com.github.cliftonlabs.json_simple.JsonException;
 import com.github.cliftonlabs.json_simple.JsonObject;
-import com.github.cliftonlabs.json_simple.Jsoner;
 
 /**
  * This generates standard JSON output for test questions and answers. We build the question objects in memory and
@@ -89,15 +84,7 @@ public class JsonQueryGenReporter extends QueryGenReporter {
     @Override
     public void finishReport() {
         // This is the point where we actually output the JSON.
-        try {
-            String jsonString = Jsoner.serialize(this.questionJson);
-            StringReader jsonReader = new StringReader(jsonString);
-            Jsoner.prettyPrint(jsonReader, this.getWriter(), "    ", "\n");
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        } catch (JsonException e) {
-            throw new RuntimeException("JSON output error: " + e.getMessage());
-        }
+        this.outputAllJson(this.questionJson);
     }
 
 }
