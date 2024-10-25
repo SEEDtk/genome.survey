@@ -222,10 +222,9 @@ public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGe
             // Finally, write the responses.
             finalResponses.stream().forEach(x -> proposal.writeResponse(x, this.reporter, responses));
             log.info("{} responses kept, {} skipped, {} written.", outCount, skipCount, finalResponses.size());
-            // Insure our output is complete.
-            this.reporter.close();
         }
-
+        // Insure our output is complete.
+        this.reporter.close();
     }
 
     /**

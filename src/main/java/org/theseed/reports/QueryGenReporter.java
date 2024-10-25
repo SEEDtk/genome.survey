@@ -11,6 +11,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonObject;
 import com.github.cliftonlabs.json_simple.Jsoner;
@@ -25,6 +28,8 @@ import com.github.cliftonlabs.json_simple.Jsoner;
 public abstract class QueryGenReporter {
 
     // FIELDS
+    /** logging facility */
+    protected static Logger log = LoggerFactory.getLogger(QueryGenReporter.class);
     /** output print writer */
     private PrintWriter writer;
     /** random number generator */
@@ -178,17 +183,18 @@ public abstract class QueryGenReporter {
      * @param outJson	JSON array to output
      */
     protected void outputAllJson(JsonArray outJson) {
+        log.info("Writing json for {}-element list.", outJson.size());
         this.writer.println("[");
         Iterator<Object> iter = outJson.iterator();
         boolean moreLeft = iter.hasNext();
         while (moreLeft) {
             Object nextJson = iter.next();
             String jsonString = Jsoner.serialize(nextJson);
-            if (iter.hasNext()) {
+            if (! iter.hasNext()) {
                 moreLeft = false;
-                this.writer.println("   " + jsonString + ",");
-            } else
                 this.writer.println("    " + jsonString);
+            } else
+                this.writer.println("    " + jsonString + ",");
         }
         this.writer.println("]");
     }
