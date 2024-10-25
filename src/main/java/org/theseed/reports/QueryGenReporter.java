@@ -3,18 +3,15 @@
  */
 package org.theseed.reports;
 
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.StringReader;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
 import com.github.cliftonlabs.json_simple.JsonArray;
-import com.github.cliftonlabs.json_simple.JsonException;
 import com.github.cliftonlabs.json_simple.JsonObject;
 import com.github.cliftonlabs.json_simple.Jsoner;
 
@@ -181,14 +178,18 @@ public abstract class QueryGenReporter {
      * @param outJson	JSON array to output
      */
     protected void outputAllJson(JsonArray outJson) {
-        try {
-            String jsonString = Jsoner.serialize(outJson);
-            StringReader jsonReader = new StringReader(jsonString);
-            Jsoner.prettyPrint(jsonReader, this.writer, "    ", "\n");
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        } catch (JsonException e) {
-            throw new RuntimeException("JSON output error: " + e.getMessage());
+        this.writer.println("[");
+        Iterator<Object> iter = outJson.iterator();
+        boolean moreLeft = iter.hasNext();
+        while (moreLeft) {
+            Object nextJson = iter.next();
+            String jsonString = Jsoner.serialize(nextJson);
+            if (iter.hasNext()) {
+                moreLeft = false;
+                this.writer.println("   " + jsonString + ",");
+            } else
+                this.writer.println("    " + jsonString);
         }
+        this.writer.println("]");
     }
 }
