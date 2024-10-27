@@ -21,6 +21,7 @@ import org.theseed.basic.BaseProcessor;
  * modelFix		fix up a model dump to make it more compatible with the template engine
  * queryGen		generate questions for testing a large language model
  * famFile		build a protein-family file from a directory of GTOs.
+ * jsonScan		scan a JSON dump and produce a report on file names and field types
  *
  */
 
@@ -41,7 +42,8 @@ public class App
              "dbWalk", "generate a random walk of a database JSON dump using templates",
              "modelFix", "fix up a model dump to make it more compatible with the template engine",
              "queryGen", "generate questions for testing a large language model",
-             "famFile", "build a protein-family file from a genome source"
+             "famFile", "build a protein-family file from a genome source",
+             "jsonScan", "scan a JSON dump and produce a report on file names and field types"
     };
 
     public static void main( String[] args )
@@ -93,6 +95,9 @@ public class App
             break;
         case "famFile" :
             processor = new FamilyFileProcessor();
+            break;
+        case "jsonScan" :
+            processor = new JsonScanProcessor();
             break;
         case "-h" :
         case "--help" :

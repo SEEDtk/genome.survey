@@ -1,0 +1,175 @@
+[
+{
+	"gene_rule":"OsciRumiGh1n1n13HydrAcylCarrProt",
+	"genome_id":"1007096.3",
+	"reactants":[
+		"R-3-Hydroxyoctadecanoyl-acyl-carrierprotein- [Cytosol]"
+	],
+	"name":"3-hydroxyacyl-[acyl-carrier-protein] dehydratase (n-C18:0) [Cytosol]",
+	"genome_word":"OsciRumiGh1n1n1",
+	"formula":"C29H55N2O9PRS --> H2O + C29H53N2O8PRS",
+	"id":1,
+	"products":[
+		"H2O [Cytosol]",
+		"trans-octadec-2-enoyl-[acyl-carrier protein] [Cytosol]"
+	]
+},
+{
+	"gene_rule":"OsciRumiGh1n1n1PhosCyti",
+	"genome_id":"1007096.3",
+	"reactants":[
+		"CTP [Cytosol]",
+		"1,2-ditetradecanoyl-sn-glycerol 3-phosphate [Cytosol]"
+	],
+	"name":"CDP-diacylglycerol synthetase (n-C14:0) [Cytosol]",
+	"genome_word":"OsciRumiGh1n1n1",
+	"formula":"C9H13N3O14P3 + C31H60O8P --> HO7P2 + H + C40H71N3O15P2",
+	"id":true,
+	"products":[
+		"PPi [Cytosol]",
+		"H+ [Cytosol]",
+		"CDP-1,2-ditetradecanoylglycerol [Cytosol]"
+	]
+},
+{
+	"gene_rule":"OsciRumiGh1n1n1FrucBispAldoClas",
+	"genome_id":"1007096.3",
+	"reactants":[
+		"D-fructose-1,6-bisphosphate [Cytosol]"
+	],
+	"name":"D-fructose-1,6-bisphosphate D-glyceraldehyde-3-phosphate-lyase (glycerone-phosphate-forming) [Cytosol]",
+	"genome_word":"OsciRumiGh1n1n1",
+	"formula":"C6H10O12P2 --> C3H5O6P + C3H5O6P",
+	"id":null,
+	"products":[
+		"Glycerone-phosphate [Cytosol]",
+		"Glyceraldehyde3-phosphate [Cytosol]"
+	]
+},
+{
+	"gene_rule":"(OsciRumiGh1n1n16Phos2n1) or (OsciRumiGh1n1n16Phos3n1)",
+	"genome_id":"1007096.3",
+	"reactants":[
+		"ATP [Cytosol]",
+		"D-fructose-6-phosphate [Cytosol]"
+	],
+	"name":"ATP:D-fructose-6-phosphate 1-phosphotransferase [Cytosol]",
+	"genome_word":"OsciRumiGh1n1n1",
+	"formula":"C10H13N5O13P3 + C6H11O9P --> C10H13N5O10P2 + H + C6H10O12P2",
+	"products":[
+		"ADP [Cytosol]",
+		"H+ [Cytosol]",
+		"D-fructose-1,6-bisphosphate [Cytosol]"
+	]
+},
+{
+	"gene_rule":"OsciRumiGh1n1n1LysoMonoLipa",
+	"genome_id":"1007096.3",
+	"reactants":[
+		"H2O [Cytosol]",
+		"2-octadec-11-enoyl-sn-glycerol 3-phosphate [Cytosol]"
+	],
+	"name":"Lysophospholipase L2 (2-acylglycerophosphotidate, n-C18:1) [Cytosol]",
+	"genome_word":"OsciRumiGh1n1n1",
+	"formula":"H2O + C21H40O7P --> 2*H + C3H7O6P + C18H33O2",
+	"id":" ",
+	"products":[
+		"H+ [Cytosol]",
+		"Glycerol-3-phosphate [Cytosol]",
+		"octadecenoate [Cytosol]"
+	]
+},
+{
+	"gene_rule":"OsciRumiGh1n1n1DtdpGluc46Dehy",
+	"genome_id":"1007096.3",
+	"reactants":[
+		"dTDPglucose [Cytosol]"
+	],
+	"name":"dTDPglucose 4,6-hydro-lyase [Cytosol]",
+	"genome_word":"OsciRumiGh1n1n1",
+	"formula":"C16H24N2O16P2 --> H2O + C16H22N2O15P2",
+	"id":[],
+	"products":[
+		"H2O [Cytosol]",
+		"dTDP-4-oxo-6-deoxy-D-glucose [Cytosol]"
+	]
+},
+{
+	"gene_rule":"OsciRumiGh1n1n1PyruKina",
+	"genome_id":"1007096.3",
+	"reactants":[
+		"Pyruvate [Cytosol]",
+		"GTP [Cytosol]"
+	],
+	"name":"GTP:pyruvate 2-O-phosphotransferase [Cytosol]",
+	"genome_word":"OsciRumiGh1n1n1",
+	"formula":"C3H3O3 + C10H13N5O14P3 --> C10H13N5O11P2 + C3H2O6P + H",
+	"id":false,
+	"products":[
+		"GDP [Cytosol]",
+		"Phosphoenolpyruvate [Cytosol]",
+		"H+ [Cytosol]"
+	]
+},
+{
+	"gene_rule":"(OsciRumiGh1n1n1AcylCarrProt2) or (OsciRumiGh1n1n1AcylCarrProt)",
+	"genome_id":"1007096.3",
+	"reactants":[
+		"H+ [Cytosol]",
+		"Glycerol-3-phosphate [Cytosol]",
+		"Tetradecenoyl-ACP [Cytosol]"
+	],
+	"name":"glycerol-3-phosphate acyltransferase (C14:1) [Cytosol]",
+	"genome_word":"OsciRumiGh1n1n1",
+	"formula":"2*H + C3H7O6P + C25H45N2O8PRS --> C11H22N2O7PRS + C17H32O7P",
+	"id":1.25,
+	"products":[
+		"ACP [Cytosol]",
+		"1-tetradec-7-enoyl-sn-glycerol 3-phosphate [Cytosol]"
+	]
+},
+{
+	"gene_rule":"",
+	"genome_id":"1007096.3",
+	"reactants":[
+		"Acetate [Extracellular]"
+	],
+	"name":"Exchange for Acetate [Extracellular]",
+	"genome_word":"OsciRumiGh1n1n1",
+	"formula":"C2H3O2 --> ",
+	"id":4.6123456789123456,
+	"products":[
+		
+	]
+},
+{
+	"gene_rule":"OsciRumiGh1n1n1HeptDiphSyntComp3n1",
+	"genome_id":"1007096.3",
+	"name":"R05613 [Cytosol]",
+	"genome_word":"OsciRumiGh1n1n1",
+	"formula":"C5H10O7P2 + C25H42O7P2 --> HO7P2 + H + C30H50O7P2",
+	"id":"rxn03892_c0",
+	"products":[
+		"PPi [Cytosol]",
+		"H+ [Cytosol]",
+		"all-trans-Hexaprenyl diphosphate [Cytosol]"
+	]
+},
+{
+	"gene_rule":"",
+	"genome_id":"1007096.3",
+	"reactants":[
+		"H2O2 [Cytosol]",
+		"2-Oxo-6-aminocaproate [Cytosol]"
+	],
+	"name":"RXN-8243.c [Cytosol]",
+	"genome_word":"OsciRumiGh1n1n1",
+	"formula":"H2O2 + C6H11NO3 --> H2O + CO2 + C5H11NO2",
+	"id":"rxn24718_c0",
+	"products":[
+		"H2O [Cytosol]",
+		"CO2 [Cytosol]",
+		"5-Aminopentanoate [Cytosol]"
+	]
+}
+]
