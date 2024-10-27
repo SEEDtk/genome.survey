@@ -4,7 +4,6 @@
 package org.theseed.genome.survey;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -22,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.basic.BaseProcessor;
 import org.theseed.basic.ParseFailureException;
+import org.theseed.io.MasterGenomeDir;
 import org.theseed.stats.Shuffler;
 
 import com.github.cliftonlabs.json_simple.JsonArray;
@@ -63,18 +63,6 @@ public class TaxonomyScanProcessor extends BaseProcessor {
     private static final String[] GROUPINGS = new String[] { "phylum", "genus", "family", "class", "order" };
     /** empty json array */
     private static final JsonArray EMPTY_ARRAY = new JsonArray();
-    /** file filter for genome dump directories */
-    private static final FileFilter GENOME_DIR_FILTER = new FileFilter() {
-        @Override
-        public boolean accept(File pathname) {
-            boolean retVal = pathname.isDirectory();
-            if (retVal) {
-                File gFile = new File(pathname, "genome.json");
-                retVal = gFile.canRead();
-            }
-            return retVal;
-        }
-    };
 
     // COMMAND-LINE OPTIONS
 
@@ -214,10 +202,10 @@ public class TaxonomyScanProcessor extends BaseProcessor {
         if (! this.inDir.isDirectory())
             throw new FileNotFoundException("Input directory " + this.inDir + " is not found or invalid.");
         // Now find the genome files.
-        File[] gDirs = this.inDir.listFiles(GENOME_DIR_FILTER);
-        if (gDirs.length <= 0)
+        MasterGenomeDir gDirs = new MasterGenomeDir(this.inDir);
+        if (gDirs.size() <= 0)
             throw new IOException("Input directory " + this.inDir + " has no genome subdirectories.");
-        this.genomeFiles = Arrays.stream(gDirs).map(x -> new File(x, "genome.json")).collect(Collectors.toList());
+        this.genomeFiles = gDirs.stream().map(x -> new File(x, "genome.json")).collect(Collectors.toList());
         final int gTotal = this.genomeFiles.size();
         log.info("{} genome files found in {}.", gTotal, this.inDir);
         // Create the groupings array.

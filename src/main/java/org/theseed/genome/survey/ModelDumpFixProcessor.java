@@ -4,18 +4,13 @@
 package org.theseed.genome.survey;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
@@ -23,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.theseed.basic.BaseProcessor;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.MarkerFile;
+import org.theseed.io.MasterGenomeDir;
 import org.theseed.models.Model;
 import org.theseed.models.Reaction;
 
@@ -56,8 +52,8 @@ public class ModelDumpFixProcessor extends BaseProcessor {
     // FIELDS
     /** logging facility */
     protected static Logger log = LoggerFactory.getLogger(ModelDumpFixProcessor.class);
-    /** array of genome template input directories */
-    private List<File> genomeDirs;
+    /** genome template input directory master */
+    private MasterGenomeDir genomeDirs;
     /** number of genomes for which there is no model file */
     private int missingModelCount;
     /** number of reactions output */
@@ -70,22 +66,8 @@ public class ModelDumpFixProcessor extends BaseProcessor {
     private int goodModelCount;
     /** custom thread pool for parallel processing */
     private ForkJoinPool threadPool;
-    /** genome directory name match pattern */
-    private static final Pattern GENOME_ID_PATTERN = Pattern.compile("\\d+\\.\\d+");
     /** array of two booleans */
     private static final boolean[] BOOLS = new boolean[] { true, false };
-    /** genome sub-directory file filter */
-    private static final FileFilter GENOME_SUB_DIR_FILTER = new FileFilter() {
-        @Override
-        public boolean accept(File pathname) {
-            // The file must be a directory.
-            boolean retVal = pathname.isDirectory();
-            // The file's name must be a genome ID.
-            if (retVal)
-                retVal = GENOME_ID_PATTERN.matcher(pathname.getName()).matches();
-            return retVal;
-        }
-    };
 
     // COMMAND-LINE OPTIONS
 
@@ -118,8 +100,7 @@ public class ModelDumpFixProcessor extends BaseProcessor {
         if (! this.genomeDir.isDirectory())
             throw new IOException("Genome directory " + this.genomeDir + " is not found or invalid.");
         // Get all the genome sub-directories.
-        File[] dirs = this.genomeDir.listFiles(GENOME_SUB_DIR_FILTER);
-        this.genomeDirs = Arrays.stream(dirs).collect(Collectors.toList());
+        this.genomeDirs = new MasterGenomeDir(this.genomeDir);
         log.info("{} genome subdirectories found in {}.", this.genomeDirs.size(), this.genomeDir);
         // Validate the core count.
         if (this.maxThreads < 1)
