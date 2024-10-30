@@ -187,13 +187,13 @@ public class JsonCopyProcessor extends BaseProcessor implements JsonCleaner.IPar
                         }
                         // Write the updated JSON to the output file.
                         try (PrintWriter writer = new PrintWriter(gOutFile)) {
-                            JsonFileDir.writeJson(jsonList, null);
+                            JsonFileDir.writeJson(jsonList, writer);
                         }
                     }
                 }
             }
-            log.info("{} files processed in {}. {} records output. {} empty files, {} skipped.", fileCount, recordCount,
-                    emptyCount, skipCount);
+            log.info("{} files processed in {}. {} records output. {} empty files, {} skipped.", fileCount,
+                    gInDir, recordCount, emptyCount, skipCount);
             // Roll up the counters.
             synchronized (this) {
                 this.fileCounter += fileCount;
