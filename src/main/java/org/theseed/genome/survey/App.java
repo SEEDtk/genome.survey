@@ -22,6 +22,7 @@ import org.theseed.basic.BaseProcessor;
  * queryGen		generate questions for testing a large language model
  * famFile		build a protein-family file from a directory of GTOs.
  * jsonScan		scan a JSON dump and produce a report on file names and field types
+ * jsonCopy		copy a JSON dump to a new directory, performing optional cleaning tasks
  *
  */
 
@@ -43,7 +44,8 @@ public class App
              "modelFix", "fix up a model dump to make it more compatible with the template engine",
              "queryGen", "generate questions for testing a large language model",
              "famFile", "build a protein-family file from a genome source",
-             "jsonScan", "scan a JSON dump and produce a report on file names and field types"
+             "jsonScan", "scan a JSON dump and produce a report on file names and field types",
+             "jsonCopy", "copy a JSON dump to a new directory, performing optional cleaning tasks"
     };
 
     public static void main( String[] args )
@@ -98,6 +100,9 @@ public class App
             break;
         case "jsonScan" :
             processor = new JsonScanProcessor();
+            break;
+        case "jsonCopy" :
+            processor = new JsonCopyProcessor();
             break;
         case "-h" :
         case "--help" :

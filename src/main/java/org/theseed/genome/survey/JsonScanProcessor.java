@@ -4,9 +4,7 @@
 package org.theseed.genome.survey;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
@@ -20,11 +18,11 @@ import org.theseed.basic.BaseReportProcessor;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.counters.CountMap;
 import org.theseed.io.MasterGenomeDir;
+import org.theseed.json.JsonFileDir;
 import org.theseed.reports.FieldCounter;
 
 import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonObject;
-import com.github.cliftonlabs.json_simple.Jsoner;
 
 /**
  * This scans a genome dump directory and reports on the contents of the files. For each file name found, we
@@ -57,18 +55,6 @@ public class JsonScanProcessor extends BaseReportProcessor {
     private CountMap<String> fileCounts;
     /** record counters */
     private CountMap<String> recordCounts;
-    /** JSON file filter */
-    private FileFilter JSON_FILE_FILTER = new FileFilter() {
-        @Override
-        public boolean accept(File pathname) {
-            boolean retVal = pathname.isFile();
-            if (retVal) {
-                String fileName = pathname.getName();
-                retVal = fileName.endsWith(".json");
-            }
-            return retVal;
-        }
-    };
 
     /** genome master directory */
     @Argument(index = 0, metaVar = "genomeDumpDir", usage = "master directory containing JSON genome dumps")
@@ -100,12 +86,10 @@ public class JsonScanProcessor extends BaseReportProcessor {
             gCount++;
             String genomeId = genomeDir.getName();
             log.info("Processing genome {} of {}: {}.", gCount, gTotal, genomeId);
-            for (File subFile : genomeDir.listFiles(JSON_FILE_FILTER)) {
-                // Get a reader for this JSON file.
-                JsonArray subJson;
-                try (FileReader reader = new FileReader(subFile)) {
-                    subJson = (JsonArray) Jsoner.deserialize(reader);
-                }
+            JsonFileDir subFiles = new JsonFileDir(genomeDir);
+            for (File subFile : subFiles) {
+                // Get the JSON array for this JSON file.
+                JsonArray subJson = JsonFileDir.getJson(subFile);
                 // If we have records, count this file.
                 if (! subJson.isEmpty()) {
                     String name = subFile.getName();

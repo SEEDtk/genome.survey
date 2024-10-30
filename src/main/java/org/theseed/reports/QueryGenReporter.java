@@ -7,16 +7,15 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.theseed.json.JsonFileDir;
 
 import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonObject;
-import com.github.cliftonlabs.json_simple.Jsoner;
 
 /**
  * This is the report writer for query generation. Query reports are generally designed to be read by
@@ -183,19 +182,6 @@ public abstract class QueryGenReporter {
      * @param outJson	JSON array to output
      */
     protected void outputAllJson(JsonArray outJson) {
-        log.info("Writing json for {}-element list.", outJson.size());
-        this.writer.println("[");
-        Iterator<Object> iter = outJson.iterator();
-        boolean moreLeft = iter.hasNext();
-        while (moreLeft) {
-            Object nextJson = iter.next();
-            String jsonString = Jsoner.serialize(nextJson);
-            if (! iter.hasNext()) {
-                moreLeft = false;
-                this.writer.println("    " + jsonString);
-            } else
-                this.writer.println("    " + jsonString + ",");
-        }
-        this.writer.println("]");
+        JsonFileDir.writeJson(outJson, this.writer);
     }
 }
