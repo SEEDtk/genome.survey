@@ -23,6 +23,8 @@ import org.theseed.memdb.query.QueryDbInstance;
 import org.theseed.memdb.query.QueryEntityInstance;
 import org.theseed.reports.QueryGenReporter;
 
+import com.github.cliftonlabs.json_simple.JsonArray;
+
 /**
  * This object represents an actual proposal. The proposals come in two types-- list and count.
  * Each proposal consists of a text template and a proposal path.  The subclass contains the
@@ -198,7 +200,7 @@ public abstract class ProposalQuery {
      * @param reporter	output report writer
      * @param others	full list of response sets for this query
      */
-    public abstract void writeResponse(ProposalResponseSet response, QueryGenReporter reporter, List<ProposalResponseSet> others);
+    public abstract void writeResponseDetails(ProposalResponseSet response, QueryGenReporter reporter, List<ProposalResponseSet> others);
 
     /**
      * Formulate the question statement for this proposal.
@@ -266,5 +268,39 @@ public abstract class ProposalQuery {
     public String toString() {
         return String.format("ProposalQuery [%s]", this.questionString);
     }
+
+    /**
+     * This is the main entry point for the response output. It saves the query template and then calls through to write
+     * the output.
+     *
+     * @param correctResponse	correct response to use
+     * @param reporter			output report writer
+     * @param responses			alternative responses to scan
+     */
+    public void writeResponse(ProposalResponseSet correctResponse, QueryGenReporter reporter, List<ProposalResponseSet> responses) {
+        reporter.saveTemplate(this);
+        this.writeResponseDetails(correctResponse, reporter, responses);
+    }
+
+    /**
+     * @return the question template string
+     */
+    public String getRawQuestion() {
+        return this.questionString;
+    }
+
+    /**
+     * @return the path through the database for this question
+     */
+    public JsonArray getPath() {
+        JsonArray retVal = new JsonArray();
+        this.path.stream().forEach(x -> retVal.add(x.getName()));
+        return retVal;
+    }
+
+    /**
+     * @return a string description of this query's desired result
+     */
+    public abstract String getResult();
 
 }

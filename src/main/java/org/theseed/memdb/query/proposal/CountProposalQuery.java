@@ -30,7 +30,7 @@ public class CountProposalQuery extends ProposalQuery {
     }
 
     @Override
-    public void writeResponse(ProposalResponseSet response, QueryGenReporter reporter, List<ProposalResponseSet> responses) {
+    public void writeResponseDetails(ProposalResponseSet response, QueryGenReporter reporter, List<ProposalResponseSet> responses) {
         // Get the question string.
         String questionText = this.computeQuestion(response);
         // Get the answer.
@@ -50,6 +50,11 @@ public class CountProposalQuery extends ProposalQuery {
         // The count is based on entity instances at the end of the path, since the entire path
         // is counted.
         return this.getEndOfPath();
+    }
+
+    @Override
+    public String getResult() {
+        return "count";
     }
 
 }

@@ -67,4 +67,11 @@ public abstract class ProposalField {
      */
     protected abstract List<String> getValue(QueryEntityInstance instance);
 
+    /**
+     * @return the full name of the target field
+     */
+    public String getFieldName() {
+        return this.entityType + "." + this.attributeName;
+    }
+
 }

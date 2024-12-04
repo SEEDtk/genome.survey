@@ -5,6 +5,8 @@ package org.theseed.reports;
 
 import java.util.Collection;
 
+import org.theseed.memdb.query.proposal.ProposalQuery;
+
 import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonObject;
 
@@ -52,6 +54,11 @@ public class JsonQueryGenReporter extends QueryGenReporter {
         JsonObject retVal = new JsonObject();
         retVal.putAll(this.constantJson);
         retVal.put("question", questionText);
+        // Add the template data.
+        ProposalQuery query = this.getQuery();
+        retVal.put("template", query.getRawQuestion());
+        retVal.put("path", query.getPath());
+        retVal.put("result", query.getResult());
         return retVal;
     }
 

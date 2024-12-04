@@ -70,7 +70,7 @@ public class ChoiceProposalQuery extends ProposalQuery {
     }
 
     @Override
-    public void writeResponse(ProposalResponseSet response, QueryGenReporter reporter, List<ProposalResponseSet> others) {
+    public void writeResponseDetails(ProposalResponseSet response, QueryGenReporter reporter, List<ProposalResponseSet> others) {
         // Write the question string.
         String questionText = this.computeQuestion(response);
         // Get the output field specs.
@@ -120,6 +120,11 @@ public class ChoiceProposalQuery extends ProposalQuery {
     public int getResponseSize(ProposalResponseSet responseSet) {
         // The number of distinct output values is always 1, the one we choose.
         return 1;
+    }
+
+    @Override
+    public String getResult() {
+        return "choice " + this.outputField.getFieldName();
     }
 
 }

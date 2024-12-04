@@ -13,6 +13,7 @@ import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.json.JsonFileDir;
+import org.theseed.memdb.query.proposal.ProposalQuery;
 
 import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonObject;
@@ -33,6 +34,8 @@ public abstract class QueryGenReporter {
     private PrintWriter writer;
     /** random number generator */
     private Random rand;
+    /** saved proposal query */
+    private ProposalQuery query;
 
     /**
      * This enumeration selects the different report types.
@@ -104,6 +107,15 @@ public abstract class QueryGenReporter {
      * Start the report output.
      */
     protected abstract void startReport();
+
+    /**
+     * Save the question template.
+     *
+     * @param template		question template
+     */
+    public void saveTemplate(ProposalQuery template) {
+        this.query = template;
+    }
 
     /**
      * Write a question with multiple correct answers.
@@ -183,5 +195,12 @@ public abstract class QueryGenReporter {
      */
     protected void outputAllJson(JsonArray outJson) {
         JsonFileDir.writeJson(outJson, this.writer);
+    }
+
+    /**
+     * @return the query that generated the current response
+     */
+    public ProposalQuery getQuery() {
+        return this.query;
     }
 }

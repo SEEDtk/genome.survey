@@ -36,7 +36,7 @@ public class ListProposalQuery extends ProposalQuery {
     }
 
     @Override
-    public void writeResponse(ProposalResponseSet responses, QueryGenReporter reporter, List<ProposalResponseSet> otherResponses) {
+    public void writeResponseDetails(ProposalResponseSet responses, QueryGenReporter reporter, List<ProposalResponseSet> otherResponses) {
         // Get the question string.
         String questionText = this.computeQuestion(responses);
         // Now we need to get the list of valid answers.
@@ -57,6 +57,11 @@ public class ListProposalQuery extends ProposalQuery {
         // Here the response entity is obvious: it's the one containing the output field.
         String responseType = this.outputField.getEntityType();
         return this.getEntity(responseType);
+    }
+
+    @Override
+    public String getResult() {
+        return "list " + outputField.getFieldName();
     }
 
 }
