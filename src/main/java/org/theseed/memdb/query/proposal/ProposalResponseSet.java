@@ -4,6 +4,7 @@
 package org.theseed.memdb.query.proposal;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -16,7 +17,7 @@ import java.util.TreeSet;
  * @author Bruce Parrello
  *
  */
-public class ProposalResponseSet {
+public class ProposalResponseSet implements Iterable<ProposalResponse> {
 
     // FIELDS
     /** parameterization of this response set */
@@ -130,6 +131,11 @@ public class ProposalResponseSet {
     @Override
     public String toString() {
         return String.format("ProposalResponseSet (size=%d) [parameters=%s]", this.responses.size(), this.parameters);
+    }
+
+    @Override
+    public Iterator<ProposalResponse> iterator() {
+        return this.responses.iterator();
     }
 
 }
