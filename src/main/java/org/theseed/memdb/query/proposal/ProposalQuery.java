@@ -66,7 +66,7 @@ public abstract class ProposalQuery {
         // Now get the proposal fields.
         Matcher m = FIELD_PATTERN.matcher(templateString);
         while (m.find()) {
-            // Here we have a proposal field. The type is determined by the first group and the field string
+            // Here we have a proposal field. The type is determined by the first matched group and the field string
             // is the second group.
             String typeChar = m.group(1);
             String fieldSpec = m.group(2);
