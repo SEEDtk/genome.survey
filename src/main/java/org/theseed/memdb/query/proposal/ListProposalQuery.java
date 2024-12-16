@@ -32,7 +32,22 @@ public class ListProposalQuery extends ProposalQuery {
      */
     public ListProposalQuery(String templateString, String entityPath, int maxLimit, String fieldSpec) throws ParseFailureException {
         super(templateString, entityPath, maxLimit);
-        this.outputField = new ExactProposalField(fieldSpec);
+        // Get the field spec for the result field.
+        String actualFieldSpec = this.getActualFieldSpec(fieldSpec);
+        this.outputField = new ExactProposalField(actualFieldSpec);
+    }
+
+    /**
+     * @return the actual result field specification for the incoming field spec.
+     *
+     * @param fieldSpec	incoming field spec
+     *
+     * @return the substring containing the actual entity type and attribute name
+     *
+     * @throws ParseFailureException
+     */
+    protected String getActualFieldSpec(String fieldSpec) throws ParseFailureException {
+        return fieldSpec;
     }
 
     @Override
@@ -69,7 +84,7 @@ public class ListProposalQuery extends ProposalQuery {
     @Override
     protected ProposalEntity getResponseEntity() {
         // Here the response entity is obvious: it's the one containing the output field.
-        String responseType = getOutputEntityType();
+        String responseType = this.getOutputEntityType();
         return this.getEntity(responseType);
     }
 

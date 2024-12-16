@@ -200,7 +200,7 @@ public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGe
             else if (resultString.startsWith("choice"))
                 proposal = new ChoiceProposalQuery(qString, pathString, this.maxLimit, resultString, this.db);
             else if (resultString.startsWith("group"))
-                proposal = new GroupProposalQuery(qString, pathString, this.maxLimit, resultString);
+                proposal = new GroupProposalQuery(qString, pathString, 0, resultString);
             else
                 proposal = new ListProposalQuery(qString, pathString, this.maxLimit, resultString);
             log.info("Computing responses for query: {}", qString);

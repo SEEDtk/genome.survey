@@ -116,13 +116,13 @@ public class ProposalResponseSet implements Iterable<ProposalResponse> {
      * Determine whether or not it is safe to add a new response. It is unsafe if the response set is too big
      * or it is inactive.  If the response set is too big, it is made inactive here.
      *
-     * @param maxResponseLimit	maximum permissible intermediate response set size
+     * @param maxResponseLimit	maximum permissible intermediate response set size, or 0 if there is no maximum
      *
      * @return TRUE if there is room for more responses, FALSE if this set is now inactive
      */
     public boolean checkStatus(int maxResponseLimit) {
         if (this.activeFlag) {
-            if (this.responses.size() >= maxResponseLimit)
+            if (maxResponseLimit > 0 && this.responses.size() >= maxResponseLimit)
                 this.setInactive();
         }
         return this.activeFlag;

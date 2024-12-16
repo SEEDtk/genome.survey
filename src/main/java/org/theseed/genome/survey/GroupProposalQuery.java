@@ -6,6 +6,7 @@ package org.theseed.genome.survey;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.lang3.StringUtils;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.counters.CountMap;
 import org.theseed.memdb.query.proposal.ListProposalQuery;
@@ -18,7 +19,8 @@ import com.github.cliftonlabs.json_simple.Jsoner;
 /**
  * The group proposal is very similar to the list proposal; however, the answer is a CSV table of values and counts. The
  * value is taken from a specified result field and the count is the number of output records with that value. A count
- * map is used to accumulate the values and counts.
+ * map is used to accumulate the values and counts. Group queries are performance-intensive because they have to return
+ * everything, unlike normal queries.
  *
  * @author Bruce Parrello
  *
@@ -37,6 +39,15 @@ public class GroupProposalQuery extends ListProposalQuery {
      */
     public GroupProposalQuery(String templateString, String entityPath, int maxLimit, String resultString) throws ParseFailureException {
         super(templateString, entityPath, maxLimit, resultString);
+    }
+
+    @Override
+    protected String getActualFieldSpec(String fieldSpec) throws ParseFailureException {
+        // We need to strip the "group" indicator off the field spec.
+        String[] retVal = StringUtils.split(fieldSpec);
+        if (retVal.length < 2)
+            throw new ParseFailureException("Invalid field specification on group query proposal.");
+        return retVal[1];
     }
 
     @Override
