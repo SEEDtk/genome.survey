@@ -11,6 +11,7 @@ import org.theseed.basic.BaseProcessor;
  * goodCore		generate a directory of the good coreSEED genomes
  * gaps			categorize the gaps between genes in a GTO
  * fidCompare	compare two feature lists and output the roles and subsystems of the differing features
+ * subCompare	compare the subsystems of two sets of genomes
  * bbh			find bidirectional best hits between two genomes
  * validate		test all genomes in a directory to make sure they load
  * rolePegs		find all pegs in a genome directory containing roles in a specified role set
@@ -34,6 +35,7 @@ public class App
              "goodCore", "generate a directory of the good coreSEED genomes",
              "gaps", "categorize the gaps between genes in a GTO",
              "fidCompare", "compare two feature lists and output the roles and subsystems of the differing features",
+             "subCompare", "compare the subsystems of two sets of genomes",
              "bbh", "find bidirectional best hits between two genomes",
              "validate", "test all genomes in a directory to make sure they load",
              "rolePegs", "find all pegs in a genome directory containing roles in a specified role set",
@@ -67,6 +69,9 @@ public class App
             break;
         case "fidCompare" :
             processor = new CompareProcessor();
+            break;
+        case "subCompare" :
+            processor = new SubsystemCompareProcessor();
             break;
         case "bbh" :
             processor = new BbhProcessor();
