@@ -4,13 +4,11 @@
 package org.theseed.genome.survey;
 
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -25,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.theseed.basic.BaseProcessor;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.FieldInputStream;
+import org.theseed.io.MasterGenomeDir;
 import org.theseed.locations.Location;
 
 /**
@@ -50,21 +49,7 @@ public class RoleAdjacencyProcessor extends BaseProcessor {
     /** logging facility */
     protected static Logger log = LoggerFactory.getLogger(RoleAdjacencyProcessor.class);
     /** list of genome dump subdirectories */
-    private File[] genomeDirs;
-    /** file filter for genome subdirectories */
-    private FileFilter GENOME_SUBDIR_FILTER = new FileFilter() {
-
-        @Override
-        public boolean accept(File pathname) {
-            boolean retVal = pathname.isDirectory();
-            if (retVal) {
-                File featureFile = new File(pathname, "genome_feature.json");
-                retVal = featureFile.canRead();
-            }
-            return retVal;
-        }
-
-    };
+    private MasterGenomeDir genomeDirs;
 
     // COMMAND-LINE OPTION
 
@@ -171,17 +156,17 @@ public class RoleAdjacencyProcessor extends BaseProcessor {
         // Validate the input directory.
         if (! this.inDir.isDirectory())
             throw new FileNotFoundException("Input directory " + this.inDir + " is not found or invalid.");
-        this.genomeDirs = this.inDir.listFiles(GENOME_SUBDIR_FILTER);
-        if (this.genomeDirs.length <= 0)
+        this.genomeDirs = new MasterGenomeDir(this.inDir);
+        if (this.genomeDirs.size() <= 0)
             throw new FileNotFoundException("No genome feature files found in " + this.inDir + ".");
-        log.info("{} genomes found in {}.", this.genomeDirs.length, this.inDir);
+        log.info("{} genomes found in {}.", this.genomeDirs.size(), this.inDir);
         return true;
     }
 
     @Override
     protected void runCommand() throws Exception {
         // We process each genome separately. All the features are loaded and then sorted to produce the neighbor data.
-        Arrays.stream(this.genomeDirs).parallel().forEach(x -> this.processGenome(x));
+        this.genomeDirs.parallelStream().forEach(x -> this.processGenome(x));
     }
 
     /**

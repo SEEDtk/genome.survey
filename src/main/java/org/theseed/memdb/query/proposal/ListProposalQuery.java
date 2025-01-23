@@ -3,10 +3,10 @@
  */
 package org.theseed.memdb.query.proposal;
 
-import java.io.PrintWriter;
 import java.util.List;
 import java.util.Set;
 import org.theseed.basic.ParseFailureException;
+import org.theseed.reports.QueryGenReporter;
 
 /**
  * This is a query proposal where the result is a list of field values from the response set.
@@ -32,33 +32,72 @@ public class ListProposalQuery extends ProposalQuery {
      */
     public ListProposalQuery(String templateString, String entityPath, int maxLimit, String fieldSpec) throws ParseFailureException {
         super(templateString, entityPath, maxLimit);
-        this.outputField = new ExactProposalField(fieldSpec);
+        // Get the field spec for the result field.
+        String actualFieldSpec = this.getActualFieldSpec(fieldSpec);
+        this.outputField = new ExactProposalField(actualFieldSpec);
+    }
+
+    /**
+     * @return the actual result field specification for the incoming field spec.
+     *
+     * @param fieldSpec	incoming field spec
+     *
+     * @return the substring containing the actual entity type and attribute name
+     *
+     * @throws ParseFailureException
+     */
+    protected String getActualFieldSpec(String fieldSpec) throws ParseFailureException {
+        return fieldSpec;
     }
 
     @Override
-    public void writeResponse(ProposalResponseSet responses, PrintWriter writer, List<ProposalResponseSet> otherResponses) {
-        // Write the question string.
-        this.writeQuestion(responses, writer);
+    public void writeResponseDetails(ProposalResponseSet responses, QueryGenReporter reporter, List<ProposalResponseSet> otherResponses) {
+        // Get the question string.
+        String questionText = this.computeQuestion(responses);
         // Now we need to get the list of valid answers.
-        Set<String> answers = responses.getOutputValues(this.outputField.getEntityType(), this.outputField.getName());
+        Set<String> answers = responses.getOutputValues(getOutputEntityType(), getOutputAttrName());
         // Write all the answers.
-        writer.println("* Correct answers:");
-        for (String answer : answers)
-            writer.println("\t" + answer);
+        reporter.writeQuestion(questionText, answers);
     }
 
     @Override
     public int getResponseSize(ProposalResponseSet responseSet) {
         // The number of distinct output values is the size of a list proposal response.
-        Set<String> retVal = responseSet.getOutputValues(this.outputField.getEntityType(), this.outputField.getName());
+        Set<String> retVal = responseSet.getOutputValues(this.getOutputEntityType(), this.getOutputAttrName());
         return retVal.size();
+    }
+
+    /**
+     * @return the attribute name of the output field
+     */
+    public String getOutputAttrName() {
+        return this.outputField.getName();
+    }
+
+    /**
+     * @return the entity type of the output field
+     */
+    public String getOutputEntityType() {
+        return this.outputField.getEntityType();
     }
 
     @Override
     protected ProposalEntity getResponseEntity() {
         // Here the response entity is obvious: it's the one containing the output field.
-        String responseType = this.outputField.getEntityType();
+        String responseType = this.getOutputEntityType();
         return this.getEntity(responseType);
+    }
+
+    @Override
+    public String getResult() {
+        return "list " + this.getOutputFieldName();
+    }
+
+    /**
+     * @return the name of the output field
+     */
+    protected String getOutputFieldName() {
+        return this.outputField.getFieldName();
     }
 
 }

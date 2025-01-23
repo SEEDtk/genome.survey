@@ -123,13 +123,14 @@ public abstract class DbInstance {
      * Return a collection of randomly-selected entity instances for a given entity type.
      *
      * @param typeName		entity type name
-     * @param limit			maximum number of instances to return
+     * @param limit			maximum number of instances to return (or 0 to return all)
      *
      * @return a collection of the entity instances from the entity map
      */
     public Collection<EntityInstance> getSomeEntities(String typeName, int limit) {
         Collection<EntityInstance> retVal = this.getAllEntities(typeName);
-        return Shuffler.selectPart(retVal, limit);
+        if (limit > 0) retVal = Shuffler.selectPart(retVal, limit);
+        return retVal;
     }
 
     /**

@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -21,12 +22,17 @@ import org.theseed.basic.ParseFailureException;
 import org.theseed.io.LineReader;
 import org.theseed.memdb.query.QueryDbDefinition;
 import org.theseed.memdb.query.QueryDbInstance;
+import org.theseed.memdb.query.proposal.ChoiceProposalQuery;
 import org.theseed.memdb.query.proposal.CountProposalQuery;
 import org.theseed.memdb.query.proposal.ListProposalQuery;
 import org.theseed.memdb.query.proposal.ProposalQuery;
 import org.theseed.memdb.query.proposal.ProposalResponseSet;
+import org.theseed.reports.QueryGenReporter;
 import org.theseed.stats.Shuffler;
 import org.theseed.utils.BaseTextProcessor;
+
+import com.github.cliftonlabs.json_simple.JsonArray;
+import com.github.cliftonlabs.json_simple.JsonObject;
 
 /**
  * This command will accept as input a list of instructions for generating queries and output
@@ -69,11 +75,14 @@ import org.theseed.utils.BaseTextProcessor;
  * --target		maximum number of desirable results for a query (default 10)
  * --limit		maximum intermediate result set size (default 20000)
  * --max		maximum number of examples to output per query template (default 100)
+ * --format		output report format (default JSON)
+ * --domain		question domains to list in JSON output (may occur multiple times)
+ * --support	support string to include in JSON output
  *
  * @author Bruce Parrello
  *
  */
-public class QueryGenerateProcessor extends BaseTextProcessor {
+public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGenReporter.IParms {
 
     // FIELDS
     /** logging facility */
@@ -82,6 +91,8 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
     QueryDbInstance db;
     /** array of input data diretories to scan */
     private File[] dataDirs;
+    /** output report writer */
+    private QueryGenReporter reporter;
     /** filter for data subdirectories */
     private static final FileFilter SUB_DIR_FILTER = new FileFilter() {
         @Override
@@ -108,6 +119,18 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
     @Option(name = "--max", metaVar = "10", usage = "maximum number of output questions per query template")
     private int maxOutput;
 
+    /** output report format */
+    @Option(name = "--format", usage = "output report format")
+    private QueryGenReporter.Type reportType;
+
+    /** domain for output questions (JSON report only) */
+    @Option(name = "--domain", metaVar = "chemistry", usage = "for JSON output, domain to specify for each question")
+    private List<String> domains;
+
+    /** support string for output questions (JSON report only) */
+    @Option(name = "--support", metaVar = "U_Chicago", usage = "for JSON output, support organization to specify for each question")
+    private String support;
+
     /** database definition file */
     @Argument(index = 0, metaVar = "dbdFile.txt", usage = "database definition file", required = true)
     private File dbdFile;
@@ -122,6 +145,9 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
         this.targetSize = 10;
         this.maxLimit = 5000;
         this.maxOutput = 100;
+        this.reportType = QueryGenReporter.Type.JSON;
+        this.domains = new ArrayList<String>();
+        this.support = "";
     }
 
     @Override
@@ -149,12 +175,17 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
                 throw new FileNotFoundException("No subdirectories found for " + this.dataDir + ".");
             log.info("{} data directories found in {}.", this.dataDirs.length, this.dataDir);
         }
+        // Create the output report writer.
+        log.info("Initializing report type {}.", this.reportType);
+        this.reporter = this.reportType.create(this);
     }
 
     @Override
     protected void runPipeline(LineReader inputStream, PrintWriter writer) throws Exception {
         // Load the database.
         this.loadDatabase();
+        // Start the output report.
+        this.reporter.open(writer);
         // Loop through the input file, reading query specifications.
         Iterator<String> inputIter = inputStream.iterator();
         while (inputIter.hasNext()) {
@@ -168,6 +199,8 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
                 proposal = new CountProposalQuery(qString, pathString, this.maxLimit);
             else if (resultString.startsWith("choice"))
                 proposal = new ChoiceProposalQuery(qString, pathString, this.maxLimit, resultString, this.db);
+            else if (resultString.startsWith("group"))
+                proposal = new GroupProposalQuery(qString, pathString, 0, resultString);
             else
                 proposal = new ListProposalQuery(qString, pathString, this.maxLimit, resultString);
             log.info("Computing responses for query: {}", qString);
@@ -189,12 +222,11 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
             // Insure we don't output too many responses for this query.
             var finalResponses = Shuffler.selectPart(responses, this.maxOutput);
             // Finally, write the responses.
-            finalResponses.stream().forEach(x -> proposal.writeResponse(x, writer, responses));
+            finalResponses.stream().forEach(x -> proposal.writeResponse(x, this.reporter, responses));
             log.info("{} responses kept, {} skipped, {} written.", outCount, skipCount, finalResponses.size());
-            // Insure our output is stored.
-            writer.flush();
         }
-
+        // Insure our output is complete.
+        this.reporter.close();
     }
 
     /**
@@ -227,6 +259,22 @@ public class QueryGenerateProcessor extends BaseTextProcessor {
         if (! inputIter.hasNext())
             throw new IOException("Early end-of-file on input.");
         return inputIter.next();
+    }
+
+    @Override
+    public JsonObject getConstantJson() {
+        JsonObject retVal = new JsonObject();
+        if (! this.domains.isEmpty()) {
+            // Here we have one or more domains to include.
+            JsonArray domainList = new JsonArray();
+            domainList.addAll(this.domains);
+            retVal.put("domains", domainList);
+        }
+        if (! this.support.isBlank()) {
+            // Here we have a support organization to include.
+            retVal.put("support", this.support);
+        }
+        return retVal;
     }
 
 

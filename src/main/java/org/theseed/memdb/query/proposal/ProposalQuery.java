@@ -3,7 +3,6 @@
  */
 package org.theseed.memdb.query.proposal;
 
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -22,6 +21,9 @@ import org.theseed.basic.ParseFailureException;
 import org.theseed.memdb.EntityInstance;
 import org.theseed.memdb.query.QueryDbInstance;
 import org.theseed.memdb.query.QueryEntityInstance;
+import org.theseed.reports.QueryGenReporter;
+
+import com.github.cliftonlabs.json_simple.JsonArray;
 
 /**
  * This object represents an actual proposal. The proposals come in two types-- list and count.
@@ -64,7 +66,7 @@ public abstract class ProposalQuery {
         // Now get the proposal fields.
         Matcher m = FIELD_PATTERN.matcher(templateString);
         while (m.find()) {
-            // Here we have a proposal field. The type is determined by the first group and the field string
+            // Here we have a proposal field. The type is determined by the first matched group and the field string
             // is the second group.
             String typeChar = m.group(1);
             String fieldSpec = m.group(2);
@@ -195,22 +197,21 @@ public abstract class ProposalQuery {
      * Write a response for this proposal to the output.
      *
      * @param response	response set containing answers
-     * @param writer	output print writer
+     * @param reporter	output report writer
      * @param others	full list of response sets for this query
      */
-    public abstract void writeResponse(ProposalResponseSet response, PrintWriter writer, List<ProposalResponseSet> others);
+    public abstract void writeResponseDetails(ProposalResponseSet response, QueryGenReporter reporter, List<ProposalResponseSet> others);
 
     /**
-     * Write the question statement for this proposal to the output.
+     * Formulate the question statement for this proposal.
      *
      * @param response	response set containing answers
-     * @param writer	output print writer
      */
-    protected void writeQuestion(ProposalResponseSet response, PrintWriter writer) {
+    protected String computeQuestion(ProposalResponseSet response) {
         // Get the parameterization.
         Parameterization parms = response.getParameters();
-        // We will build the output line in here.
-        StringBuilder outputLine = new StringBuilder(this.questionString.length());
+        // We will build the question text in here.
+        StringBuilder retVal = new StringBuilder(this.questionString.length());
         // We need to loop through the question string, putting in the parameters.
         Matcher m = FIELD_PATTERN.matcher(this.questionString);
         // Denote we're starting at the beginning of the string.
@@ -220,17 +221,17 @@ public abstract class ProposalQuery {
             // Get the field specification.
             String fieldSpec = m.group(2);
             // Copy the clear text.
-            outputLine.append(this.questionString.subSequence(processed, m.start()));
+            retVal.append(this.questionString.subSequence(processed, m.start()));
             // Get the parameter value.
             String value = parms.getValue(this, fieldSpec);
-            outputLine.append(value);
+            retVal.append(value);
             // Set up for the next search.
             processed = m.end();
         }
         // Copy the residual.
-        outputLine.append(this.questionString.substring(processed));
-        // Write this output line as a question.
-        writer.println(outputLine.toString());
+        retVal.append(this.questionString.substring(processed));
+        // Return the question text.
+        return retVal.toString();
     }
 
     /**
@@ -267,5 +268,39 @@ public abstract class ProposalQuery {
     public String toString() {
         return String.format("ProposalQuery [%s]", this.questionString);
     }
+
+    /**
+     * This is the main entry point for the response output. It saves the query template and then calls through to write
+     * the output.
+     *
+     * @param correctResponse	correct response to use
+     * @param reporter			output report writer
+     * @param responses			alternative responses to scan
+     */
+    public void writeResponse(ProposalResponseSet correctResponse, QueryGenReporter reporter, List<ProposalResponseSet> responses) {
+        reporter.saveTemplate(this);
+        this.writeResponseDetails(correctResponse, reporter, responses);
+    }
+
+    /**
+     * @return the question template string
+     */
+    public String getRawQuestion() {
+        return this.questionString;
+    }
+
+    /**
+     * @return the path through the database for this question
+     */
+    public JsonArray getPath() {
+        JsonArray retVal = new JsonArray();
+        this.path.stream().forEach(x -> retVal.add(x.getName()));
+        return retVal;
+    }
+
+    /**
+     * @return a string description of this query's desired result
+     */
+    public abstract String getResult();
 
 }
