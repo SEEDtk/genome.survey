@@ -9,7 +9,7 @@ import java.io.UncheckedIOException;
 
 import org.theseed.genome.Feature;
 import org.theseed.genome.Genome;
-import org.theseed.subsystems.SubsystemProjector;
+import org.theseed.subsystems.core.SubsystemRuleProjector;
 
 /**
  * This report updates the target genome with the annotations from bidirectional best hits in the
@@ -28,7 +28,7 @@ public class ProjectionBbhReporter extends BbhReporter {
     /** TRUE if this is a dry run */
     private boolean dryRunMode;
     /** subsystem projector (if any) */
-    private SubsystemProjector projector;
+    private SubsystemRuleProjector projector;
 
     /**
      * Construct a projection report for the specified command processor.
@@ -41,7 +41,7 @@ public class ProjectionBbhReporter extends BbhReporter {
         this.targetFile = processor.getTargetFile();
         this.dryRunMode = processor.isDryRun();
         File subFile = processor.getSubFile();
-        this.projector = SubsystemProjector.load(subFile);
+        this.projector = SubsystemRuleProjector.load(subFile);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class ProjectionBbhReporter extends BbhReporter {
             // Check for a subsystem update.
             if (this.projector != null) {
                 log.info("Fixing subsystems in {}.", this.target);
-                this.projector.project(this.target);
+                this.projector.project(this.target, true);
             } else {
                 // Here we can only clear the existing subsystems.
                 log.info("Clearing subsystems in {}.", this.target);
