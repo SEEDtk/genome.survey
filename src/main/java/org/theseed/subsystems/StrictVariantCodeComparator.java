@@ -20,4 +20,9 @@ public class StrictVariantCodeComparator extends VariantCodeComparator {
         return v1.equals(v2);
     }
 
+    @Override
+    public boolean okMissing(String v1) {
+        return false;
+    }
+
 }
