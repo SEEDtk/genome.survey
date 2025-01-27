@@ -181,7 +181,7 @@ public class SubsystemCompareProcessor extends BaseGenomeProcessor implements Va
             int cmp = name1.compareTo(name2);
             if (cmp < 0) {
                 // The subsystem is in genome 1 but not genome 2.
-                if (! this.varCodeMatcher.okMissing(sub1.getVariantCode())) {
+                if (! this.varCodeMatcher.okMissing(sub1.getVariantCode()) && sub1.getRoleCount() > 0) {
                     this.writeDifference(genome1, name1, sub1.getVariantCode(), "", sub1.getRoleCount(), 0, "missing");
                     retVal++;
                 }
@@ -208,7 +208,7 @@ public class SubsystemCompareProcessor extends BaseGenomeProcessor implements Va
                 entry2 = this.nextEntry(iter2);
             } else {
                 // The subsystem is in genome2 but not genome1.
-                if (! this.varCodeMatcher.okMissing(sub2.getVariantCode())) {
+                if (! this.varCodeMatcher.okMissing(sub2.getVariantCode()) && sub2.getRoleCount() > 0) {
                     this.writeDifference(genome1, name1, "", sub2.getVariantCode(), 0, sub2.getRoleCount(), "missing");
                     retVal++;
                 }
