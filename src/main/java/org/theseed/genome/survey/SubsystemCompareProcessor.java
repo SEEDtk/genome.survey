@@ -28,9 +28,9 @@ import org.theseed.genome.iterator.GenomeSource;
 import org.theseed.subsystems.VariantCodeComparator;
 
 /**
- * This subcommand outputs a report on the subsystem differences between pairs of genomes. It specifies two genome sources, and
- * both must have the same genomes in it. Each first-source genome's subsystems will be compared to the subsystems in the
- * corresponding second-source genome and the differing subsystems will be listed.
+ * This subcommand outputs a report on the subsystem differences between pairs of genomes. It specifies two genome sources.
+ * Each first-source genome's subsystems will be compared to the subsystems in the corresponding second-source genome
+ * and the differing subsystems will be listed.
  *
  * The positional parameters are the two genome source files or directories. Every genome in the first source should also be
  * in the second source.
