@@ -28,9 +28,9 @@ import org.theseed.genome.iterator.GenomeSource;
 import org.theseed.subsystems.VariantCodeComparator;
 
 /**
- * This subcommand outputs a report on the subsystem differences between pairs of genomes. It specifies two genome sources, and
- * both must have the same genomes in it. Each first-source genome's subsystems will be compared to the subsystems in the
- * corresponding second-source genome and the differing subsystems will be listed.
+ * This subcommand outputs a report on the subsystem differences between pairs of genomes. It specifies two genome sources.
+ * Each first-source genome's subsystems will be compared to the subsystems in the corresponding second-source genome
+ * and the differing subsystems will be listed.
  *
  * The positional parameters are the two genome source files or directories. Every genome in the first source should also be
  * in the second source.
@@ -123,6 +123,7 @@ public class SubsystemCompareProcessor extends BaseGenomeProcessor implements Va
             final int gTotal = genomeIds1.size();
             int notFoundCount = 0;
             int diffCount = 0;
+            int gDiffCount = 0;
             for (String genomeId1 : genomeIds1) {
                 gCount++;
                 // Get the first genome.
@@ -137,10 +138,12 @@ public class SubsystemCompareProcessor extends BaseGenomeProcessor implements Va
                     Genome genome2 = genomes2.getGenome(genomeId1);
                     // Compare the genomes.
                     diffCount += this.compare(genome1, genome2);
+                    if (diffCount > 0)
+                        gDiffCount++;
                 }
             }
-            log.info("{} genomes processed. {} not present in second source. {} total subsystem differences.", gCount,
-                    notFoundCount, diffCount);
+            log.info("{} genomes processed. {} not present in second source. {} total subsystem differences in {} genomes.", gCount,
+                    notFoundCount, diffCount, gDiffCount);
             // Flush the output stream.
             this.outStream.flush();
         } finally {
@@ -178,8 +181,10 @@ public class SubsystemCompareProcessor extends BaseGenomeProcessor implements Va
             int cmp = name1.compareTo(name2);
             if (cmp < 0) {
                 // The subsystem is in genome 1 but not genome 2.
-                this.writeDifference(genome1, name1, sub1.getVariantCode(), "", sub1.getRoleCount(), 0, "missing");
-                retVal++;
+                if (! this.varCodeMatcher.okMissing(sub1.getVariantCode()) && sub1.getRoleCount() > 0) {
+                    this.writeDifference(genome1, name1, sub1.getVariantCode(), "", sub1.getRoleCount(), 0, "missing");
+                    retVal++;
+                }
                 entry1 = this.nextEntry(iter1);
             } else if (cmp == 0) {
                 // Here the subsystem is in both genomes. Insure it is the same variant with the same roles.
@@ -203,9 +208,10 @@ public class SubsystemCompareProcessor extends BaseGenomeProcessor implements Va
                 entry2 = this.nextEntry(iter2);
             } else {
                 // The subsystem is in genome2 but not genome1.
-
-                this.writeDifference(genome1, name1, "", sub2.getVariantCode(), 0, sub2.getRoleCount(), "missing");
-                retVal++;
+                if (! this.varCodeMatcher.okMissing(sub2.getVariantCode()) && sub2.getRoleCount() > 0) {
+                    this.writeDifference(genome1, name1, "", sub2.getVariantCode(), 0, sub2.getRoleCount(), "missing");
+                    retVal++;
+                }
                 entry2 = this.nextEntry(iter2);
             }
         }

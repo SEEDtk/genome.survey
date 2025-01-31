@@ -20,4 +20,9 @@ public class ActiveVariantCodeComparaotr extends VariantCodeComparator {
         return VariantId.isActive(v1) == VariantId.isActive(v2);
     }
 
+    @Override
+    public boolean okMissing(String v1) {
+        return ! VariantId.isActive(v1);
+    }
+
 }

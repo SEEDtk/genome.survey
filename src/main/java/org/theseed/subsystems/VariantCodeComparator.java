@@ -23,6 +23,11 @@ public abstract class VariantCodeComparator {
                 return new StrictVariantCodeComparator(processor);
             }
         },
+        WEAK_MISSING {
+            public VariantCodeComparator create(IParms processor) {
+                return new WeakVariantCodeComparator(processor);
+            }
+        },
         /** matches if both are active or both are inactive */
         ACTIVE {
             @Override
@@ -66,5 +71,12 @@ public abstract class VariantCodeComparator {
      * @returns TRUE if the codes match, else FALSE
      */
     public abstract boolean matches(String v1, String v2);
+
+    /**
+     * Compare a variant code to a missing subsystem.
+     *
+     * @param v1	variant code to compare
+     */
+    public abstract boolean okMissing(String v1);
 
 }
