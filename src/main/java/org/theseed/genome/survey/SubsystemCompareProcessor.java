@@ -76,7 +76,6 @@ public class SubsystemCompareProcessor extends BaseGenomeProcessor implements Va
     /** type of variant-code comparison to use */
     @Option(name = "--vType", usage = "type of variant-code comparison to use")
     private VariantCodeComparator.Type varType;
-    // TODO variant code type
 
     /** second genome source file or directory */
     @Argument(index = 1, metaVar = "inDir2", usage = "file or directory name of second genome source", required = true)
