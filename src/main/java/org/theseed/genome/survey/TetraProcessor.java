@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.theseed.basic.BaseProcessor;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.TabbedLineReader;
+import org.theseed.p3api.KeyBuffer;
 import org.theseed.p3api.P3Connection;
 import org.theseed.sequence.FastaInputStream;
 import org.theseed.sequence.Sequence;
@@ -198,7 +199,7 @@ public class TetraProcessor extends BaseProcessor {
         log.info("{} contigs found.", contigs.size());
         // Get the long ones into a shuffler.
         retVal = new Shuffler<String>(contigs.size());
-        contigs.stream().map(x -> P3Connection.getString(x, "sequence")).filter(x -> x.length() >= this.profileLen)
+        contigs.stream().map(x -> KeyBuffer.getString(x, "sequence")).filter(x -> x.length() >= this.profileLen)
                 .forEach(x -> retVal.add(x));
         return retVal;
     }

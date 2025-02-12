@@ -16,6 +16,7 @@ import org.theseed.basic.ParseFailureException;
 import org.theseed.genome.Feature;
 import org.theseed.genome.Genome;
 import org.theseed.genome.iterator.BaseGenomeProcessor;
+import org.theseed.p3api.KeyBuffer;
 import org.theseed.p3api.P3Connection;
 import org.theseed.p3api.P3Connection.Table;
 import org.theseed.proteins.FamilyType;
@@ -122,8 +123,8 @@ public class FamilyFileProcessor extends BaseGenomeProcessor {
         int fCount = 0;
         long lastMsg = System.currentTimeMillis();
         for (JsonObject familyRecord : familyRecords.values()) {
-            String familyId = P3Connection.getString(familyRecord, "family_id");
-            String product = P3Connection.getString(familyRecord, "family_product");
+            String familyId = KeyBuffer.getString(familyRecord, "family_id");
+            String product = KeyBuffer.getString(familyRecord, "family_product");
             this.familyMap.put(familyId, product);
             fCount++;
             long now = System.currentTimeMillis();
