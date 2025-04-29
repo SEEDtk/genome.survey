@@ -24,6 +24,7 @@ import org.theseed.basic.BaseProcessor;
  * famFile		build a protein-family file from a directory of GTOs.
  * jsonScan		scan a JSON dump and produce a report on file names and field types
  * jsonCopy		copy a JSON dump to a new directory, performing optional cleaning tasks
+ * roleList		create a list of all the roles in a genomes source
  *
  */
 
@@ -47,7 +48,8 @@ public class App
              "queryGen", "generate questions for testing a large language model",
              "famFile", "build a protein-family file from a genome source",
              "jsonScan", "scan a JSON dump and produce a report on file names and field types",
-             "jsonCopy", "copy a JSON dump to a new directory, performing optional cleaning tasks"
+             "jsonCopy", "copy a JSON dump to a new directory, performing optional cleaning tasks",
+             "roleList", "list all the roles used in a genome source"
     };
 
     public static void main( String[] args )
@@ -109,6 +111,9 @@ public class App
         case "jsonCopy" :
             processor = new JsonCopyProcessor();
             break;
+        case "roleList" :
+        	processor = new RoleListProcessor();
+        	break;
         case "-h" :
         case "--help" :
             processor = null;
