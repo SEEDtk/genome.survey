@@ -1,7 +1,7 @@
 /**
  *
  */
-package ord.theseed.genome;
+package org.theseed.genome;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -11,8 +11,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import org.theseed.genome.Feature;
-import org.theseed.genome.Genome;
 import org.theseed.locations.Location;
 import org.theseed.sequence.DnaKmers;
 import org.theseed.reports.NaturalSort;

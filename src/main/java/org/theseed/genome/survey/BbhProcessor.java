@@ -25,9 +25,8 @@ import org.theseed.basic.BaseReportProcessor;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.genome.Feature;
 import org.theseed.genome.Genome;
+import org.theseed.genome.KmerFeatureData;
 import org.theseed.reports.BbhReporter;
-
-import ord.theseed.genome.KmerFeatureData;
 
 /**
  * This command computes the bidirectional best hits between two genomes, the source

@@ -16,8 +16,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.theseed.genome.Feature;
 import org.theseed.genome.Genome;
-
-import ord.theseed.genome.KmerFeatureData;
+import org.theseed.genome.KmerFeatureData;
 
 /**
  * @author Bruce Parrello
