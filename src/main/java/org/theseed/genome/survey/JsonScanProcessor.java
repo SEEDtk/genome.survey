@@ -10,8 +10,8 @@ import java.io.PrintWriter;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.apache.commons.lang3.StringUtils;
 import org.kohsuke.args4j.Argument;
+import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.basic.BaseReportProcessor;
@@ -19,6 +19,7 @@ import org.theseed.basic.ParseFailureException;
 import org.theseed.counters.CountMap;
 import org.theseed.io.MasterGenomeDir;
 import org.theseed.json.JsonFileDir;
+import org.theseed.reports.BaseJsonScanReporter;
 import org.theseed.reports.FieldCounter;
 
 import com.github.cliftonlabs.json_simple.JsonArray;
@@ -39,10 +40,13 @@ import com.github.cliftonlabs.json_simple.JsonObject;
  * -v	display more frequent log messags
  * -o	output file for report (if not STDOUT)
  *
+ * --format     output report format (default TEXT)
+ * --dbd        DBD source file to use for file and relationship information in the DBD report
+ *
  * @author Bruce Parrello
  *
  */
-public class JsonScanProcessor extends BaseReportProcessor {
+public class JsonScanProcessor extends BaseReportProcessor implements  BaseJsonScanReporter.IParms {
 
     // FIELDS
     /** logging facility */
@@ -55,17 +59,34 @@ public class JsonScanProcessor extends BaseReportProcessor {
     private CountMap<String> fileCounts;
     /** record counters */
     private CountMap<String> recordCounts;
+    /** output report writer */
+    private BaseJsonScanReporter jscanWriter;
+
+    // COMMAND-LINE OPTIONS
+
+    /** output report format */
+    @Option(name = "--format", usage = "output report format (default TEXT)", metaVar = "format")
+    private BaseJsonScanReporter.Type reportType;
+
+    /** DBD source file */
+    @Option(name = "--dbd", usage = "DBD source file to use for file and relationship information in the DBD report", metaVar = "dbdFile")
+    private File dbdFile;
 
     /** genome master directory */
-    @Argument(index = 0, metaVar = "genomeDumpDir", usage = "master directory containing JSON genome dumps")
+    @Argument(index = 0, metaVar = "genomeDumpDir", usage = "master directory containing JSON genome dumps", required = true)
     private File genomeDirsIn;
 
     @Override
     protected void setReporterDefaults() {
+        this.reportType = BaseJsonScanReporter.Type.TEXT;
+        this.dbdFile = null;
     }
 
     @Override
     protected void validateReporterParms() throws IOException, ParseFailureException {
+        // Verify the DBD file.
+        if (this.dbdFile != null && ! this.dbdFile.canRead())
+            throw new FileNotFoundException("DBD source file " + this.dbdFile + " is not found or unreadable.");
         // Get the genome master directory.
         if (! this.genomeDirsIn.isDirectory())
             throw new FileNotFoundException("Master genome dump directory " + this.genomeDirsIn + " is not found or invalid.");
@@ -79,6 +100,8 @@ public class JsonScanProcessor extends BaseReportProcessor {
 
     @Override
     protected void runReporter(PrintWriter writer) throws Exception {
+        // Create the report writer.
+        this.jscanWriter = this.reportType.createReporter(writer, this);
         // Loop through the genomes.
         int gCount = 0;
         final int gTotal = this.genomeDirs.size();
@@ -111,21 +134,27 @@ public class JsonScanProcessor extends BaseReportProcessor {
         }
         // Now we produce the output.
         log.info("Writing report on {} files.", this.fileCounts.size());
+        jscanWriter.startReport();
+        // Loop through the file names in the count map.
         for (var fileEntry : this.countMap.entrySet()) {
-            // Create the heading for this file.
+            // Create the heading for this file
             String fileName = fileEntry.getKey();
-            String fileHeading = "FILE " + fileName + ": " + this.fileCounts.getCount(fileName) + " instances, "
-                    + this.recordCounts.getCount(fileName) + " records.";
-            writer.println(fileHeading);
-            writer.println(StringUtils.repeat("-", fileHeading.length()));
-            writer.println(StringUtils.rightPad("name", 20) + " " + FieldCounter.header());
+            jscanWriter.startFile(fileName, this.fileCounts.getCount(fileName), this.recordCounts.getCount(fileName));
             // Write the field data.
             Map<String, FieldCounter> fieldMap = fileEntry.getValue();
             for (var fieldEntry : fieldMap.entrySet())
-                writer.println(StringUtils.rightPad(fieldEntry.getKey(), 20) + " " + fieldEntry.getValue().getResults());
-            // Write the spacer at the end.
-            writer.println();
+                jscanWriter.writeField(fieldEntry.getKey(), fieldEntry.getValue());
+            // End the file section.
+            jscanWriter.endFile(fileName);
         }
+        // Terminate the report.
+        jscanWriter.endReport();
     }
+
+    @Override
+    public File getDbdFile() {
+        return this.dbdFile;
+    }
+
 
 }
