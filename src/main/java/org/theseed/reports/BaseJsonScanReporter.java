@@ -1,7 +1,10 @@
 package org.theseed.reports;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.PrintWriter;
+
+import org.theseed.basic.ParseFailureException;
 
 /**
  * This is the base class for output from a JSON scan report. The reports include information about both
@@ -26,17 +29,17 @@ public abstract class BaseJsonScanReporter {
 
     /** This enum indicates the types of reports */
     public static enum Type {
+        /** produce a JSON-walk DBD file */
         DBD {
             @Override
-            public BaseJsonScanReporter createReporter(PrintWriter writer, IParms controller) {
-                // Replace with actual DBD reporter implementation
+            public BaseJsonScanReporter createReporter(PrintWriter writer, IParms controller) throws IOException {
                 return new DbdJsonScanReporter(writer, controller);
             }
         },
+        /** produce a text report with useful statistics */
         TEXT {
             @Override
             public BaseJsonScanReporter createReporter(PrintWriter writer, IParms controller) {
-                // Replace with actual TEXT reporter implementation
                 return new TextJsonScanReporter(writer, controller);
             }
         };
@@ -49,7 +52,8 @@ public abstract class BaseJsonScanReporter {
          * 
          * @return a new reporter instance of the appropriate type
          */
-        public abstract BaseJsonScanReporter createReporter(PrintWriter writer, IParms controller);
+        public abstract BaseJsonScanReporter createReporter(PrintWriter writer, IParms controller) throws IOException, ParseFailureException;
+        
     }
 
     /** 
