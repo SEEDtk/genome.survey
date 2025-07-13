@@ -117,7 +117,7 @@ public class EntityAccumulator {
      */
     public Collection<FileAccumulator> getAdjunctFileAccumulators() {
         // We return all the files but the main one.
-        List<FileAccumulator> retVal = new ArrayList<FileAccumulator>(this.fileMap.size() - 1);
+        List<FileAccumulator> retVal = new ArrayList<FileAccumulator>(this.fileMap.size());
         for (var mapEntry : this.fileMap.entrySet()) {
             String adjunctName = mapEntry.getKey();
             if (! adjunctName.equals(this.fileName))

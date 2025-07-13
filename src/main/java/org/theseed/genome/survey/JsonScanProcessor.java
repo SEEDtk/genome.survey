@@ -19,10 +19,10 @@ import org.theseed.basic.ParseFailureException;
 import org.theseed.counters.CountMap;
 import org.theseed.io.MasterGenomeDir;
 import org.theseed.json.JsonFileDir;
+import org.theseed.json.JsonListIterator;
 import org.theseed.reports.BaseJsonScanReporter;
 import org.theseed.reports.FieldCounter;
 
-import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonObject;
 
 /**
@@ -109,24 +109,34 @@ public class JsonScanProcessor extends BaseReportProcessor implements  BaseJsonS
             gCount++;
             String genomeId = genomeDir.getName();
             log.info("Processing genome {} of {}: {}.", gCount, gTotal, genomeId);
+            long lastMsg = System.currentTimeMillis();
             JsonFileDir subFiles = new JsonFileDir(genomeDir);
             for (File subFile : subFiles) {
-                // Get the JSON array for this JSON file.
-                JsonArray subJson = JsonFileDir.getJson(subFile);
-                // If we have records, count this file.
-                if (! subJson.isEmpty()) {
-                    String name = subFile.getName();
-                    Map<String, FieldCounter> fileMap = this.countMap.computeIfAbsent(name, x -> new TreeMap<String, FieldCounter>());
-                    this.fileCounts.count(name);
-                    // Loop through the records, counting the fields.
-                    for (var recordObj : subJson) {
-                        this.recordCounts.count(name);
-                        // Now loop through the fields.
-                        JsonObject record = (JsonObject) recordObj;
-                        for (var fieldEntry : record.entrySet()) {
-                            String fieldName = fieldEntry.getKey();
-                            FieldCounter counter = fileMap.computeIfAbsent(fieldName, x -> new FieldCounter());
-                            counter.count(fieldEntry.getValue());
+                log.debug("Reading file {}.", subFile);
+                // Get the JSON records for this JSON file.
+                try (JsonListIterator jsonIter = new JsonListIterator(subFile)) {
+                    // If we have records, count this file.
+                    if (jsonIter.hasNext()) {
+                        String name = subFile.getName();
+                        Map<String, FieldCounter> fileMap = this.countMap.computeIfAbsent(name, x -> new TreeMap<String, FieldCounter>());
+                        this.fileCounts.count(name);
+                        int recordCount = 0;
+                        // Loop through the records, counting the fields.
+                        while (jsonIter.hasNext()) {
+                            this.recordCounts.count(name);
+                            // Now loop through the fields.
+                            JsonObject record = jsonIter.next();
+                            recordCount++;
+                            for (var fieldEntry : record.entrySet()) {
+                                String fieldName = fieldEntry.getKey();
+                                FieldCounter counter = fileMap.computeIfAbsent(fieldName, x -> new FieldCounter());
+                                counter.count(fieldEntry.getValue());
+                            }
+                            long now = System.currentTimeMillis();
+                            if (now - lastMsg >= 5000) {
+                                log.info("{} records read from {}.", recordCount, subFile);
+                                lastMsg = now;
+                            }
                         }
                     }
                 }
