@@ -39,7 +39,8 @@ import org.theseed.io.LineReader;
  * there are no data records associated with them. For these, the file names are missing.
  *
  * Immediately after the entity header are zero or more attribute descriptions. These vary depending on
- * the database type.
+ * the database type. These can be followed by file descriptions listing additional files that contain
+ * entity data. The file definitions contain the file name and the ID attribute name.
  *
  * The relationship definitions follow each entity.  A relationship definition describes a many-to-one
  * connection between entities and contains a template for the forward direction and the reverse direction.
@@ -137,6 +138,8 @@ public abstract class DbDefinition {
         // Now we need to read through the attributes.  The method will return the next header line, or NULL if we hit
         // end-of-file.
         String retVal = this.readAttributes(entity);
+        // Next we read through the adjunct file list.
+        // TODO adjunct files
         // Try to read the relationships, Again, we return the next header line or NULL.
         retVal = this.readRelationships(entity, retVal);
         // Return the next entity's header line.

@@ -91,7 +91,7 @@ public class ModelDumpFixProcessor extends BaseProcessor {
     }
 
     @Override
-    protected boolean validateParms() throws IOException, ParseFailureException {
+    protected void validateParms() throws IOException, ParseFailureException {
         // Verify the model directory.
         if (! this.modelDir.isDirectory())
             throw new IOException("Model directory " + this.modelDir + " is not found or invalid.");
@@ -117,7 +117,6 @@ public class ModelDumpFixProcessor extends BaseProcessor {
             this.threadPool = new ForkJoinPool(this.maxThreads);
             log.info("Parallel processing selected with {} threads.", this.maxThreads);
         }
-        return true;
     }
 
     @Override

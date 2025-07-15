@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.FieldInputStream;
@@ -40,6 +42,8 @@ public abstract class EntityType implements Comparable<EntityType> {
     private String idColName;
     /** list of relationship definitions */
     private List<RelationshipType> relationships;
+    /** map of file names to ID attribute names for additional files */
+    private Map<String, String> adjunctFileMap;
     /** priority */
     private int priority;
     /** special ID for connector records */
@@ -56,6 +60,7 @@ public abstract class EntityType implements Comparable<EntityType> {
         this.idColName = null;
         this.relationships = new ArrayList<RelationshipType>();
         this.priority = 0;
+        this.adjunctFileMap = new TreeMap<String, String>();
     }
 
     @Override

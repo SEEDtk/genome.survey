@@ -64,7 +64,7 @@ public class CompareProcessor extends BaseProcessor {
     }
 
     @Override
-    protected boolean validateParms() throws IOException, ParseFailureException {
+    protected void validateParms() throws IOException, ParseFailureException {
         // Verify the two input files.
         if (! this.masterFile.canRead())
             throw new FileNotFoundException("Master feature file " + this.masterFile + " is not found or unreadable.");
@@ -74,7 +74,6 @@ public class CompareProcessor extends BaseProcessor {
         if (! this.gtoFile.canRead())
             throw new FileNotFoundException("Genome file " + this.gtoFile + " is not found or unreadable.");
         this.genome = new Genome(this.gtoFile);
-        return true;
     }
 
     @Override

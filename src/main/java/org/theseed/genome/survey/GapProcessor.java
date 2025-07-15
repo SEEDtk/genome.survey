@@ -57,13 +57,12 @@ public class GapProcessor extends BaseProcessor {
     }
 
     @Override
-    protected boolean validateParms() throws IOException, ParseFailureException {
+    protected void validateParms() throws IOException, ParseFailureException {
         // Read in the genome.
         if (! this.inFile.canRead())
             throw new FileNotFoundException("Genome file " + this.inFile + " is not found or unreadable.");
         log.info("Reading genome from {}.", this.inFile);
         this.genome = new Genome(this.inFile);
-        return true;
     }
 
     @Override

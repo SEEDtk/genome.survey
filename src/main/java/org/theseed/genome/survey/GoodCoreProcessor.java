@@ -80,7 +80,7 @@ public class GoodCoreProcessor extends BaseProcessor {
     }
 
     @Override
-    protected boolean validateParms() throws IOException, ParseFailureException {
+    protected void validateParms() throws IOException, ParseFailureException {
         if (! this.coreDir.isDirectory())
             throw new FileNotFoundException("Cannot find input CoreSEED directory " + this.coreDir + ".");
         else {
@@ -104,7 +104,6 @@ public class GoodCoreProcessor extends BaseProcessor {
         prepareOutputDirectory(this.outDir);
         if (this.splitDir != null)
             prepareOutputDirectory(this.splitDir);
-        return true;
     }
 
     /**

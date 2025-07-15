@@ -80,7 +80,7 @@ public class TetraProcessor extends BaseProcessor {
     }
 
     @Override
-    protected boolean validateParms() throws IOException, ParseFailureException {
+    protected void validateParms() throws IOException, ParseFailureException {
         // Verify the profile length.
         if (this.profileLen < 10)
             throw new ParseFailureException("Profile length (--kLen) is too short.  The minimum is 10.");
@@ -92,7 +92,6 @@ public class TetraProcessor extends BaseProcessor {
                 throw new FileNotFoundException("Input file is not found or unreadable.");
             this.inStream = new FileInputStream(this.inFile);
         }
-        return true;
     }
 
     @Override

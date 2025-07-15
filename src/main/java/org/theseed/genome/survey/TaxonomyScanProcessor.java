@@ -194,7 +194,7 @@ public class TaxonomyScanProcessor extends BaseProcessor {
     }
 
     @Override
-    protected boolean validateParms() throws IOException, ParseFailureException {
+    protected void validateParms() throws IOException, ParseFailureException {
         // Validate the choice count.
         if (this.nChoices < 1)
             throw new ParseFailureException("Number of genomes to display per group must be positive.");
@@ -214,7 +214,6 @@ public class TaxonomyScanProcessor extends BaseProcessor {
         int hashSize = gTotal * 4 / 3 + 1;
         this.fileMap = new HashMap<String, File>(hashSize);
         this.jsonMap = new HashMap<String, JsonObject>(hashSize);
-        return true;
     }
 
     @Override

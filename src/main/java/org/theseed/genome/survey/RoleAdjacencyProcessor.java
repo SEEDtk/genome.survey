@@ -149,7 +149,7 @@ public class RoleAdjacencyProcessor extends BaseProcessor {
     }
 
     @Override
-    protected boolean validateParms() throws IOException, ParseFailureException {
+    protected void validateParms() throws IOException, ParseFailureException {
         // Validate the gap.
         if (this.maxGap <= 0)
             throw new ParseFailureException("Gap must be a positive number.");
@@ -160,7 +160,6 @@ public class RoleAdjacencyProcessor extends BaseProcessor {
         if (this.genomeDirs.size() <= 0)
             throw new FileNotFoundException("No genome feature files found in " + this.inDir + ".");
         log.info("{} genomes found in {}.", this.genomeDirs.size(), this.inDir);
-        return true;
     }
 
     @Override

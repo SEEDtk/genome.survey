@@ -92,7 +92,7 @@ public class JsonCopyProcessor extends BaseProcessor implements JsonCleaner.IPar
     }
 
     @Override
-    protected boolean validateParms() throws IOException, ParseFailureException {
+    protected void validateParms() throws IOException, ParseFailureException {
         // Validate the input directory.
         if (! this.inDir.isDirectory())
             throw new FileNotFoundException("Input directory " + this.inDir + " is not found or invalid.");
@@ -112,7 +112,6 @@ public class JsonCopyProcessor extends BaseProcessor implements JsonCleaner.IPar
         this.cleaners = new ArrayList<JsonCleaner>(this.cleanerTypes.size());
         for (JsonCleaner.Type type : this.cleanerTypes)
             this.cleaners.add(type.create(this));
-        return true;
     }
 
     @Override
