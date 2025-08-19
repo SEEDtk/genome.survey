@@ -35,13 +35,13 @@ public abstract class EntityType implements Comparable<EntityType> {
 
     // FIELDS
     /** entity type name */
-    private String name;
+    private final String name;
     /** entity input file name */
     private String fileName;
     /** ID column name */
     private String idColName;
     /** list of relationship definitions */
-    private List<RelationshipType> relationships;
+    private final List<RelationshipType> relationships;
     /** map of file names to ID attribute names for additional files */
     private Map<String, String> adjunctFileMap;
     /** priority */
@@ -58,9 +58,9 @@ public abstract class EntityType implements Comparable<EntityType> {
         this.name = name;
         this.fileName = null;
         this.idColName = null;
-        this.relationships = new ArrayList<RelationshipType>();
+        this.relationships = new ArrayList<>();
         this.priority = 0;
-        this.adjunctFileMap = new TreeMap<String, String>();
+        this.adjunctFileMap = new TreeMap<>();
     }
 
     @Override
@@ -169,7 +169,7 @@ public abstract class EntityType implements Comparable<EntityType> {
      */
     public Collection<RelationBuilder> getRelationBuilders(FieldInputStream inStream)
             throws IOException, ParseFailureException {
-        List<RelationBuilder> retVal = new ArrayList<RelationBuilder>(this.relationships.size());
+        List<RelationBuilder> retVal = new ArrayList<>(this.relationships.size());
         for (RelationshipType relType : this.relationships) {
             RelationBuilder builder = relType.createRelationBuilder(inStream);
             retVal.add(builder);
