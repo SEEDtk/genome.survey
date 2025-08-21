@@ -54,7 +54,7 @@ public class TetraProcessor extends BaseProcessor {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(TetraProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(TetraProcessor.class);
     /** input stream to use for input */
     private InputStream inStream;
     /** connection to PATRIC */
@@ -138,13 +138,10 @@ public class TetraProcessor extends BaseProcessor {
         // Get all the contigs for the genome.
         log.info("Loading contigs for genome {}.  {} profiles requested.", genome_id, count);
         Shuffler<String> sequences;
-        switch (source) {
-        case "PATRIC" :
-            sequences = getPatricSequences(genome_id);
-            break;
-        default :
-            sequences = this.getFastaSequences(source);
-        }
+        sequences = switch (source) {
+            case "PATRIC" -> getPatricSequences(genome_id);
+            default -> this.getFastaSequences(source);
+        };
         log.info("{} sequences of sufficient length found.", sequences.size());
         // Get the desired profiles.  First, randomize the contigs.
         int size = (count < sequences.size() ? count : sequences.size());
@@ -155,15 +152,13 @@ public class TetraProcessor extends BaseProcessor {
         // This will track the number of profiles we still need.
         int needed = count;
         // Loop through the contigs.
-        List<TetramerProfile> retVal = new ArrayList<TetramerProfile>(count);
+        List<TetramerProfile> retVal = new ArrayList<>(count);
         for (int i = 0; i < size && needed > 0; i++) {
             // Get the current sequence and determine its length.
             String sequence = sequences.get(i);
             int seqLen = sequence.length();
             // Figure out how many profiles we need from this contig and divide it into sections.
             int neededInContig = needed / (size - i);
-            int sectionLen = seqLen / neededInContig;
-            if (sectionLen < this.profileLen) sectionLen = this.profileLen;
             // Compute the gap length between profiles.
             int gap = seqLen - this.profileLen * neededInContig;
             // Now loop through the contig, getting the profiles using random gaps.
@@ -197,7 +192,7 @@ public class TetraProcessor extends BaseProcessor {
             "sequence_id,sequence");
         log.info("{} contigs found.", contigs.size());
         // Get the long ones into a shuffler.
-        retVal = new Shuffler<String>(contigs.size());
+        retVal = new Shuffler<>(contigs.size());
         contigs.stream().map(x -> KeyBuffer.getString(x, "sequence")).filter(x -> x.length() >= this.profileLen)
                 .forEach(x -> retVal.add(x));
         return retVal;
@@ -211,7 +206,7 @@ public class TetraProcessor extends BaseProcessor {
      * @throws IOException
      */
     private Shuffler<String> getFastaSequences(String source) throws IOException {
-        Shuffler<String> retVal = new Shuffler<String>(100);
+        Shuffler<String> retVal = new Shuffler<>(100);
         try (FastaInputStream fastaStream = new FastaInputStream(new File(source))) {
             for (Sequence seq : fastaStream)
                 retVal.add(seq.getSequence());

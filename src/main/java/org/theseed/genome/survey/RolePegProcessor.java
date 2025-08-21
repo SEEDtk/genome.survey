@@ -46,7 +46,7 @@ public class RolePegProcessor extends BaseReportProcessor implements RolePegRepo
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(RolePegProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(RolePegProcessor.class);
     /** input genome source */
     private GenomeSource genomes;
     /** role definition map */

@@ -7,6 +7,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.theseed.genome.Feature;
 import org.theseed.genome.Genome;
 import org.theseed.subsystems.core.SubsystemRuleProjector;
@@ -21,14 +23,16 @@ import org.theseed.subsystems.core.SubsystemRuleProjector;
 public class ProjectionBbhReporter extends BbhReporter {
 
     // FIELDS
+    /** logging facility */
+    private static final Logger log = LoggerFactory.getLogger(ProjectionBbhReporter.class);
     /** target genome */
     private Genome target;
     /** target genome file name */
-    private File targetFile;
+    private final File targetFile;
     /** TRUE if this is a dry run */
-    private boolean dryRunMode;
+    private final boolean dryRunMode;
     /** subsystem projector (if any) */
-    private SubsystemRuleProjector projector;
+    private final SubsystemRuleProjector projector;
 
     /**
      * Construct a projection report for the specified command processor.

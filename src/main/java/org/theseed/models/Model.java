@@ -25,7 +25,7 @@ public class Model {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(Model.class);
+    private static final Logger log = LoggerFactory.getLogger(Model.class);
     /** number of bad compounds */
     private int badCompoundCount;
     /** number of bad reactions */

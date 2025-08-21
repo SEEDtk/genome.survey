@@ -36,7 +36,7 @@ public class ValidateProcessor extends BaseReportProcessor {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(ValidateProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(ValidateProcessor.class);
     /** input genome directory */
     private GenomeDirectory genomes;
 

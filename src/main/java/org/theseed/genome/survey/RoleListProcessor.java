@@ -9,6 +9,8 @@ import java.io.PrintWriter;
 import java.util.Set;
 
 import org.kohsuke.args4j.Option;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.counters.CountMap;
 import org.theseed.genome.Feature;
@@ -35,6 +37,8 @@ import org.theseed.p3api.P3Genome;
 public class RoleListProcessor extends BaseGenomeProcessor {
 
 	// FIELDS
+	/** logging facility */
+	private static final Logger log = LoggerFactory.getLogger(RoleListProcessor.class);
 	/** map of roles to counts */
 	private CountMap<String> roleCounts;
 
@@ -55,13 +59,13 @@ public class RoleListProcessor extends BaseGenomeProcessor {
 		// Verify that we can write to the output file, if any.
 		if (this.outFile != null) {
 			log.info("Role report will be written to {}.", this.outFile);
-			PrintWriter writer = new PrintWriter(this.outFile);
-			writer.println("Role name\tcount\n");
-			writer.close();
+			try (PrintWriter writer = new PrintWriter(this.outFile)) {
+				writer.println("Role name\tcount\n");
+			}
 		} else
 			log.info("Role report will be written to the standard output.");
 		// Create the role-count map.
-		this.roleCounts = new CountMap<String>();
+		this.roleCounts = new CountMap<>();
 	}
 
 	@Override

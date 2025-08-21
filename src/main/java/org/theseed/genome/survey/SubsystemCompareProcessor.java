@@ -52,7 +52,7 @@ public class SubsystemCompareProcessor extends BaseGenomeProcessor implements Va
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(SubsystemCompareProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(SubsystemCompareProcessor.class);
     /** second genome source */
     private GenomeSource genomes2;
     /** output print writer for report */
@@ -61,7 +61,7 @@ public class SubsystemCompareProcessor extends BaseGenomeProcessor implements Va
     private VariantCodeComparator varCodeMatcher;
     /** dummy subsystem map entry to use as merge trailer */
     private static final Map.Entry<String, SubsystemRow> SUBS_TRAILER =
-            new AbstractMap.SimpleEntry<String, SubsystemRow>("\uFFFF\uFFFF\uFFFF", null);
+            new AbstractMap.SimpleEntry<>("\uFFFF\uFFFF\uFFFF", null);
 
     // COMMAND-LINE OPTIONS
 
@@ -276,7 +276,7 @@ public class SubsystemCompareProcessor extends BaseGenomeProcessor implements Va
         // Get all the subsystem rows.
         Collection<SubsystemRow> subRows = genome.getSubsystems();
         // Create a sorted map to hold them.
-        TreeMap<String, SubsystemRow> retVal = new TreeMap<String, SubsystemRow>();
+        TreeMap<String, SubsystemRow> retVal = new TreeMap<>();
         // Fill the map.
         for (SubsystemRow subRow : subRows)
             retVal.put(subRow.getName(), subRow);

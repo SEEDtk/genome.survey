@@ -50,7 +50,7 @@ public class JsonScanProcessor extends BaseReportProcessor implements  BaseJsonS
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(JsonScanProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(JsonScanProcessor.class);
     /** master genome directory */
     private MasterGenomeDir genomeDirs;
     /** map of file names to field names to field counters */
@@ -93,9 +93,9 @@ public class JsonScanProcessor extends BaseReportProcessor implements  BaseJsonS
         this.genomeDirs = new MasterGenomeDir(this.genomeDirsIn);
         log.info("{} genomes found in {}.", this.genomeDirs.size(), this.genomeDirsIn);
         // Initialize the maps.
-        this.countMap = new TreeMap<String, Map<String, FieldCounter>>();
-        this.fileCounts = new CountMap<String>();
-        this.recordCounts = new CountMap<String>();
+        this.countMap = new TreeMap<>();
+        this.fileCounts = new CountMap<>();
+        this.recordCounts = new CountMap<>();
     }
 
     @Override

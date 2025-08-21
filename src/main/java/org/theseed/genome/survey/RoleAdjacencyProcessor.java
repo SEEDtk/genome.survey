@@ -47,7 +47,7 @@ public class RoleAdjacencyProcessor extends BaseProcessor {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(RoleAdjacencyProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(RoleAdjacencyProcessor.class);
     /** list of genome dump subdirectories */
     private MasterGenomeDir genomeDirs;
 
@@ -67,11 +67,11 @@ public class RoleAdjacencyProcessor extends BaseProcessor {
     public static class FeatureData implements Comparable<FeatureData> {
 
         /** feature ID */
-        private String fid;
+        private final String fid;
         /** functional assignment */
-        private String product;
+        private final String product;
         /** location */
-        private Location loc;
+        private final Location loc;
 
         /**
          * Construct this feature from the input data.
@@ -186,7 +186,7 @@ public class RoleAdjacencyProcessor extends BaseProcessor {
         // Compute the name of the output file.
         File outFile = new File(gDir, "neighbors.tbl");
         // Create a hash to map strand IDs to feature data lists.
-        Map<String, List<FeatureData>> featMap = new HashMap<String, List<FeatureData>>();
+        Map<String, List<FeatureData>> featMap = new HashMap<>();
         // Get access to the feature records.
         log.info("Connecting to genome features in {}.", inFile);
         try (FieldInputStream inStream = FieldInputStream.create(inFile)) {

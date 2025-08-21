@@ -42,17 +42,11 @@ public class RandomWalkProcessor extends BaseReportProcessor {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(RandomWalkProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(RandomWalkProcessor.class);
     /** list of dump directories to process */
     private File[] inDirs;
     /** file filter for subdirectories */
-    private FileFilter SUB_DIR_FILTER = new FileFilter() {
-        @Override
-        public boolean accept(File pathname) {
-            return pathname.isDirectory();
-        }
-    };
-
+    private static final FileFilter SUB_DIR_FILTER = (File pathname) -> pathname.isDirectory();
 
     // COMMAND-LINE OPTIONS
 

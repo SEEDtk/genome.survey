@@ -58,7 +58,7 @@ public class RoleMapProcessor extends BaseMultiReportProcessor {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(RoleMapProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(RoleMapProcessor.class);
     /** map of protein strings to annotations to feature IDs */
     private Map<String, NavigableMap<String, Set<String>>> annotationMap;
     /** input genome source */
@@ -117,7 +117,7 @@ public class RoleMapProcessor extends BaseMultiReportProcessor {
         this.md5Computer = new MD5Hex();
         // Set up the main map.
         final int nGenomes = this.filterSet.size();
-        this.annotationMap = new HashMap<String, NavigableMap<String, Set<String>>>(nGenomes * 6000);
+        this.annotationMap = new HashMap<>(nGenomes * 6000);
         // Initialize some counters.
         int gCount = 0;
         int pegTotal = 0;

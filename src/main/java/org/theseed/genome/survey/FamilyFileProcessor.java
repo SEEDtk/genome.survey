@@ -45,7 +45,7 @@ public class FamilyFileProcessor extends BaseGenomeProcessor {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(FamilyFileProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(FamilyFileProcessor.class);
     /** protein MD5 to family ID map */
     private Map<String, String> md5Map;
     /** family ID to produce map */
@@ -75,8 +75,8 @@ public class FamilyFileProcessor extends BaseGenomeProcessor {
             outStream.println("fam_id\tproduct\tmd5");
         }
         // Set up the maps.
-        this.md5Map = new HashMap<String, String>();
-        this.familyMap = new HashMap<String, String>();
+        this.md5Map = new HashMap<>();
+        this.familyMap = new HashMap<>();
         // Connect to PATRIC.
         this.p3 = new P3Connection();
     }

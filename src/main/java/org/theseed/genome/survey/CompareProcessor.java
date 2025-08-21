@@ -41,7 +41,7 @@ public class CompareProcessor extends BaseProcessor {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(CompareProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(CompareProcessor.class);
     /** reference genome */
     private Genome genome;
 
@@ -79,7 +79,7 @@ public class CompareProcessor extends BaseProcessor {
     @Override
     protected void runCommand() throws Exception {
         // Get the master feature list.
-        SortedSet<String> master = new TreeSet<String>(new NaturalSort());
+        SortedSet<String> master = new TreeSet<>(new NaturalSort());
         master.addAll(TabbedLineReader.readSet(this.masterFile, "1"));
         log.info("{} features in master list.", master.size());
         // Get the alternate feature list.

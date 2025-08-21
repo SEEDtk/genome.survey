@@ -9,9 +9,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.theseed.json.JsonFileDir;
 import org.theseed.memdb.query.proposal.ProposalQuery;
 
@@ -28,12 +25,10 @@ import com.github.cliftonlabs.json_simple.JsonObject;
 public abstract class QueryGenReporter {
 
     // FIELDS
-    /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(QueryGenReporter.class);
     /** output print writer */
     private PrintWriter writer;
     /** random number generator */
-    private Random rand;
+    private final Random rand;
     /** saved proposal query */
     private ProposalQuery query;
 
@@ -181,7 +176,7 @@ public abstract class QueryGenReporter {
      * @return a shuffled list of all the answers
      */
     public List<String> randomizeChoices(String answer, Collection<String> distractors) {
-        ArrayList<String> choices = new ArrayList<String>(distractors.size() + 1);
+        ArrayList<String> choices = new ArrayList<>(distractors.size() + 1);
         choices.add(answer);
         choices.addAll(distractors);
         Collections.shuffle(choices, this.rand);

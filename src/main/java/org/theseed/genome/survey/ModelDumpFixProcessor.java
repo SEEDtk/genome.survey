@@ -51,7 +51,7 @@ public class ModelDumpFixProcessor extends BaseProcessor {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(ModelDumpFixProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(ModelDumpFixProcessor.class);
     /** genome template input directory master */
     private MasterGenomeDir genomeDirs;
     /** number of genomes for which there is no model file */

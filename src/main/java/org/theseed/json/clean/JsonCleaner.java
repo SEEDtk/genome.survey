@@ -3,9 +3,6 @@
  */
 package org.theseed.json.clean;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.github.cliftonlabs.json_simple.JsonObject;
 
 /**
@@ -17,9 +14,6 @@ import com.github.cliftonlabs.json_simple.JsonObject;
  */
 public abstract class JsonCleaner {
 
-    // FIELDS
-    /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(JsonCleaner.class);
 
     /**
      * This enumeration lists the different types of cleaners.

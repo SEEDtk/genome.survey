@@ -28,7 +28,7 @@ import com.github.cliftonlabs.json_simple.Jsoner;
 class TestFieldCounter {
 
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(TestFieldCounter.class);
+    private static final Logger log = LoggerFactory.getLogger(TestFieldCounter.class);
 
     @Test
     void testFieldCounter() throws JsonException, IOException {

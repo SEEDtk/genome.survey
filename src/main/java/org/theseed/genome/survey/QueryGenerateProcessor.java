@@ -86,7 +86,7 @@ public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGe
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(QueryGenerateProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(QueryGenerateProcessor.class);
     /** database instance */
     QueryDbInstance db;
     /** array of input data diretories to scan */
@@ -94,12 +94,7 @@ public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGe
     /** output report writer */
     private QueryGenReporter reporter;
     /** filter for data subdirectories */
-    private static final FileFilter SUB_DIR_FILTER = new FileFilter() {
-        @Override
-        public boolean accept(File pathname) {
-            return pathname.isDirectory();
-        }
-    };
+    private static final FileFilter SUB_DIR_FILTER = (File pathname) -> pathname.isDirectory();
 
     // COMMAND-LINE OPTIONS
 
@@ -146,7 +141,7 @@ public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGe
         this.maxLimit = 5000;
         this.maxOutput = 100;
         this.reportType = QueryGenReporter.Type.JSON;
-        this.domains = new ArrayList<String>();
+        this.domains = new ArrayList<>();
         this.support = "";
     }
 

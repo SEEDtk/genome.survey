@@ -13,6 +13,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.regex.Matcher;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.memdb.query.QueryDbInstance;
 import org.theseed.memdb.query.QueryEntityInstance;
@@ -29,12 +31,14 @@ import org.theseed.stats.Shuffler;
 public class ChoiceProposalQuery extends ProposalQuery {
 
     // FIELDS
+    /** logging facility */
+    private static final Logger log = LoggerFactory.getLogger(ChoiceProposalQuery.class);
     /** output field descriptor */
     private ExactProposalField outputField;
     /** randomizer for choosing correct answers */
-    private Random rand;
+    private final Random rand;
     /** database instance for emergencies */
-    private QueryDbInstance db;
+    private final QueryDbInstance db;
     /** match pattern for field specification */
     private static final Pattern SPEC_PATTERN = Pattern.compile("choice\\s+(.+)");
 
@@ -89,18 +93,18 @@ public class ChoiceProposalQuery extends ProposalQuery {
             int desired = this.rand.nextInt(correct.size());
             String answer1 = Shuffler.selectItem(correct, desired);
             // Now we need the wrong answers.
-            Collection<String> distractors = new ArrayList<String>(4);
+            Collection<String> distractors = new ArrayList<>(4);
             if (incorrect.size() > 3) {
                 // The best case: we have enough answers.
                 Collection<String> selected = Shuffler.selectPart(incorrect, 3);
                 distractors.addAll(selected);
-            } else if (incorrect.size() > 0) {
+            } else if (! incorrect.isEmpty()) {
                 // At least one incorrect answer, but not more than 3.
                 distractors.addAll(incorrect);
             } else {
                 // Here we have no incorrect answers, so we need to get some from the whole database.
                 log.warn("Slow method for alternative answers required in {}.", this);
-                incorrect = new HashSet<String>();
+                incorrect = new HashSet<>();
                 for (var instance : this.db.getAllEntities(outEntityType)) {
                     QueryEntityInstance qInstance = (QueryEntityInstance) instance;
                     var values = qInstance.getAttribute(outEntityAttr).getList();

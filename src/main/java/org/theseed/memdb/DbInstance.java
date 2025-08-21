@@ -9,8 +9,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.theseed.stats.Shuffler;
 
 /**
@@ -24,12 +22,10 @@ import org.theseed.stats.Shuffler;
 public abstract class DbInstance {
 
     // FIELDS
-    /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(DbInstance.class);
     /** master entity instance table */
-    private Map<String, Map<String, EntityInstance>> masterMap;
+    private final Map<String, Map<String, EntityInstance>> masterMap;
     /** list of entity type names in priority order */
-    private List<String> typeNames;
+    private final List<String> typeNames;
     /** entity instance count */
     private int entityCount;
     /** relationship instance count */
@@ -42,7 +38,7 @@ public abstract class DbInstance {
      */
     public DbInstance(List<String> types) {
         this.typeNames = types;
-        this.masterMap = new TreeMap<String, Map<String, EntityInstance>>();
+        this.masterMap = new TreeMap<>();
     }
 
     /**
@@ -162,7 +158,7 @@ public abstract class DbInstance {
         // The only tricky part is returning an empty map if no entity instances exist for the type.
         var retVal = this.masterMap.get(type);
         if (retVal == null)
-            retVal = new TreeMap<String, EntityInstance>();
+            retVal = new TreeMap<>();
         return retVal;
     }
 

@@ -50,7 +50,7 @@ public class TaxonomyScanProcessor extends BaseProcessor {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(TaxonomyScanProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(TaxonomyScanProcessor.class);
     /** map of genome IDs to JSON objects */
     private Map<String, JsonObject> jsonMap;
     /** map of genome IDs to file names */
@@ -86,7 +86,7 @@ public class TaxonomyScanProcessor extends BaseProcessor {
         GENOME_ID(null), GENOME_WORD(null);
 
         /** default value for this key */
-        private String defaultValue;
+        private final String defaultValue;
 
         private SpecialKey(String defaultVal) {
             this.defaultValue = defaultVal;
@@ -111,13 +111,13 @@ public class TaxonomyScanProcessor extends BaseProcessor {
     protected static class TaxonKey implements JsonKey {
 
         /** name of the key */
-        private String keyName;
+        private final String keyName;
         /** map of group names to genome word lists */
-        private Map<String, Shuffler<String>> groupMap;
+        private final Map<String, Shuffler<String>> groupMap;
 
         public TaxonKey(String keyname) {
             this.keyName = keyname;
-            this.groupMap = new HashMap<String, Shuffler<String>>();
+            this.groupMap = new HashMap<>();
         }
 
         @Override
@@ -212,8 +212,8 @@ public class TaxonomyScanProcessor extends BaseProcessor {
         this.groupings = Arrays.stream(GROUPINGS).map(x -> new TaxonKey(x)).toArray(TaxonKey[]::new);
         // Set up the main data structures.
         int hashSize = gTotal * 4 / 3 + 1;
-        this.fileMap = new HashMap<String, File>(hashSize);
-        this.jsonMap = new HashMap<String, JsonObject>(hashSize);
+        this.fileMap = new HashMap<>(hashSize);
+        this.jsonMap = new HashMap<>(hashSize);
     }
 
     @Override

@@ -37,13 +37,13 @@ public abstract class ProposalQuery {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(ProposalQuery.class);
+    private static final Logger log = LoggerFactory.getLogger(ProposalQuery.class);
     /** list of entity proposals along the query path */
     private List<ProposalEntity> path;
     /** template string */
     private String questionString;
     /** cutoff limit for response set sizes */
-    private int maxResponseLimit;
+    private final int maxResponseLimit;
     /** pattern for finding attribute substitution elements */
     private static final Pattern FIELD_PATTERN = Pattern.compile("\\{\\{([=<>?])?(\\w+\\.\\w+)(?::([^{}]+))?\\}\\}");
 
@@ -60,7 +60,7 @@ public abstract class ProposalQuery {
         this.questionString = templateString;
         // Set up the path through the database.
         String[] pathNames = StringUtils.split(entityPath);
-        this.path = new ArrayList<ProposalEntity>(pathNames.length);
+        this.path = new ArrayList<>(pathNames.length);
         for (String entity : pathNames)
             this.path.add(new ProposalEntity(entity));
         // Now get the proposal fields.
@@ -75,17 +75,10 @@ public abstract class ProposalQuery {
             if (typeChar == null) {
                 proposalField = new ExactProposalField(fieldSpec);
             } else switch (typeChar) {
-            case "<" :
-                proposalField = new LessThanProposalField(fieldSpec, parm);
-                break;
-            case "=" :
-                proposalField = new EqualProposalField(fieldSpec, parm);
-                break;
-            case ">" :
-                proposalField = new GreaterThanProposalField(fieldSpec, parm);
-                break;
-            default :
-                throw new ParseFailureException("Invalid field specification character \"" + typeChar + "\".");
+            case "<" -> proposalField = new LessThanProposalField(fieldSpec, parm);
+            case "=" -> proposalField = new EqualProposalField(fieldSpec, parm);
+            case ">" -> proposalField = new GreaterThanProposalField(fieldSpec, parm);
+            default -> throw new ParseFailureException("Invalid field specification character \"" + typeChar + "\".");
             }
             // Find the entity for this attribute.
             final String entityTypeName = proposalField.getEntityType();
@@ -117,7 +110,7 @@ public abstract class ProposalQuery {
      */
     public List<ProposalResponseSet> computeSets(QueryDbInstance db) {
         // Create a map of parameterizations to response sets.
-        Map<Parameterization, ProposalResponseSet> currentMap = new HashMap<Parameterization, ProposalResponseSet>();
+        Map<Parameterization, ProposalResponseSet> currentMap = new HashMap<>();
         // Compute the response entity type.
         ProposalEntity responseEntity = this.getResponseEntity();
         // We start with the first entity in the query and process all its records into response sets.
@@ -148,7 +141,7 @@ public abstract class ProposalQuery {
         // Now we need to add records for the remaining entities of the path. We will build these in this
         // new map.
         for (int i = 1; i < this.path.size(); i++) {
-            Map<Parameterization, ProposalResponseSet> newMap = new HashMap<Parameterization, ProposalResponseSet>();
+            Map<Parameterization, ProposalResponseSet> newMap = new HashMap<>();
             ProposalEntity currEntity = this.path.get(i);
             // We need to process each response. Note that a response is a sequence of entity instances along the
             // path. For each response, we cross the relationship of interest and parameterize the entity instances

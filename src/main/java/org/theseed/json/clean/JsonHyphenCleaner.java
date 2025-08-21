@@ -3,6 +3,9 @@
  */
 package org.theseed.json.clean;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.github.cliftonlabs.json_simple.JsonObject;
 
 /**
@@ -14,6 +17,8 @@ import com.github.cliftonlabs.json_simple.JsonObject;
 public class JsonHyphenCleaner extends JsonCleaner {
 
     // FIELDS
+    /** logging facility */
+    private static final Logger log = LoggerFactory.getLogger(JsonHyphenCleaner.class);
     /** counter of fields updated */
     private int updateCounter;
 
@@ -27,8 +32,7 @@ public class JsonHyphenCleaner extends JsonCleaner {
         var fieldIter = json.entrySet().iterator();
         while (fieldIter.hasNext()) {
             Object fieldValue = fieldIter.next().getValue();
-            if (fieldValue instanceof String) {
-                String stringValue = (String) fieldValue;
+            if (fieldValue instanceof String stringValue) {
                 if (stringValue.contentEquals("-")) {
                     fieldIter.remove();
                     updateCount++;

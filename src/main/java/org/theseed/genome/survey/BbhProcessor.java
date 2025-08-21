@@ -55,7 +55,7 @@ public class BbhProcessor extends BaseReportProcessor implements BbhReporter.IPa
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(BbhProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(BbhProcessor.class);
     /** source genome */
     private Genome source;
     /** target genome */
@@ -237,7 +237,7 @@ public class BbhProcessor extends BaseReportProcessor implements BbhReporter.IPa
         // Collate them into the return map.
         var retVal = new TreeMap<String, List<KmerFeatureData>>();
         // Most features are pegs.  For these, we pre-allocate the list.
-        retVal.put("CDS", new ArrayList<KmerFeatureData>(kmerObjects.size()));
+        retVal.put("CDS", new ArrayList<>(kmerObjects.size()));
         for (KmerFeatureData kmerObject : kmerObjects) {
             String type = kmerObject.getType();
             List<KmerFeatureData> list =

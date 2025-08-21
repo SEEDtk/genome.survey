@@ -5,9 +5,6 @@ package org.theseed.reports;
 
 import java.io.File;
 import java.io.IOException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.genome.Feature;
 
@@ -18,11 +15,6 @@ import org.theseed.genome.Feature;
  *
  */
 public abstract class BbhReporter extends BaseReporterReporter {
-
-    // FIELDS
-    /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(BbhReporter.IParms.class);
-
 
     /**
      * This interface is used to retrieve information from the controlling command processor.

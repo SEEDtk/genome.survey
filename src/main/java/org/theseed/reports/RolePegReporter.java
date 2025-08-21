@@ -4,9 +4,6 @@
 package org.theseed.reports;
 
 import java.io.PrintWriter;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.theseed.genome.Feature;
 
 /**
@@ -18,8 +15,6 @@ import org.theseed.genome.Feature;
 public abstract class RolePegReporter {
 
     // FIELDS
-    /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(RolePegReporter.class);
     /** output print writer */
     private PrintWriter writer;
 

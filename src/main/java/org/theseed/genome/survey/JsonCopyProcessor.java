@@ -47,7 +47,7 @@ public class JsonCopyProcessor extends BaseProcessor implements JsonCleaner.IPar
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(JsonCopyProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(JsonCopyProcessor.class);
     /** list of JSON cleaners to use */
     private List<JsonCleaner> cleaners;
     /** input JSON dump directory */
@@ -86,7 +86,7 @@ public class JsonCopyProcessor extends BaseProcessor implements JsonCleaner.IPar
 
     @Override
     protected void setDefaults() {
-        this.cleanerTypes = new ArrayList<JsonCleaner.Type>();
+        this.cleanerTypes = new ArrayList<>();
         this.clearFlag = false;
         this.missingFlag = false;
     }
@@ -109,7 +109,7 @@ public class JsonCopyProcessor extends BaseProcessor implements JsonCleaner.IPar
             log.info("Using output directory {}.", this.outDir);
         // Set up the cleaners.
         log.info("Initializing {} cleaners.", this.cleanerTypes.size());
-        this.cleaners = new ArrayList<JsonCleaner>(this.cleanerTypes.size());
+        this.cleaners = new ArrayList<>(this.cleanerTypes.size());
         for (JsonCleaner.Type type : this.cleanerTypes)
             this.cleaners.add(type.create(this));
     }

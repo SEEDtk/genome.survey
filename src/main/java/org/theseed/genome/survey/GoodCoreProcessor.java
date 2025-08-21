@@ -42,7 +42,7 @@ public class GoodCoreProcessor extends BaseProcessor {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(GoodCoreProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(GoodCoreProcessor.class);
     /** list of genome IDs */
     private Shuffler<String> genomeIDs;
     /** set of questionable genomes */
@@ -94,7 +94,7 @@ public class GoodCoreProcessor extends BaseProcessor {
             // Load the genomes.
             GenomeDirectory genomes = new GenomeDirectory(gtoDir);
             log.info("{} genomes found.", genomes.size());
-            this.genomeIDs = new Shuffler<String>(genomes.getGenomeIDs());
+            this.genomeIDs = new Shuffler<>(genomes.getGenomeIDs());
             // Load the questionables.
             this.questionables = LineReader.readSet(qFile);
             log.info("{} questionable genomes identified.", this.questionables.size());

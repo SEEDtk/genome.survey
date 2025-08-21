@@ -41,7 +41,7 @@ public class GapProcessor extends BaseProcessor {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(GapProcessor.class);
+    private static final Logger log = LoggerFactory.getLogger(GapProcessor.class);
     /** genome of interest */
     private Genome genome;
 
@@ -69,7 +69,7 @@ public class GapProcessor extends BaseProcessor {
     protected void runCommand() throws Exception {
         log.info("Processing genome {}.", this.genome);
         // We will create a list of features sorted by strandcomparator.
-        SortedSet<Feature> sorted = new TreeSet<Feature>(new Feature.StrandComparator());
+        SortedSet<Feature> sorted = new TreeSet<>(new Feature.StrandComparator());
         sorted.addAll(this.genome.getPegs());
         // Now set up the output buckets.  These are for values from 0 to 499.
         int[] buckets = new int[5];

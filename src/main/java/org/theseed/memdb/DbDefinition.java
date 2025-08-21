@@ -60,9 +60,9 @@ public abstract class DbDefinition {
 
     // FIELDS
     /** logging facility */
-    protected static Logger log = LoggerFactory.getLogger(DbDefinition.class);
+    private static final Logger log = LoggerFactory.getLogger(DbDefinition.class);
     /** map of entity type names to type objects */
-    private Map<String, EntityType> entityMap;
+    private final Map<String, EntityType> entityMap;
     /** number of lines read */
     private int lineCount;
     /** number of attributes read */
@@ -83,7 +83,7 @@ public abstract class DbDefinition {
     public DbDefinition(File fileName) throws IOException, ParseFailureException {
         log.info("Reading database definition from {}.", fileName);
         // Create the entity map.
-        this.entityMap = new TreeMap<String, EntityType>();
+        this.entityMap = new TreeMap<>();
         // Open up the input file and read the definition lines.
         try (LineReader inStream = new LineReader(fileName)) {
             // Prepare an iterator through the file.
@@ -264,7 +264,7 @@ public abstract class DbDefinition {
      * @return a sorted list of entity names, in priority order
      */
     public List<String> getEntityNameList() {
-        List<EntityType> types = new ArrayList<EntityType>(this.entityMap.values());
+        List<EntityType> types = new ArrayList<>(this.entityMap.values());
         Collections.sort(types);
         return types.stream().map(x -> x.getName()).collect(Collectors.toList());
     }

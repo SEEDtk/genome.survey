@@ -14,6 +14,8 @@ import com.knuddels.jtokkit.api.Encoding;
 import com.knuddels.jtokkit.api.EncodingRegistry;
 import com.knuddels.jtokkit.api.EncodingType;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.theseed.memdb.DbInstance;
 import org.theseed.memdb.EntityInstance;
 import org.theseed.memdb.EntityType;
@@ -28,9 +30,11 @@ import org.theseed.memdb.EntityType;
 public class TextDbInstance extends DbInstance {
 
     // FIELDS
+    /** logging facility */
+    private static final Logger log = LoggerFactory.getLogger(TextDbInstance.class);
     /** number of relation crossings */
     private int crossCount;
-    /** number of attyributes emitted */
+    /** number of attributes emitted */
     private int attrCount;
     /** total number of tokens generated */
     private long tokenTotal;
@@ -79,7 +83,7 @@ public class TextDbInstance extends DbInstance {
         this.crossCount = 0;
         long walkCount = 0;
         // Link all the entity instances into a master list.  We process the types in priority order.
-        List<TextEntityInstance> masterList = new ArrayList<TextEntityInstance>();
+        List<TextEntityInstance> masterList = new ArrayList<>();
         for (String typeName : this.getTypeNames()) {
             var entityMap = this.getEntityMap(typeName);
             // Only proceed if this is a real entity. We get all of its instances.
