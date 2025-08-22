@@ -60,66 +60,26 @@ public class App
         BaseProcessor processor;
         // Determine the command to process.
         switch (command) {
-        case "tetra" :
-            processor = new TetraProcessor();
-            break;
-        case "goodCore" :
-            processor = new GoodCoreProcessor();
-            break;
-        case "gaps" :
-            processor = new GapProcessor();
-            break;
-        case "fidCompare" :
-            processor = new CompareProcessor();
-            break;
-        case "subCompare" :
-            processor = new SubsystemCompareProcessor();
-            break;
-        case "bbh" :
-            processor = new BbhProcessor();
-            break;
-        case "validate" :
-            processor = new ValidateProcessor();
-            break;
-        case "rolePegs" :
-            processor = new RolePegProcessor();
-            break;
-        case "roleMap" :
-            processor = new RoleMapProcessor();
-            break;
-        case "roleAdj" :
-            processor = new RoleAdjacencyProcessor();
-            break;
-        case "taxonScan" :
-            processor = new TaxonomyScanProcessor();
-            break;
-        case "dbWalk" :
-            processor = new RandomWalkProcessor();
-            break;
-        case "modelFix" :
-            processor = new ModelDumpFixProcessor();
-            break;
-        case "queryGen" :
-            processor = new QueryGenerateProcessor();
-            break;
-        case "famFile" :
-            processor = new FamilyFileProcessor();
-            break;
-        case "jsonScan" :
-            processor = new JsonScanProcessor();
-            break;
-        case "jsonCopy" :
-            processor = new JsonCopyProcessor();
-            break;
-        case "roleList" :
-        	processor = new RoleListProcessor();
-        	break;
-        case "-h" :
-        case "--help" :
-            processor = null;
-            break;
-        default :
-            throw new RuntimeException("Invalid command " + command + ".");
+        case "tetra" -> processor = new TetraProcessor();
+        case "goodCore" -> processor = new GoodCoreProcessor();
+        case "gaps" -> processor = new GapProcessor();
+        case "fidCompare" -> processor = new CompareProcessor();
+        case "subCompare" -> processor = new SubsystemCompareProcessor();
+        case "bbh" -> processor = new BbhProcessor();
+        case "validate" -> processor = new ValidateProcessor();
+        case "rolePegs" -> processor = new RolePegProcessor();
+        case "roleMap" -> processor = new RoleMapProcessor();
+        case "roleAdj" -> processor = new RoleAdjacencyProcessor();
+        case "taxonScan" -> processor = new TaxonomyScanProcessor();
+        case "dbWalk" -> processor = new RandomWalkProcessor();
+        case "modelFix" -> processor = new ModelDumpFixProcessor();
+        case "queryGen" -> processor = new QueryGenerateProcessor();
+        case "famFile" -> processor = new FamilyFileProcessor();
+        case "jsonScan" -> processor = new JsonScanProcessor();
+        case "jsonCopy" -> processor = new JsonCopyProcessor();
+        case "roleList" -> processor = new RoleListProcessor();
+        case "-h", "--help" -> processor = null;
+        default -> throw new RuntimeException("Invalid command " + command + ".");
         }
         if (processor == null)
             BaseProcessor.showCommands(COMMANDS);
