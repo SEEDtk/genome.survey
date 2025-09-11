@@ -20,15 +20,15 @@ public abstract class RelationBuilder {
 
     // FIELDS
     /** column index for source entity ID */
-    private int sourceIdColIdx;
+    private final int sourceIdColIdx;
     /** source entity type */
-    private EntityType sourceType;
+    private final EntityType sourceType;
     /** column index for target entity ID */
-    private int targetIdColIdx;
+    private final int targetIdColIdx;
     /** target entity type name */
-    private EntityType targetType;
+    private final EntityType targetType;
     /** relationship type */
-    private RelationshipType relType;
+    private final RelationshipType relType;
 
     /**
      * Construct a relation builder for a specified relationship type from a given entity type.

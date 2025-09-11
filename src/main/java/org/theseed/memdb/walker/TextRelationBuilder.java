@@ -24,9 +24,9 @@ public class TextRelationBuilder extends RelationBuilder {
 
     // FIELDS
     /** line template for forward direction */
-    private LineTemplate forwardTemplate;
+    private final LineTemplate forwardTemplate;
     /** line template for reverse direction */
-    private LineTemplate reverseTemplate;
+    private final LineTemplate reverseTemplate;
 
     /**
      * Create a relation builder for a specified relationship type.

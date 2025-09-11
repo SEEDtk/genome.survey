@@ -20,11 +20,11 @@ public class EntityBuilder {
      */
     private final EntityType entityType;
     /** ID column index, or -1 for generated */
-    private int idColIdx;
+    private final int idColIdx;
     /** relationship builders */
-    private Collection<? extends RelationBuilder> relationBuilders;
+    private final Collection<? extends RelationBuilder> relationBuilders;
     /** attribute builders */
-    private Collection<? extends AttributeBuilder> attributeBuilders;
+    private final Collection<? extends AttributeBuilder> attributeBuilders;
 
     /**
      * Create an instance builder for this entity type on a given input stream.

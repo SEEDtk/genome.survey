@@ -7,6 +7,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.FieldInputStream;
@@ -40,14 +43,12 @@ public abstract class EntityType implements Comparable<EntityType> {
     private String idColName;
     /** list of relationship definitions */
     private final List<RelationshipType> relationships;
-//    /** map of file names to ID attribute names for additional files */
-//    private final Map<String, String> adjunctFileMap;
+    /** map of file names to ID attribute names for additional files */
+    private final Map<String, String> adjunctFileMap;
     /** priority */
     private int priority;
     /** special ID for connector records */
     protected static final String NULL_ID = "<connector>";
-
-    // TODO adjunct files
 
     /**
      * Create a new, blank entity type.
@@ -60,7 +61,7 @@ public abstract class EntityType implements Comparable<EntityType> {
         this.idColName = null;
         this.relationships = new ArrayList<>();
         this.priority = 0;
-//        this.adjunctFileMap = new TreeMap<>();
+        this.adjunctFileMap = new TreeMap<>();
     }
 
     @Override
@@ -155,6 +156,22 @@ public abstract class EntityType implements Comparable<EntityType> {
      */
     public String getIdColName() {
         return this.idColName;
+    }
+
+    /**
+     * @return the set of the adjunct file names for this entity type
+     */
+    public Set<String> getAdjunctFileNames() {
+        return this.adjunctFileMap.keySet();
+    }
+
+    /**
+     * @return the name of the ID column in the specified adjunct file
+     *
+     * @param fileName	name of the adjunct file
+     */
+    public String getAdjunctIdColName(String fileName) {
+        return this.adjunctFileMap.get(fileName);
     }
 
     /**

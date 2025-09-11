@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.FieldInputStream;
@@ -23,9 +25,13 @@ import org.theseed.memdb.EntityType;
  */
 public class TextEntityType extends EntityType {
 
+    // TODO add adjunct file attributes
+
     // FIELDS
-    /** list of attribute templates */
-    private List<String> attributeStrings;
+    /** list of attribute templates for the main file */
+    private final List<String> attributeStrings;
+    /** map of file names to attribute template lists for adjunct files */
+    private final Map<String, List<String>> adjunctAttributeStrings;
     /** token counter for all entity instances */
     private long tokenCount;
 
@@ -35,7 +41,8 @@ public class TextEntityType extends EntityType {
      */
     public TextEntityType(String name) {
         super(name);
-        this.attributeStrings = new ArrayList<String>(5);
+        this.attributeStrings = new ArrayList<>(5);
+        this.adjunctAttributeStrings = new TreeMap<>();
         this.tokenCount = 0;
     }
 
@@ -47,7 +54,7 @@ public class TextEntityType extends EntityType {
     @Override
     protected Collection<? extends AttributeBuilder> getAttributeBuilders(FieldInputStream instanceStream)
             throws IOException, ParseFailureException {
-        List<TextAttributeBuilder> retVal = new ArrayList<TextAttributeBuilder>(this.attributeStrings.size());
+        List<TextAttributeBuilder> retVal = new ArrayList<>(this.attributeStrings.size());
         // Convert each attribute string into an attribute builder.
         for (String attributeString : this.attributeStrings) {
             TextAttributeBuilder attributeBuilder = new TextAttributeBuilder(this, attributeString, instanceStream);

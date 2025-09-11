@@ -139,8 +139,8 @@ public abstract class DbDefinition {
         // end-of-file.
         String retVal = this.readAttributes(entity);
         // Next we read through the adjunct file list.
-        // TODO adjunct files
-        // Try to read the relationships, Again, we return the next header line or NULL.
+        // TODO add adjunct files to the entity type object
+        // Try to read the relationships. Again, we return the next header line or NULL.
         retVal = this.readRelationships(entity, retVal);
         // Return the next entity's header line.
         return retVal;

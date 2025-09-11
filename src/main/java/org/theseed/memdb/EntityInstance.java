@@ -3,26 +3,27 @@
  */
 package org.theseed.memdb;
 
-import java.util.List;
-
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * An entity instance describes a single entity occurrence.  It contains all of the relationship
- * instances that describe the connections. The sublass adds any attribute data.
+ * instances that describe the connections. The subclass adds any attribute data.
  *
  * @author Bruce Parrello
  *
  */
+
+ // TODO get data from adjunct files in the subclasses
 public abstract class EntityInstance {
 
     // FIELDS
     /** ID of this entity */
-    private String entityId;
+    private final String entityId;
     /** type name of this entity */
-    private String entityType;
+    private final String entityType;
     /** list of relationship instances */
-    private List<RelationshipInstance> connections;
+    private final List<RelationshipInstance> connections;
 
     /**
      * Create a new, empty entity instance.
@@ -33,7 +34,7 @@ public abstract class EntityInstance {
     public EntityInstance(EntityType type, String id) {
         this.entityId = id;
         this.entityType = type.getName();
-        this.connections = new ArrayList<RelationshipInstance>();
+        this.connections = new ArrayList<>();
     }
 
     /**
@@ -73,7 +74,7 @@ public abstract class EntityInstance {
      * @param typeName	name of the desired target entity type
      */
     public List<EntityInstance> getTargetsOfType(DbInstance db, String typeName) {
-        List<EntityInstance> retVal = new ArrayList<EntityInstance>();
+        List<EntityInstance> retVal = new ArrayList<>();
         for (RelationshipInstance connection : this.connections) {
             if (typeName.equals(connection.getTargetType()))
                 retVal.add(connection.getTarget(db));
