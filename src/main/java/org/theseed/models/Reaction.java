@@ -31,9 +31,9 @@ public class Reaction {
 
     // FIELDS
     /** genome ID */
-    private String genomeId;
+    private final String genomeId;
     /** reaction ID */
-    private String reactId;
+    private final String reactId;
     /** reaction name */
     private String name;
     /** list of reactant names */
@@ -41,11 +41,11 @@ public class Reaction {
     /** list of product names */
     private List<String> products;
     /** set of triggering feature ids */
-    private Set<String> features;
+    private final Set<String> features;
     /** chemical formula */
     private String formula;
     /** triggering rule */
-    private String geneRule;
+    private final String geneRule;
     /** empty JSON hash */
     private static final JsonObject EMPTY_MAP = new JsonObject();
     /** pattern for finding FIG IDs */
@@ -130,7 +130,7 @@ public class Reaction {
         }
         // Get the gene rule and parse out the feature IDs.
         this.geneRule = json.getStringOrDefault(ReactionKeys.GENE_REACTION_RULE);
-        this.features = new TreeSet<String>();
+        this.features = new TreeSet<>();
         Matcher m = FID_PATTERN.matcher(this.geneRule);
         while (m.find())
             this.features.add(m.group());

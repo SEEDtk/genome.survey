@@ -23,11 +23,11 @@ public class Compound {
 
     // FIELDS
     /** compound ID */
-    private String cpdId;
+    private final String cpdId;
     /** compartment name */
-    private String compartment;
+    private final String compartment;
     /** compound formula */
-    private String formula;
+    private final String formula;
     /** compound name */
     private String name;
     /** pattern for matching a compartment specification */

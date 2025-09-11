@@ -25,7 +25,7 @@ public class TextEntityType extends EntityType {
 
     // FIELDS
     /** list of attribute templates */
-    private List<String> attributeStrings;
+    private final List<String> attributeStrings;
     /** token counter for all entity instances */
     private long tokenCount;
 
@@ -35,7 +35,7 @@ public class TextEntityType extends EntityType {
      */
     public TextEntityType(String name) {
         super(name);
-        this.attributeStrings = new ArrayList<String>(5);
+        this.attributeStrings = new ArrayList<>(5);
         this.tokenCount = 0;
     }
 
@@ -47,7 +47,7 @@ public class TextEntityType extends EntityType {
     @Override
     protected Collection<? extends AttributeBuilder> getAttributeBuilders(FieldInputStream instanceStream)
             throws IOException, ParseFailureException {
-        List<TextAttributeBuilder> retVal = new ArrayList<TextAttributeBuilder>(this.attributeStrings.size());
+        List<TextAttributeBuilder> retVal = new ArrayList<>(this.attributeStrings.size());
         // Convert each attribute string into an attribute builder.
         for (String attributeString : this.attributeStrings) {
             TextAttributeBuilder attributeBuilder = new TextAttributeBuilder(this, attributeString, instanceStream);

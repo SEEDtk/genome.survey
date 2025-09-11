@@ -37,7 +37,7 @@ public class Model {
     /** reaction map */
     private Map<String, Reaction> reactions;
     /** genome ID */
-    private String genomeId;
+    private final String genomeId;
     /** empty JSON list */
     private static final JsonArray EMPTY_LIST = new JsonArray();
     /** empty JSON hash */
@@ -94,8 +94,8 @@ public class Model {
      *
      * @param json	JSON object containing the model definition
      */
-    public void getCompartments(JsonObject json) {
-        this.compartments = new TreeMap<String, String>();
+    private void getCompartments(JsonObject json) {
+        this.compartments = new TreeMap<>();
         JsonObject compartmentJson = json.getMap(ModelKeys.COMPARTMENTS);
         for (var jsonEntry : compartmentJson.entrySet()) {
             String key = jsonEntry.getKey();
@@ -109,11 +109,11 @@ public class Model {
      *
      * @param json	JSON object containing the model definition
      */
-    public void getCompounds(JsonObject json) {
+    private void getCompounds(JsonObject json) {
         // Get the compound array from the JSON object.
         JsonArray compoundList = json.getCollectionOrDefault(ModelKeys.METABOLITES);
         // Create the compound map.
-        this.compounds = new HashMap<String, Compound>(compoundList.size() * 4 / 3 + 1);
+        this.compounds = new HashMap<>(compoundList.size() * 4 / 3 + 1);
         // Loop through the compounds, converting.
         for (var compoundEntry : compoundList) {
             JsonObject compoundJson = (JsonObject) compoundEntry;
@@ -133,11 +133,11 @@ public class Model {
      *
      * @param json	JSON object containing the model definition
      */
-    public void getReactions(JsonObject json) {
+    private void getReactions(JsonObject json) {
         // Get the reaction array from the JSON object.
         JsonArray reactionList = json.getCollectionOrDefault(ModelKeys.REACTIONS);
         // Create the reaction map.
-        this.reactions = new HashMap<String, Reaction>(reactionList.size() * 4 / 3 + 1);
+        this.reactions = new HashMap<>(reactionList.size() * 4 / 3 + 1);
         // Loop through the reactions, converting.
         for (var reactionEntry : reactionList) {
             JsonObject reactionJson = (JsonObject) reactionEntry;

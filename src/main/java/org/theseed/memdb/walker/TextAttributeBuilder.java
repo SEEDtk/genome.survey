@@ -24,9 +24,9 @@ public class TextAttributeBuilder extends AttributeBuilder {
 
     // FIELDS
     /** line template for this attribute */
-    private LineTemplate template;
+    private final LineTemplate template;
     /** parent entity type */
-    private TextEntityType entityType;
+    private final TextEntityType entityType;
 
     /**
      * Create the line template for this attribute builder.

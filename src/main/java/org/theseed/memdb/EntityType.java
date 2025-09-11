@@ -40,14 +40,10 @@ public abstract class EntityType implements Comparable<EntityType> {
     private String idColName;
     /** list of relationship definitions */
     private final List<RelationshipType> relationships;
-//    /** map of file names to ID attribute names for additional files */
-//    private final Map<String, String> adjunctFileMap;
     /** priority */
     private int priority;
     /** special ID for connector records */
     protected static final String NULL_ID = "<connector>";
-
-    // TODO adjunct files
 
     /**
      * Create a new, blank entity type.
@@ -60,7 +56,6 @@ public abstract class EntityType implements Comparable<EntityType> {
         this.idColName = null;
         this.relationships = new ArrayList<>();
         this.priority = 0;
-//        this.adjunctFileMap = new TreeMap<>();
     }
 
     @Override
