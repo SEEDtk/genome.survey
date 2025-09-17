@@ -1,0 +1,74 @@
+#Entity Genome genome_id 10 genome.json
+id string {{genome_word}}
+name string {{genome_name}}
+tRNA_count int {{trna}}
+hypothetical_protein_count int {{hypothetical_cds}}
+quality string {{genome_quality}}
+protein_count int {{patric_cds}}
+rRNA_count int {{rrna}}
+gc_content float {{gc_content}}
+species string {{species}}
+comments list {{comments}}
+isolation_source string {{isolation_source}}
+#Relationship Genome genome_id TaxonomicGrouping superkingdom
+Genome {{genome_word}}
+Domain {{superkingdom}}
+#Relationship Genome genome_id TaxonomicGrouping order
+Genome {{genome_word}}
+Order {{order}}
+#Relationship Genome genome_id TaxonomicGrouping class
+Genome {{genome_word}}
+Class {{class}}
+#Relationship Genome genome_id TaxonomicGrouping genus
+Genome {{genome_word}}
+Genus {{genus}}
+#Entity Feature patric_id 5 genome_feature.json
+id string {{feature_word}}
+annotation string {{$product:product:feature_type}}
+base_pairs int {{na_length}}
+amino_acid_length int {{aa_length}}
+#Relationship Feature patric_id Contig accession
+Feature string {{feature_word}}
+Contig string {{accession}}
+#Entity Contig accession 1
+#Entity SubsystemCell null 3 subsystem.json
+#Relationship Genome genome_id Subsystem subsystem_name
+Genome string {{genome_word}}
+Subsystem string {{subsystem_name}}
+Role string {{role_name}}
+#Relationship Role role_name Feature patric_id
+Role string {{role_name}}
+Subsystem string {{subsystem_name}}
+Feature string {{feature_word}}
+#Relationship Role role_name Subsystem subsystem_name
+Role string {{role_name}}
+Genome string {{genome_word}}
+Subsystem string {{subsystem_name}}
+#Entity Subsystem subsystem_name 8
+#Entity TaxonomicGrouping taxon_name 6
+#Entity Role role_name 4
+#Entity Drug antibiotic 6
+#Entity DrugTest null 5 genome_amr.json
+#Relationship Genome genome_id Drug antibiotic
+Genome string {{genome_word}}
+Drug string {{antibiotic}}
+type string {{resistant_phenotype}}
+#Entity Reaction id 6 reaction.json
+name string {{name}}
+reactants list {{reactants}}
+products list {{products}}
+#Relationship Reaction id Genome genome_id
+Genome string {{genome_word}}
+Reaction string {{name}}
+formula string {{formula}}
+#Entity Trigger null 7 triggers.json
+#Relationship Reaction reaction_id Feature patric_id
+Feature string {{feature_word}}
+Genome string {{genome_word}}
+rule {{gene_rule}}
+#Entity Compound cname 8
+#Entity Participation null 7 linkages.json
+#Relationship Reaction reaction_id Compound cname
+Reaction string {{reaction_name}}
+Compound string {{cname}}
+is_product boolean {{product}}
