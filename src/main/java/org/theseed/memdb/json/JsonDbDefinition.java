@@ -15,9 +15,9 @@ import org.theseed.memdb.RelationshipType;
  * we output a small number of randomly-selected attributes in JSON format. Each time we traverse a relationship, we output a JSON object
  * describing the connected entities.
  * 
- * The relationships contain only a relationship header line, but the entity definitions contain a series of attribute lines, each of which
- * contains an attribute name, the attribute type (number, boolean, string, string list) an the name it should be given in the output
- * JSON.
+ * The relationship and entity definitions contain a header line and then a list of attributes. The attributes consist of an output attribute
+ * name, a data type (number, boolean, string, list), and then a template for generating the attribute. For the relationship, all attributes
+ * are included in both directions, along with "from" and "to" fields. For the entity, we randomly select a few attributes to output.
  * 
  * @author Bruce Parrello
  */
@@ -37,14 +37,7 @@ public class JsonDbDefinition extends DbDefinition {
 
     @Override
     protected EntityType createEntityType(String name) {
-        // TODO Create a JSON entity type with the specified name
-        throw new UnsupportedOperationException("Unimplemented method 'createEntityType'");
-    }
-
-    @Override
-    protected String processRelationshipDefinition(RelationshipType rel, DbDefinition db) throws ParseFailureException {
-        // TODO read the JSON relationship definition from the DbDefinition stream
-        throw new UnsupportedOperationException("Unimplemented method 'processRelationshipDefinition'");
+        return new JsonEntityType(name);
     }
 
     @Override
@@ -52,6 +45,12 @@ public class JsonDbDefinition extends DbDefinition {
             EntityType targetType, String targetIdColName) {
         // TODO create a JSON relationship type connecting the two specified entity types
         throw new UnsupportedOperationException("Unimplemented method 'createRelationshipType'");
+    }
+
+    @Override
+    protected String processRelationshipDefinition(RelationshipType rel, DbDefinition db) throws ParseFailureException {
+        // TODO read the JSON relationship definition from the DbDefinition stream
+        throw new UnsupportedOperationException("Unimplemented method 'processRelationshipDefinition'");
     }
 
     @Override

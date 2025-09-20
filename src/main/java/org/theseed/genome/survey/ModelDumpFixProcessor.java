@@ -32,7 +32,8 @@ import com.github.cliftonlabs.json_simple.Jsoner;
  * This subcommand processes a raw model dump and translates it into input files suitable for use in templates.
  * A json-format reaction data file will be produced for each genome.
  *
- * The positional parameters are the name of the model-dump input directory and the name of the genome template input directory, where the reaction files will be placed.
+ * The positional parameters are the name of the model-dump input directory and the name of the genome template input directory, 
+ * where the reaction files will be placed.
  *
  * The processing will be done from the genome template input directory (which is an output directory for us).
  * This insures that if a model file does not exist for a genome, a blank reaction file will still be created.
