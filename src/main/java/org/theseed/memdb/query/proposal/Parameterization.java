@@ -28,18 +28,18 @@ public class Parameterization implements Comparable<Parameterization> {
 
     // FIELDS
     /** map from entity type names to value lists */
-    private SortedMap<String, List<String>> valueMap;
+    private final SortedMap<String, List<String>> valueMap;
     /** default empty string list */
     private static final List<String> EMPTY_LIST = Collections.emptyList();
     /** default end-of-stream object for comparisons; note entity names must begin with a letter */
     private static final Map.Entry<String, List<String>> MAX_ENTRY =
-            new AbstractMap.SimpleEntry<String, List<String>>("~~", EMPTY_LIST);
+            new AbstractMap.SimpleEntry<>("~~", EMPTY_LIST);
 
     /**
      * Construct a blank parameterization.
      */
     public Parameterization() {
-        this.valueMap = new TreeMap<String, List<String>>();
+        this.valueMap = new TreeMap<>();
     }
 
     /**
@@ -48,7 +48,7 @@ public class Parameterization implements Comparable<Parameterization> {
      * @param source		original parameterization to copy
      */
     public Parameterization(Parameterization source) {
-        this.valueMap = new TreeMap<String, List<String>>();
+        this.valueMap = new TreeMap<>();
         for (var valueEntry : source.valueMap.entrySet())
             this.valueMap.put(valueEntry.getKey(), valueEntry.getValue());
     }
@@ -65,7 +65,7 @@ public class Parameterization implements Comparable<Parameterization> {
      */
     public Set<Parameterization> addInstance(QueryEntityInstance instance, ProposalEntity proposal) {
         // Start off returning just this parameterization. This is the most common case.
-        Set<Parameterization> retVal = new TreeSet<Parameterization>();
+        Set<Parameterization> retVal = new TreeSet<>();
         retVal.add(new Parameterization(this));
         // Loop through the field proposals.
         Iterator<ProposalField> iter = proposal.getProposals().iterator();
@@ -84,7 +84,7 @@ public class Parameterization implements Comparable<Parameterization> {
                 // We have multiple values back. We need to explode each parameterization for
                 // each value.  Loop through the return parameterizations. We'll put the new
                 // parameterizations in here.
-                List<Parameterization> newParms = new ArrayList<Parameterization>(value.size() * retVal.size());
+                List<Parameterization> newParms = new ArrayList<>(value.size() * retVal.size());
                 for (Parameterization retParm : retVal) {
                     // Explode this parameterization, adding all values but the first.
                     for (int i = 1; i < value.size(); i++) {
@@ -229,5 +229,23 @@ public class Parameterization implements Comparable<Parameterization> {
             retVal = MAX_ENTRY;
         return retVal;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (var entry : this.valueMap.entrySet()) {
+            sb.append(entry.getKey()).append("=[");
+            List<String> values = entry.getValue();
+            for (int i = 0; i < values.size(); i++) {
+                sb.append(values.get(i));
+                if (i < values.size() - 1)
+                    sb.append(", ");
+            }
+            sb.append("] ");
+        }
+        return "P{" + sb.toString().trim() + "}";
+    }
+
+    
 
 }
