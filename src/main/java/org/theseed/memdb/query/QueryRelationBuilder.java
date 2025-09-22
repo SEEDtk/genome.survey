@@ -28,7 +28,7 @@ public class QueryRelationBuilder extends RelationBuilder {
 
     // FIELDS
     /** map from input file values to target entity instance fields */
-    private List<Mapping> valueMap;
+    private final List<Mapping> valueMap;
 
     /**
      * This object is a mapping from input record fields to target entity instance attribute names.
@@ -36,9 +36,9 @@ public class QueryRelationBuilder extends RelationBuilder {
     protected static class Mapping {
 
         /** input record field index */
-        private int colIdx;
+        private final int colIdx;
         /** target instance attribute name */
-        private String attrName;
+        private final String attrName;
 
         /**
          * Construct a target-field mapping.
@@ -76,9 +76,9 @@ public class QueryRelationBuilder extends RelationBuilder {
         super(relType, inStream);
         QueryRelationshipType qRelType = (QueryRelationshipType) relType;
         // Convert the target-field map to a list of instructions for copying the fields.
-        var targetMap = qRelType.getValueMap();
-        this.valueMap = new ArrayList<Mapping>(targetMap.size());
-        for (var targetEntry : targetMap.entrySet()) {
+        Map<String, String> targetMap = qRelType.getValueMap();
+        this.valueMap = new ArrayList<>(targetMap.size());
+        for (Map.Entry<String, String> targetEntry : targetMap.entrySet()) {
             Mapping mapping = new Mapping(inStream, targetEntry);
             this.valueMap.add(mapping);
         }

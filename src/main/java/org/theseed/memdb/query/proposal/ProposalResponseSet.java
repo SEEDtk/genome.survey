@@ -3,7 +3,8 @@
  */
 package org.theseed.memdb.query.proposal;
 
-import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -21,22 +22,25 @@ public class ProposalResponseSet implements Iterable<ProposalResponse> {
 
     // FIELDS
     /** parameterization of this response set */
-    private Parameterization parameters;
+    private final Parameterization parameters;
     /** proposal responses for these parameters */
-    private List<ProposalResponse> responses;
+    private final Set<ProposalResponse> responses;
     /** TRUE if this response set is still active */
     private boolean activeFlag;
     /** cache for desired set of output values */
     private Set<String> outputValues;
+    /** number of responses in this set */
+    private int responseCount;
 
     /**
      * Create a new, empty proposal response set for a query proposal.
      */
     public ProposalResponseSet(Parameterization parms) {
         this.parameters = parms;
-        this.responses = new ArrayList<ProposalResponse>();
+        this.responses = new HashSet<>();
         this.activeFlag = true;
         this.outputValues = null;
+        this.responseCount = 0;
     }
 
     /**
@@ -45,8 +49,18 @@ public class ProposalResponseSet implements Iterable<ProposalResponse> {
      * @param response	new response to add
      */
     public void addResponse(ProposalResponse response) {
-        if (this.activeFlag)
+        if (this.activeFlag) {
             this.responses.add(response);
+            this.responseCount = this.responses.size();
+        }
+    }
+
+    /**
+     * Count a new response in this set. This is used when the set has been marked inactive
+     * and we want to keep track of how many responses we would have had if it had been kept.
+     */
+    public void countResponse() {
+        this.responseCount++;
     }
 
     /**
@@ -55,6 +69,14 @@ public class ProposalResponseSet implements Iterable<ProposalResponse> {
     public int size() {
         return this.responses.size();
     }
+
+    /**
+     * @return the number of responses counted in this set, including those not stored
+     */
+    public int getResponseCount() {
+        return this.responseCount;
+    }
+
 
 
     /**
@@ -67,7 +89,7 @@ public class ProposalResponseSet implements Iterable<ProposalResponse> {
     /**
      * @return the responses
      */
-    public List<ProposalResponse> getResponses() {
+    public Collection<ProposalResponse> getResponses() {
         return this.responses;
     }
 
@@ -86,7 +108,7 @@ public class ProposalResponseSet implements Iterable<ProposalResponse> {
     public Set<String> getOutputValues(String entityTypeName, String attrName) {
         // If we have not cached the output, compute it now.
         if (this.outputValues == null) {
-            this.outputValues = new TreeSet<String>();
+            this.outputValues = new TreeSet<>();
             for (ProposalResponse response : this.responses) {
                 List<String> values = response.getValue(entityTypeName, attrName);
                 this.outputValues.addAll(values);
@@ -99,7 +121,7 @@ public class ProposalResponseSet implements Iterable<ProposalResponse> {
     /**
      * Mark this response set as inactive.
      */
-    public void setInactive() {
+    private void setInactive() {
         this.activeFlag = false;
         // Delete all the responses to save memory.
         this.responses.clear();

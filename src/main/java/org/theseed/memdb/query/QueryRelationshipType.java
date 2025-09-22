@@ -25,7 +25,7 @@ public class QueryRelationshipType extends RelationshipType {
 
     // FIELDS
     /** map of input record field names to target entity field names */
-    private Map<String, String> targetFieldMap;
+    private final Map<String, String> targetFieldMap;
 
     /**
      * Create a relationship type that connects the given source entity to the given target entity.
@@ -37,7 +37,7 @@ public class QueryRelationshipType extends RelationshipType {
      */
     public QueryRelationshipType(EntityType sourceType, String sourceCol, EntityType targetType, String targetCol) {
         super(sourceType, sourceCol, targetType, targetCol);
-        this.targetFieldMap = new TreeMap<String, String>();
+        this.targetFieldMap = new TreeMap<>();
     }
 
     @Override

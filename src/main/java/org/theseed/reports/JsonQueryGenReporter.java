@@ -23,10 +23,10 @@ import com.github.cliftonlabs.json_simple.JsonObject;
 public class JsonQueryGenReporter extends QueryGenReporter {
 
     // FIELDS
-    /** accumulated JSON object */
-    private JsonArray questionJson;
     /** map of additional properties */
-    private JsonObject constantJson;
+    private final JsonObject constantJson;
+    /** number of JSON objects written */
+    private int outCount;
 
     /**
      * Initialize this report.
@@ -37,12 +37,14 @@ public class JsonQueryGenReporter extends QueryGenReporter {
         super(processor);
         // Store the constants required for every output question.
         this.constantJson = processor.getConstantJson();
+        // Denote we have not written any objects yet.
+        this.outCount = 0;
     }
 
     @Override
     protected void startReport() {
-        // Create the output JSON list.
-        this.questionJson = new JsonArray();
+        // Start the output json list.
+        this.write("[");        
     }
 
     /**
@@ -68,14 +70,14 @@ public class JsonQueryGenReporter extends QueryGenReporter {
         JsonArray answerList = new JsonArray();
         answerList.addAll(answers);
         outputJson.put("correct_answers", answerList);
-        this.questionJson.add(outputJson);
+        this.writeJson(outputJson);
     }
 
     @Override
     public void writeQuestion(String questionText, int answer) {
         JsonObject outputJson = this.getNewJson(questionText);
         outputJson.put("correct_answer", answer);
-        this.questionJson.add(outputJson);
+        this.writeJson(outputJson);
     }
 
     @Override
@@ -85,13 +87,30 @@ public class JsonQueryGenReporter extends QueryGenReporter {
         JsonArray wrongList = new JsonArray();
         wrongList.addAll(distractors);
         outputJson.put("distractors", wrongList);
-        this.questionJson.add(outputJson);
+        this.writeJson(outputJson);
+    }
+
+    /**
+     * Write a JSON object to the output.
+     * 
+     * @param outputJson    JSON object to write
+     */
+    private void writeJson(JsonObject outputJson) {
+        // If this is not the first object, we need a comma and a new-line first.
+        if (this.outCount > 0)
+            this.write(",");
+        String jsonString = outputJson.toJson();
+        this.writeNoNL("    " + jsonString);
+        this.outCount++;
     }
 
     @Override
     public void finishReport() {
-        // This is the point where we actually output the JSON.
-        this.outputAllJson(this.questionJson);
+        // If we wrote something, we need a new line before the closing bracket.
+        if (this.outCount > 0)
+            this.write("");
+        // Close the JSON list.
+        this.write("]");
     }
 
 }

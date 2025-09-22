@@ -3,9 +3,9 @@
  */
 package org.theseed.memdb;
 
-import java.util.List;
-
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * An entity instance describes a single entity occurrence.  It contains all of the relationship
@@ -18,11 +18,11 @@ public abstract class EntityInstance {
 
     // FIELDS
     /** ID of this entity */
-    private String entityId;
+    private final String entityId;
     /** type name of this entity */
-    private String entityType;
+    private final String entityType;
     /** list of relationship instances */
-    private List<RelationshipInstance> connections;
+    private final List<RelationshipInstance> connections;
 
     /**
      * Create a new, empty entity instance.
@@ -33,7 +33,7 @@ public abstract class EntityInstance {
     public EntityInstance(EntityType type, String id) {
         this.entityId = id;
         this.entityType = type.getName();
-        this.connections = new ArrayList<RelationshipInstance>();
+        this.connections = new ArrayList<>();
     }
 
     /**
@@ -73,7 +73,7 @@ public abstract class EntityInstance {
      * @param typeName	name of the desired target entity type
      */
     public List<EntityInstance> getTargetsOfType(DbInstance db, String typeName) {
-        List<EntityInstance> retVal = new ArrayList<EntityInstance>();
+        List<EntityInstance> retVal = new ArrayList<>();
         for (RelationshipInstance connection : this.connections) {
             if (typeName.equals(connection.getTargetType()))
                 retVal.add(connection.getTarget(db));
@@ -84,6 +84,32 @@ public abstract class EntityInstance {
     @Override
     public String toString() {
         return this.entityType + "[" + this.entityId + "]";
+    }
+
+    @Override
+    public int hashCode() {
+        int retVal = 5;
+        retVal = 29 * retVal + Objects.hashCode(this.entityId);
+        retVal = 29 * retVal + Objects.hashCode(this.entityType);
+        return retVal;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final EntityInstance other = (EntityInstance) obj;
+        if (!Objects.equals(this.entityId, other.entityId)) {
+            return false;
+        }
+        return Objects.equals(this.entityType, other.entityType);
     }
 
 }

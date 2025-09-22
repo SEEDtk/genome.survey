@@ -9,9 +9,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import java.util.regex.Matcher;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +23,8 @@ import org.theseed.stats.Shuffler;
 
 /**
  * This is a variant of the ListProposalQuery where the user wants to set up a multiple-choice response. In this
- * case, we choose one correct answer and three wrong answers to include in the question text.
+ * case, we choose one correct answer and N wrong answers to include in the question text, where N is one
+ * less than the total number of responses desired (4 by default).
  *
  * @author Bruce Parrello
  *
@@ -41,6 +42,8 @@ public class ChoiceProposalQuery extends ProposalQuery {
     private final QueryDbInstance db;
     /** match pattern for field specification */
     private static final Pattern SPEC_PATTERN = Pattern.compile("choice\\s+(.+)");
+    /** number of responses to output */
+    private static int NUM_RESPONSES = 4;
 
     /**
      * Construct a list query proposal.
@@ -93,10 +96,10 @@ public class ChoiceProposalQuery extends ProposalQuery {
             int desired = this.rand.nextInt(correct.size());
             String answer1 = Shuffler.selectItem(correct, desired);
             // Now we need the wrong answers.
-            Collection<String> distractors = new ArrayList<>(4);
-            if (incorrect.size() > 3) {
+            Collection<String> distractors = new ArrayList<>(NUM_RESPONSES);
+            if (incorrect.size() > (NUM_RESPONSES - 1)) {
                 // The best case: we have enough answers.
-                Collection<String> selected = Shuffler.selectPart(incorrect, 3);
+                Collection<String> selected = Shuffler.selectPart(incorrect, NUM_RESPONSES - 1);
                 distractors.addAll(selected);
             } else if (! incorrect.isEmpty()) {
                 // At least one incorrect answer, but not more than 3.
@@ -113,7 +116,7 @@ public class ChoiceProposalQuery extends ProposalQuery {
                             incorrect.add(value);
                     }
                 }
-                distractors = Shuffler.selectPart(incorrect, 3);
+                distractors = Shuffler.selectPart(incorrect, NUM_RESPONSES - 1);
             }
             // Write the question.
             reporter.writeQuestion(questionText, answer1, distractors);
@@ -131,4 +134,15 @@ public class ChoiceProposalQuery extends ProposalQuery {
         return "choice " + this.outputField.getFieldName();
     }
 
+    /**
+     * Specify the number of responses to output.
+     * 
+     * @param numResponses	number of responses
+     */
+    public static void setNumResponses(int numResponses) {
+        if (numResponses < 2)
+            log.warn("Number of responses {} is too small; using 2 instead.", numResponses);
+        else
+            NUM_RESPONSES = numResponses;
+    }
 }

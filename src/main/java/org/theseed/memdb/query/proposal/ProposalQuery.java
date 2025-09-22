@@ -117,6 +117,7 @@ public abstract class ProposalQuery {
         ProposalEntity originEntity = this.path.get(0);
         // Get the instances for that entity.
         Collection<EntityInstance> originInstances = db.getSomeEntities(originEntity.getName(), this.maxResponseLimit);
+        log.info("Processing entity {} (1 of {}). {} instances.", originEntity.getName(), this.path.size(), originInstances.size());
         for (var originInstance : originInstances) {
             // Get this instance as a query entity instance.
             QueryEntityInstance queryInstance = (QueryEntityInstance) originInstance;
@@ -143,9 +144,13 @@ public abstract class ProposalQuery {
         for (int i = 1; i < this.path.size(); i++) {
             Map<Parameterization, ProposalResponseSet> newMap = new HashMap<>();
             ProposalEntity currEntity = this.path.get(i);
+            log.info("Processing entity {} ({} of {}). {} sets in map.", currEntity.getName(), i + 1, this.path.size(), currentMap.size());
             // We need to process each response. Note that a response is a sequence of entity instances along the
             // path. For each response, we cross the relationship of interest and parameterize the entity instances
-            // found there.
+            // found there. We'll count the number of new responses created and the number rejected.
+            int newResponseCount = 0;
+            int rejectCount = 0;
+            int tooBigCount = 0;
             for (ProposalResponseSet responseSet : currentMap.values()) {
                 // Get this response set's parameterization.
                 Parameterization mainParms = responseSet.getParameters();
@@ -159,18 +164,45 @@ public abstract class ProposalQuery {
                         QueryEntityInstance queryInstance = (QueryEntityInstance) newInstance;
                         // Get the parameterizations for this new response.
                         Set<Parameterization> newParms = mainParms.addInstance(queryInstance, currEntity);
-                        if (log.isDebugEnabled()) {
-                            String action = (newParms.isEmpty() ? "Rejecting" : "Accepting");
-                            log.debug("{} response {} with {} parameterizations.", action, response, newParms.size());
+                        if (newParms.isEmpty()) {
+                            rejectCount++;
+                            log.debug("Rejecting response {} with new instance {}.", response, queryInstance);
+                        } else {
+                            log.debug("Accepting response {} with {} parameterizations and new instance {}.", 
+                            response, newParms.size(), queryInstance);
                         }
                         // Put them in the map.
                         for (Parameterization parms : newParms) {
                             ProposalResponseSet responses = newMap.computeIfAbsent(parms, x -> new ProposalResponseSet(x));
                             // If this response set is acceptable, add the new response.
-                            if (responses.checkStatus(this.maxResponseLimit))
-                                responses.addResponse(new ProposalResponse(response, queryInstance));
+                            if (responses.isActive()) {
+                                if (responses.checkStatus(this.maxResponseLimit)) {
+                                    responses.addResponse(new ProposalResponse(response, queryInstance));
+                                    newResponseCount++;
+                                } else {
+                                    tooBigCount++;
+                                    responses.countResponse();
+                                }
+                            } else
+                                responses.countResponse();
                         }
                     }
+                }
+            }
+            log.info("Created {} new responses, {} rejected, {} sets too big.", newResponseCount, rejectCount, tooBigCount);
+            if (log.isInfoEnabled()) {
+                // Here we want to determine the number of inactive response sets and their average size.
+                int inactiveCount = 0;
+                int totalInactiveSize = 0;
+                for (var responses : newMap.values()) {
+                    if (!responses.isActive()) {
+                        inactiveCount++;
+                        totalInactiveSize += responses.getResponseCount();
+                    }
+                }
+                if (inactiveCount > 0) {
+                    double avgSize = (double) totalInactiveSize / (double) inactiveCount;
+                    log.info("{} inactive sets with an average size of {}.", inactiveCount, String.format("%.1f", avgSize));
                 }
             }
             // Discard the old map and use the new one next time.

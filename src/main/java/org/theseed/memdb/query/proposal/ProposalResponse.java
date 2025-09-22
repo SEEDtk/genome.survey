@@ -23,7 +23,7 @@ public class ProposalResponse {
 
     // FIELDS
     /** sequence of related entity instances for this response */
-    private List<QueryEntityInstance> instancePath;
+    private final List<QueryEntityInstance> instancePath;
     /** empty string for failure case */
     private static List<String> EMPTY_LIST = Collections.emptyList();
 
@@ -43,7 +43,7 @@ public class ProposalResponse {
      * @param instance		instance to add at the end of the path
      */
     public ProposalResponse(ProposalResponse oldResponse, QueryEntityInstance instance) {
-        this.instancePath = new ArrayList<QueryEntityInstance>(oldResponse.size() + 1);
+        this.instancePath = new ArrayList<>(oldResponse.size() + 1);
         this.instancePath.addAll(oldResponse.instancePath);
         this.instancePath.add(instance);
     }
@@ -93,6 +93,31 @@ public class ProposalResponse {
         else
             retVal = this.instancePath.stream().map(x -> x.toString()).collect(Collectors.joining(",", "Response:", ""));
         return retVal;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int retVal = 1;
+        retVal = prime * retVal + ((instancePath == null) ? 0 : instancePath.hashCode());
+        return retVal;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ProposalResponse other = (ProposalResponse) obj;
+        if (instancePath == null) {
+            if (other.instancePath != null)
+                return false;
+        } else if (!instancePath.equals(other.instancePath))
+            return false;
+        return true;
     }
 
 }

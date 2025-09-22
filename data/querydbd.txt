@@ -1,0 +1,56 @@
+#Entity Genome genome_id 10 genome.json
+genome_id
+genome_name
+trna
+hypothetical_cds
+patric_cds
+rrna
+gc_content
+family
+genus
+species
+genome_length
+#Entity Feature patric_id 5 genome_feature.json
+patric_id
+feature_type
+na_length
+aa_length
+product
+gene
+#Relationship Feature patric_id Contig accession
+accession accession
+#Relationship Feature patric_id Genome genome_id
+#Entity Specialty id 5 sp_gene.json
+id
+property
+patric_id
+#Relationship Specialty id Feature patric_id
+#Entity Contig accession 1
+#Entity SubsystemCell null 3 subsystem.json
+#Relationship Genome genome_id Subsystem subsystem_name
+subsystem_name subsystem_name
+#Relationship Feature patric_id Role role_name
+patric_id patric_id
+role_name role_name
+#Relationship Role role_name Subsystem subsystem_name
+role_name role_name
+#Entity Subsystem subsystem_name 8
+#Entity Role role_name 4
+#Entity DrugTest id 5 genome_amr.json
+genome_id
+antibiotic
+resistant_phenotype
+#Relationship DrugTest id Genome genome_id
+#Relationship DrugTest id Reaction id
+#Entity Reaction id 6 reactions.json
+name
+reactants
+products
+#Relationship Reaction id Genome genome_id
+#Entity Trigger null 7 triggers.json
+#Relationship Reaction reaction_id Feature patric_id
+reaction_id reaction_id
+#Entity Compound cname 8
+#Entity Participation null 7 linkages.json
+#Relationship Reaction reaction_id Compound cname
+cname cname

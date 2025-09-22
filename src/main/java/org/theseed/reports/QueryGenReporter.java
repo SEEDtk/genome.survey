@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+
 import org.theseed.json.JsonFileDir;
 import org.theseed.memdb.query.proposal.ProposalQuery;
 
@@ -157,6 +158,22 @@ public abstract class QueryGenReporter {
      */
     public void write(String line) {
         this.writer.println(line);
+    }
+
+    /**
+     * Write a line of output without a newline.
+     *
+     * @param line	text to write
+     */
+    public void writeNoNL(String line) {
+        this.writer.print(line);
+    }
+
+    /**
+     * Flush the output.
+     */
+    public void flush() {
+        this.writer.flush();
     }
 
     /**

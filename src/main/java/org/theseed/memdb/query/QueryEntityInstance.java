@@ -22,7 +22,7 @@ public class QueryEntityInstance extends EntityInstance {
 
     // FIELDS
     /** map of attribute names to values */
-    private Map<String, Attribute> attributes;
+    private final Map<String, Attribute> attributes;
     /** default attribute (always false and empty */
     private static final Attribute NULL_ATTRIBUTE = new Attribute();
 
@@ -35,7 +35,7 @@ public class QueryEntityInstance extends EntityInstance {
     public QueryEntityInstance(EntityType type, String id) {
         super(type, id);
         // Create the attribute map.
-        this.attributes = new TreeMap<String, Attribute>();
+        this.attributes = new TreeMap<>();
     }
 
     /**
@@ -60,6 +60,11 @@ public class QueryEntityInstance extends EntityInstance {
      */
     public boolean isProposedType(ProposalEntity proposal) {
         return this.getType().equals(proposal.getName());
+    }
+
+    @Override
+    public String toString() {
+        return this.getType() + "(" + this.getId() + ")";
     }
 
 }

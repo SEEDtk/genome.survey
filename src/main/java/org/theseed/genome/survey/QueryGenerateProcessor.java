@@ -78,6 +78,7 @@ import com.github.cliftonlabs.json_simple.JsonObject;
  * --format		output report format (default JSON)
  * --domain		question domains to list in JSON output (may occur multiple times)
  * --support	support string to include in JSON output
+ * --choices    number of multiple-choice responses to generate (default 4)
  *
  * @author Bruce Parrello
  *
@@ -93,6 +94,8 @@ public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGe
     private File[] dataDirs;
     /** output report writer */
     private QueryGenReporter reporter;
+    /** list of failed templates */
+    private List<String> failedTemplates;
     /** filter for data subdirectories */
     private static final FileFilter SUB_DIR_FILTER = (File pathname) -> pathname.isDirectory();
 
@@ -126,6 +129,10 @@ public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGe
     @Option(name = "--support", metaVar = "U_Chicago", usage = "for JSON output, support organization to specify for each question")
     private String support;
 
+    /** number of multiple-choice responses to generate */
+    @Option(name = "--choices", metaVar = "6", usage = "number of multiple-choice responses to generate")
+    private int numChoices;
+
     /** database definition file */
     @Argument(index = 0, metaVar = "dbdFile.txt", usage = "database definition file", required = true)
     private File dbdFile;
@@ -143,6 +150,7 @@ public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGe
         this.reportType = QueryGenReporter.Type.JSON;
         this.domains = new ArrayList<>();
         this.support = "";
+        this.numChoices = 4;
     }
 
     @Override
@@ -159,6 +167,10 @@ public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGe
             throw new ParseFailureException("Invalid intermediate-set limit: must be positive.");
         if (this.maxOutput < 1)
             throw new ParseFailureException("Invalid output limit: must be positive.");
+        if (this.numChoices < 2)
+            throw new ParseFailureException("Invalid number of choices: must be at least 2.");
+        // Set the number of choices in the choice query class.
+        ChoiceProposalQuery.setNumResponses(this.numChoices);
         // Assemble the list of input directories.
         if (! this.recursive) {
             // Here we are just reading data from one directory.
@@ -173,6 +185,8 @@ public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGe
         // Create the output report writer.
         log.info("Initializing report type {}.", this.reportType);
         this.reporter = this.reportType.create(this);
+        // Initialize the failed-template list.
+        this.failedTemplates = new ArrayList<>();
     }
 
     @Override
@@ -181,6 +195,8 @@ public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGe
         this.loadDatabase();
         // Start the output report.
         this.reporter.open(writer);
+        // Count the number of queries written.
+        int totalCount = 0;
         // Loop through the input file, reading query specifications.
         Iterator<String> inputIter = inputStream.iterator();
         while (inputIter.hasNext()) {
@@ -219,7 +235,20 @@ public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGe
             // Finally, write the responses.
             finalResponses.stream().forEach(x -> proposal.writeResponse(x, this.reporter, responses));
             log.info("{} responses kept, {} skipped, {} written.", outCount, skipCount, finalResponses.size());
+            totalCount += finalResponses.size();
+            // If we wrote nothing, remember this template as a failure.
+            if (outCount == 0)
+                this.failedTemplates.add(qString);
+            // Flush the output.
+            this.reporter.flush();
         }
+        // Log any failed templates.
+        if (! this.failedTemplates.isEmpty()) {
+            log.warn("{} templates failed to generate any output.", this.failedTemplates.size());
+            for (String template : this.failedTemplates)
+                log.warn("    {}", template);
+        }
+        log.info("{} total questions generated.", totalCount);
         // Insure our output is complete.
         this.reporter.close();
     }
