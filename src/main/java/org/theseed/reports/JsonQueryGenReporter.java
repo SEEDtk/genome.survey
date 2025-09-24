@@ -5,6 +5,7 @@ package org.theseed.reports;
 
 import java.util.Collection;
 
+import org.theseed.memdb.query.proposal.Parameterization;
 import org.theseed.memdb.query.proposal.ProposalQuery;
 
 import com.github.cliftonlabs.json_simple.JsonArray;
@@ -51,8 +52,9 @@ public class JsonQueryGenReporter extends QueryGenReporter {
      * @return a new JSON object with the constants and the question text filled in
      *
      * @param questionText	text for the question
+     * @param parms		    parameterization for the question
      */
-    private JsonObject getNewJson(String questionText) {
+    private JsonObject getNewJson(String questionText, Parameterization parms) {
         JsonObject retVal = new JsonObject();
         retVal.putAll(this.constantJson);
         retVal.put("question", questionText);
@@ -61,12 +63,15 @@ public class JsonQueryGenReporter extends QueryGenReporter {
         retVal.put("template", query.getRawQuestion());
         retVal.put("path", query.getPath());
         retVal.put("result", query.getResult());
+        // Save the parameterization. All this helps us with verification later.
+        JsonObject parmJson = parms.toJson();
+        retVal.put("parameters", parmJson);
         return retVal;
     }
 
     @Override
-    public void writeQuestion(String questionText, Collection<String> answers) {
-        JsonObject outputJson = this.getNewJson(questionText);
+    public void writeQuestion(Parameterization parms, String questionText, Collection<String> answers) {
+        JsonObject outputJson = this.getNewJson(questionText, parms);
         JsonArray answerList = new JsonArray();
         answerList.addAll(answers);
         outputJson.put("correct_answers", answerList);
@@ -74,15 +79,15 @@ public class JsonQueryGenReporter extends QueryGenReporter {
     }
 
     @Override
-    public void writeQuestion(String questionText, int answer) {
-        JsonObject outputJson = this.getNewJson(questionText);
+    public void writeQuestion(Parameterization parms, String questionText, int answer) {
+        JsonObject outputJson = this.getNewJson(questionText, parms);
         outputJson.put("correct_answer", answer);
         this.writeJson(outputJson);
     }
 
     @Override
-    public void writeQuestion(String questionText, String answer, Collection<String> distractors) {
-        JsonObject outputJson = this.getNewJson(questionText);
+    public void writeQuestion(Parameterization parms, String questionText, String answer, Collection<String> distractors) {
+        JsonObject outputJson = this.getNewJson(questionText, parms);
         outputJson.put("correct_answer", answer);
         JsonArray wrongList = new JsonArray();
         wrongList.addAll(distractors);

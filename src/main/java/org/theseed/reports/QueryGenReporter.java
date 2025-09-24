@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.theseed.json.JsonFileDir;
+import org.theseed.memdb.query.proposal.Parameterization;
 import org.theseed.memdb.query.proposal.ProposalQuery;
 
 import com.github.cliftonlabs.json_simple.JsonArray;
@@ -116,27 +117,30 @@ public abstract class QueryGenReporter {
     /**
      * Write a question with multiple correct answers.
      *
+     * @param parms             parameterization for the question
      * @param questionText		text of the question
      * @param answers			list of correct answers
      */
-    public abstract void writeQuestion(String questionText, Collection<String> answers);
+    public abstract void writeQuestion(Parameterization parms, String questionText, Collection<String> answers);
 
     /**
      * Write a question with a single numeric answer.
      *
+     * @param parms             parameterization for the question
      * @param questionText		text of the question
      * @param answer			correct answer
      */
-    public abstract void writeQuestion(String questionText, int answer);
+    public abstract void writeQuestion(Parameterization parms, String questionText, int answer);
 
     /**
      * Write a multiple-choice question.
      *
+     * @param parms             parameterization for the question
      * @param questionText		text of the question
      * @param answer			correct answer
      * @param distractors		incorrect answers
      */
-    public abstract void writeQuestion(String questionText, String answer, Collection<String> distractors);
+    public abstract void writeQuestion(Parameterization parms, String questionText, String answer, Collection<String> distractors);
 
     /**
      * Finish the report.

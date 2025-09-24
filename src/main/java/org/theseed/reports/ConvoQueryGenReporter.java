@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.theseed.io.template.LineTemplate;
+import org.theseed.memdb.query.proposal.Parameterization;
 
 import com.github.cliftonlabs.json_simple.JsonArray;
 import com.github.cliftonlabs.json_simple.JsonObject;
@@ -35,7 +36,7 @@ public class ConvoQueryGenReporter extends QueryGenReporter {
     }
 
     @Override
-    public void writeQuestion(String questionText, Collection<String> answers) {
+    public void writeQuestion(Parameterization parms, String questionText, Collection<String> answers) {
         // Create a list of answers.
         JsonArray answerJson = new JsonArray();
         answerJson.addAll(answers);
@@ -45,7 +46,7 @@ public class ConvoQueryGenReporter extends QueryGenReporter {
     }
 
     @Override
-    public void writeQuestion(String questionText, int answer) {
+    public void writeQuestion(Parameterization parms, String questionText, int answer) {
         // Box the answer.
         Integer answerObj = answer;
         // Output the question with the single answer.
@@ -53,7 +54,7 @@ public class ConvoQueryGenReporter extends QueryGenReporter {
     }
 
     @Override
-    public void writeQuestion(String questionText, String answer, Collection<String> distractors) {
+    public void writeQuestion(Parameterization parms, String questionText, String answer, Collection<String> distractors) {
         // Put the choices in the question list.
         List<String> choices = this.randomizeChoices(answer, distractors);
         String fullQuestion = questionText + " " + LineTemplate.conjunct("or", choices);

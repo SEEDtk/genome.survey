@@ -5,6 +5,7 @@ package org.theseed.memdb.query.proposal;
 
 import java.util.List;
 import java.util.Set;
+
 import org.theseed.basic.ParseFailureException;
 import org.theseed.reports.QueryGenReporter;
 
@@ -18,7 +19,7 @@ public class ListProposalQuery extends ProposalQuery {
 
     // FIELDS
     /** output field specification */
-    private ProposalField outputField;
+    protected ProposalField outputField;
 
     /**
      * Construct a list query proposal.
@@ -32,22 +33,8 @@ public class ListProposalQuery extends ProposalQuery {
      */
     public ListProposalQuery(String templateString, String entityPath, int maxLimit, String fieldSpec) throws ParseFailureException {
         super(templateString, entityPath, maxLimit);
-        // Get the field spec for the result field.
-        String actualFieldSpec = this.getActualFieldSpec(fieldSpec);
-        this.outputField = new ExactProposalField(actualFieldSpec);
-    }
-
-    /**
-     * @return the actual result field specification for the incoming field spec.
-     *
-     * @param fieldSpec	incoming field spec
-     *
-     * @return the substring containing the actual entity type and attribute name
-     *
-     * @throws ParseFailureException
-     */
-    protected String getActualFieldSpec(String fieldSpec) throws ParseFailureException {
-        return fieldSpec;
+        // Set the field spec for the result field.
+        this.outputField = new ExactProposalField(fieldSpec);
     }
 
     @Override
@@ -57,7 +44,7 @@ public class ListProposalQuery extends ProposalQuery {
         // Now we need to get the list of valid answers.
         Set<String> answers = responses.getOutputValues(getOutputEntityType(), getOutputAttrName());
         // Write all the answers.
-        reporter.writeQuestion(questionText, answers);
+        reporter.writeQuestion(responses.getParameters(), questionText, answers);
     }
 
     @Override

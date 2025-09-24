@@ -6,6 +6,8 @@ package org.theseed.reports;
 import java.util.Collection;
 import java.util.List;
 
+import org.theseed.memdb.query.proposal.Parameterization;
+
 /**
  * This reporter produces a simple line-by-line text file of the questions, designed to be human-readable.
  *
@@ -16,7 +18,7 @@ public class TextQueryGenReporter extends QueryGenReporter {
 
     // FIELDS
     /** labels for possible choices */
-    private static String[] LABELS = new String[] { "A", "B", "C", "D" };
+    private static final String[] LABELS = new String[] { "A", "B", "C", "D" };
 
     public TextQueryGenReporter(IParms processor) {
         super(processor);
@@ -27,7 +29,7 @@ public class TextQueryGenReporter extends QueryGenReporter {
     }
 
     @Override
-    public void writeQuestion(String questionText, Collection<String> answers) {
+    public void writeQuestion(Parameterization parms, String questionText, Collection<String> answers) {
         // Here we have a question with multiple correct answers.
         this.write(questionText);
         this.write("* Correct answers:");
@@ -36,14 +38,14 @@ public class TextQueryGenReporter extends QueryGenReporter {
     }
 
     @Override
-    public void writeQuestion(String questionText, int answer) {
+    public void writeQuestion(Parameterization parms, String questionText, int answer) {
         // Here we have a question with a numeric correct answer.
         this.write(questionText);
         this.write("* Correct answer: " + answer);
     }
 
     @Override
-    public void writeQuestion(String questionText, String answer, Collection<String> distractors) {
+    public void writeQuestion(Parameterization parms, String questionText, String answer, Collection<String> distractors) {
         // Here we have a multiple-choice question, the most complicated one.
         this.write(questionText);
         // Put the answer in with the distractors and shuffle the result.

@@ -20,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.LineReader;
+import org.theseed.io.LineReaderCommentSkipper;
 import org.theseed.memdb.query.QueryDbDefinition;
 import org.theseed.memdb.query.QueryDbInstance;
 import org.theseed.memdb.query.proposal.ChoiceProposalQuery;
@@ -51,6 +52,8 @@ import com.github.cliftonlabs.json_simple.JsonObject;
  * through the entity-relationship model. The third line describes the field containing the answer.
  * This last can be "count" if the answer is a count of the applicable records, or it can be
  * "choice" followed by a space and a field specification if a multiple-choice query is desired.
+ * 
+ * Input lines beginning with '#' are treated as comments and ignored.
  *
  * Embedded field names in the questions are enclosed in double curly braces. All fields are expressed
  * as an entity name followed by a period and the field name. If a prefix of ">" or "<" is specified for
@@ -198,7 +201,7 @@ public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGe
         // Count the number of queries written.
         int totalCount = 0;
         // Loop through the input file, reading query specifications.
-        Iterator<String> inputIter = inputStream.iterator();
+        Iterator<String> inputIter = new LineReaderCommentSkipper(inputStream);
         while (inputIter.hasNext()) {
             // Get the three query lines.
             String qString = inputIter.next();

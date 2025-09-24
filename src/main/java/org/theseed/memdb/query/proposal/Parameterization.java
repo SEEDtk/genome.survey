@@ -17,6 +17,9 @@ import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.theseed.memdb.query.QueryEntityInstance;
 
+import com.github.cliftonlabs.json_simple.JsonArray;
+import com.github.cliftonlabs.json_simple.JsonObject;
+
 /**
  * A parameterization is a list of strings containing the values for the variable parameters in
  * a proposal set. For each entity type, we have the proposal field values in order.
@@ -246,6 +249,20 @@ public class Parameterization implements Comparable<Parameterization> {
         return "P{" + sb.toString().trim() + "}";
     }
 
+    /**
+     * Convert this parameterization to JSON.
+     * 
+     * @return a JSON object representing this parameterization
+     */
+    public JsonObject toJson() {
+        JsonObject retVal = new JsonObject();
+        for (var entry : this.valueMap.entrySet()) {
+            JsonArray jArray = new JsonArray();
+            jArray.addAll(entry.getValue());
+            retVal.put(entry.getKey(), jArray);
+        }
+        return retVal;
+    }
     
 
 }

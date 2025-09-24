@@ -119,7 +119,7 @@ public class ChoiceProposalQuery extends ProposalQuery {
                 distractors = Shuffler.selectPart(incorrect, NUM_RESPONSES - 1);
             }
             // Write the question.
-            reporter.writeQuestion(questionText, answer1, distractors);
+            reporter.writeQuestion(response.getParameters(), questionText, answer1, distractors);
         }
     }
 

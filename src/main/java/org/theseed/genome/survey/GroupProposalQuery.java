@@ -9,6 +9,7 @@ import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.counters.CountMap;
+import org.theseed.memdb.query.proposal.ExactProposalField;
 import org.theseed.memdb.query.proposal.ListProposalQuery;
 import org.theseed.memdb.query.proposal.ProposalResponse;
 import org.theseed.memdb.query.proposal.ProposalResponseSet;
@@ -39,15 +40,12 @@ public class GroupProposalQuery extends ListProposalQuery {
      */
     public GroupProposalQuery(String templateString, String entityPath, int maxLimit, String resultString) throws ParseFailureException {
         super(templateString, entityPath, maxLimit, resultString);
-    }
-
-    @Override
-    protected String getActualFieldSpec(String fieldSpec) throws ParseFailureException {
-        // We need to strip the "group" indicator off the field spec.
-        String[] retVal = StringUtils.split(fieldSpec);
-        if (retVal.length < 2)
+        // Fix the field spec for the result field. This is messy, but we can't do overrides in constructors
+        // any more.
+        String[] pieces = StringUtils.split(resultString);
+        if (pieces.length < 2)
             throw new ParseFailureException("Invalid field specification on group query proposal.");
-        return retVal[1];
+        this.outputField = new ExactProposalField(pieces[1]);
     }
 
     @Override
@@ -67,7 +65,7 @@ public class GroupProposalQuery extends ListProposalQuery {
         // Make the CSV a singleton answer set.
         Set<String> answers = Set.of(outString.toString());
         // Write the question and response.
-        reporter.writeQuestion(questionText, answers);
+        reporter.writeQuestion(responses.getParameters(), questionText, answers);
     }
 
     @Override
@@ -84,7 +82,7 @@ public class GroupProposalQuery extends ListProposalQuery {
      * @return a table of field values and counts for the response set
      */
     private CountMap<String> getCountMap(ProposalResponseSet responseSet) {
-        CountMap<String> retVal = new CountMap<String>();
+        CountMap<String> retVal = new CountMap<>();
         // Get the key attribute name and entity type.
         String entityType = this.getOutputEntityType();
         String attrName = this.getOutputAttrName();
