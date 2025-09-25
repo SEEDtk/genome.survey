@@ -38,13 +38,14 @@ public class ListProposalQuery extends ProposalQuery {
     }
 
     @Override
-    public void writeResponseDetails(ProposalResponseSet responses, QueryGenReporter reporter, List<ProposalResponseSet> otherResponses) {
+    public int writeResponseDetails(ProposalResponseSet responses, QueryGenReporter reporter, List<ProposalResponseSet> otherResponses) {
         // Get the question string.
         String questionText = this.computeQuestion(responses);
         // Now we need to get the list of valid answers.
         Set<String> answers = responses.getOutputValues(getOutputEntityType(), getOutputAttrName());
         // Write all the answers.
         reporter.writeQuestion(responses.getParameters(), questionText, answers);
+        return 1;
     }
 
     @Override

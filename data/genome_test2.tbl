@@ -1,0 +1,4 @@
+genome_name	genome.genome_id	genome.superkingdom	feature.gene
+Paenibacillus larvae subsp. larvae DSM 25430	697284.3	Bacteria	rbsB
+Proteus mirabilis strain AR_0377	584.299	Archaea	klcA
+Methylacidiphilum infernorum V4	111.222	Archaea::Virus::Bacteria	rbsC

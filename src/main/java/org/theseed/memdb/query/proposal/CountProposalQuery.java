@@ -30,13 +30,14 @@ public class CountProposalQuery extends ProposalQuery {
     }
 
     @Override
-    public void writeResponseDetails(ProposalResponseSet response, QueryGenReporter reporter, List<ProposalResponseSet> responses) {
+    public int writeResponseDetails(ProposalResponseSet response, QueryGenReporter reporter, List<ProposalResponseSet> responses) {
         // Get the question string.
         String questionText = this.computeQuestion(response);
         // Get the answer.
         int count = response.size();
         // Write it out.
         reporter.writeQuestion(response.getParameters(), questionText, count);
+        return 1;
     }
 
     @Override

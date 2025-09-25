@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -29,7 +30,6 @@ import org.theseed.memdb.query.proposal.ListProposalQuery;
 import org.theseed.memdb.query.proposal.ProposalQuery;
 import org.theseed.memdb.query.proposal.ProposalResponseSet;
 import org.theseed.reports.QueryGenReporter;
-import org.theseed.stats.Shuffler;
 import org.theseed.utils.BaseTextProcessor;
 
 import com.github.cliftonlabs.json_simple.JsonArray;
@@ -233,14 +233,21 @@ public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGe
                     skipCount++;
                 }
             }
-            // Insure we don't output too many responses for this query.
-            var finalResponses = Shuffler.selectPart(responses, this.maxOutput);
+            // Shuffle the response sets. We'll only output some of them, but we want to randomly select the ones
+            // chosen. Some of the response sets may end up being rejected even now, so we shuffle the entire set
+            // and write them in order until we reach our output limit.
+            Collections.shuffle(responses);
             // Finally, write the responses.
-            finalResponses.stream().forEach(x -> proposal.writeResponse(x, this.reporter, responses));
-            log.info("{} responses kept, {} skipped, {} written.", outCount, skipCount, finalResponses.size());
-            totalCount += finalResponses.size();
+            int writeCount = 0;
+            Iterator<ProposalResponseSet> outIter = responses.iterator();
+            while (writeCount < this.maxOutput && outIter.hasNext()) {
+                ProposalResponseSet response = outIter.next();
+                writeCount += proposal.writeResponse(response, this.reporter, responses);
+            }
+            log.info("{} responses kept, {} skipped, {} written.", outCount, skipCount, writeCount);
+            totalCount += writeCount;
             // If we wrote nothing, remember this template as a failure.
-            if (outCount == 0)
+            if (writeCount == 0)
                 this.failedTemplates.add(qString);
             // Flush the output.
             this.reporter.flush();

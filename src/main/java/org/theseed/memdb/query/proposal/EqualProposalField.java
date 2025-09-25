@@ -22,7 +22,7 @@ public class EqualProposalField extends ProposalField {
 
     // FIELDS
     /** string to compare */
-    private String comparand;
+    private final String comparand;
     /** value to return */
     private final List<String> valueList;
 

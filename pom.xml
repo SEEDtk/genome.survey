@@ -11,8 +11,7 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>21</maven.compiler.source>
-    <maven.compiler.target>21</maven.compiler.target>
+    <maven.compiler.release>21</maven.compiler.release>
   </properties>
 
   <dependencies>
@@ -62,6 +61,11 @@
     <dependency>
         <groupId>org.theseed</groupId>
         <artifactId>basic</artifactId>
+        <version>1.0.0</version>
+    </dependency>
+    <dependency>
+        <groupId>org.theseed</groupId>
+        <artifactId>p3.query</artifactId>
         <version>1.0.0</version>
     </dependency>
     <dependency>

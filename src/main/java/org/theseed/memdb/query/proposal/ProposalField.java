@@ -5,6 +5,7 @@ package org.theseed.memdb.query.proposal;
 
 import java.util.Collections;
 import java.util.List;
+
 import org.apache.commons.lang3.StringUtils;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.memdb.query.QueryEntityInstance;
@@ -12,7 +13,7 @@ import org.theseed.memdb.query.QueryEntityInstance;
 /**
  * This object represents a field of interest in a query proposal. We need to know the
  * entity type name and the attribute name. The subclass determines how the proposal is
- * interpreted (greater than, less than, boolean, equal, or exact.
+ * interpreted (greater than, less than, boolean, equal, or exact).
  *
  * @author Bruce Parrello
  *

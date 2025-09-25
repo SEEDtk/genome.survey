@@ -224,8 +224,10 @@ public abstract class ProposalQuery {
      * @param response	response set containing answers
      * @param reporter	output report writer
      * @param others	full list of response sets for this query
+     * 
+     * @return the number of responses written (currently only 1 or 0)
      */
-    public abstract void writeResponseDetails(ProposalResponseSet response, QueryGenReporter reporter, List<ProposalResponseSet> others);
+    public abstract int writeResponseDetails(ProposalResponseSet response, QueryGenReporter reporter, List<ProposalResponseSet> others);
 
     /**
      * Formulate the question statement for this proposal.
@@ -301,10 +303,12 @@ public abstract class ProposalQuery {
      * @param correctResponse	correct response to use
      * @param reporter			output report writer
      * @param responses			alternative responses to scan
+     * 
+     * @return the number of responses written (currently only 1 or 0)
      */
-    public void writeResponse(ProposalResponseSet correctResponse, QueryGenReporter reporter, List<ProposalResponseSet> responses) {
+    public int writeResponse(ProposalResponseSet correctResponse, QueryGenReporter reporter, List<ProposalResponseSet> responses) {
         reporter.saveTemplate(this);
-        this.writeResponseDetails(correctResponse, reporter, responses);
+        return this.writeResponseDetails(correctResponse, reporter, responses);
     }
 
     /**

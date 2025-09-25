@@ -49,7 +49,7 @@ public class GroupProposalQuery extends ListProposalQuery {
     }
 
     @Override
-    public void writeResponseDetails(ProposalResponseSet responses, QueryGenReporter reporter,
+    public int writeResponseDetails(ProposalResponseSet responses, QueryGenReporter reporter,
             List<ProposalResponseSet> others) {
         // Get the question string.
         String questionText = this.computeQuestion(responses);
@@ -66,6 +66,7 @@ public class GroupProposalQuery extends ListProposalQuery {
         Set<String> answers = Set.of(outString.toString());
         // Write the question and response.
         reporter.writeQuestion(responses.getParameters(), questionText, answers);
+        return 1;
     }
 
     @Override

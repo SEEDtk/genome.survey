@@ -77,7 +77,8 @@ public class ChoiceProposalQuery extends ProposalQuery {
     }
 
     @Override
-    public void writeResponseDetails(ProposalResponseSet response, QueryGenReporter reporter, List<ProposalResponseSet> others) {
+    public int writeResponseDetails(ProposalResponseSet response, QueryGenReporter reporter, List<ProposalResponseSet> others) {
+        int retVal = 0;
         // Write the question string.
         String questionText = this.computeQuestion(response);
         // Get the output field specs.
@@ -120,7 +121,9 @@ public class ChoiceProposalQuery extends ProposalQuery {
             }
             // Write the question.
             reporter.writeQuestion(response.getParameters(), questionText, answer1, distractors);
+            retVal = 1;
         }
+        return retVal;
     }
 
     @Override
