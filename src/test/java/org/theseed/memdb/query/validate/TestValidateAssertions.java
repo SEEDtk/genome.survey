@@ -28,9 +28,12 @@ public class TestValidateAssertions {
             // Create the assertions. Each input line has a different genome name. "Actibacterium" will match the
             // EQ assertion and fail the others. Only "Pseudomonas" will match the LT assertion, and it will
             // also be the only one to fail the GT assertion.
-            ValidationAssertion eqAssert = ValidationAssertion.Type.EQ.create(inStream, "genome.genus", "Genome.1");
-            ValidationAssertion ltAssert = ValidationAssertion.Type.LT.create(inStream, "genome.hypothetical_cds", "Genome.2");
-            ValidationAssertion gtAssert = ValidationAssertion.Type.GT.create(inStream, "genome.hypothetical_cds", "Genome.2");
+            ValidationAssertion eqAssert = ValidationAssertion.Type.EQ.create("genome.genus", "Genome.1");
+            ValidationAssertion ltAssert = ValidationAssertion.Type.LT.create("genome.hypothetical_cds", "Genome.2");
+            ValidationAssertion gtAssert = ValidationAssertion.Type.GT.create("genome.hypothetical_cds", "Genome.2");
+            eqAssert.fix(inStream);
+            ltAssert.fix(inStream);
+            gtAssert.fix(inStream);
             // Now we process the input file.
             for (var line : inStream) {
                 String name = line.get(0);
@@ -55,8 +58,10 @@ public class TestValidateAssertions {
         parms = (JsonObject) Jsoner.deserialize(new FileReader(jsonFile));
         inFile = new File("data", "genome_test2.tbl");
         try (TabbedLineReader inStream = new TabbedLineReader(inFile)) {
-            ValidationAssertion domainAssert = ValidationAssertion.Type.EQ.create(inStream, "genome.superkingdom", "Genome.1");
-            ValidationAssertion geneAssert = ValidationAssertion.Type.EQ.create(inStream, "feature.gene", "Feature.1");
+            ValidationAssertion domainAssert = ValidationAssertion.Type.EQ.create("genome.superkingdom", "Genome.1");
+            ValidationAssertion geneAssert = ValidationAssertion.Type.EQ.create("feature.gene", "Feature.1");
+            domainAssert.fix(inStream);
+            geneAssert.fix(inStream);
             TabbedLineReader.Line line = inStream.next();
             assertThat(domainAssert.validate(line, parms), is(true));
             assertThat(geneAssert.validate(line, parms), is(true));

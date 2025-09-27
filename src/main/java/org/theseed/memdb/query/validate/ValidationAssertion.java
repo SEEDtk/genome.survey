@@ -15,6 +15,8 @@ import com.github.cliftonlabs.json_simple.JsonObject;
 public abstract class ValidationAssertion {
 
     // FIELDS
+    /** name of the column to check */
+    private String columnName;
     /** index of the column to check */
     private int columnIndex;
     /** name of the entity containing the parameter to compare */
@@ -26,22 +28,22 @@ public abstract class ValidationAssertion {
         /** equality assertion */
         EQ {
             @Override
-            public ValidationAssertion create(TabbedLineReader outStream, String column, String parameter) throws ParseFailureException, IOException {
-                return new EqValidationAssertion(outStream, column, parameter);
+            public ValidationAssertion create(String column, String parameter) throws ParseFailureException {
+                return new EqValidationAssertion(column, parameter);
             }
         }, 
         /** numeric less-than assertion */
         LT {
             @Override
-            public ValidationAssertion create(TabbedLineReader outStream, String column, String parameter) throws ParseFailureException, IOException {
-                return new LtValidationAssertion(outStream, column, parameter);
+            public ValidationAssertion create(String column, String parameter) throws ParseFailureException {
+                return new LtValidationAssertion(column, parameter);
             }
         }, 
         /** numeric greater-than assertion */
         GT {
             @Override
-            public ValidationAssertion create(TabbedLineReader outStream, String column, String parameter) throws ParseFailureException, IOException {
-                return new GtValidationAssertion(outStream, column, parameter);
+            public ValidationAssertion create(String column, String parameter) throws ParseFailureException {
+                return new GtValidationAssertion(column, parameter);
             }
         };
 
@@ -54,21 +56,21 @@ public abstract class ValidationAssertion {
          * @return a new validation assertion of the specified type
          * 
          * @throws ParseFailureException
-         * @throws IOException
          */
-        public abstract ValidationAssertion create(TabbedLineReader outStream, String column, String parameter) throws ParseFailureException, IOException;
+        public abstract ValidationAssertion create(String column, String parameter) throws ParseFailureException;
         
     }
 
     /**
      * Construct a validation assertion.
      *
-     * @param outStream     line reader for the output file (used to map column names to indices)
      * @param column	    name of the output file column to check
      * @param parameter	    parameter specification
+     * 
+     * @throws ParseFailureException
      */
-    public ValidationAssertion(TabbedLineReader outStream, String column, String parameter) throws ParseFailureException, IOException {
-        this.columnIndex = outStream.findField(column);
+    public ValidationAssertion(String column, String parameter) throws ParseFailureException {
+        this.columnName = column;
         int dotPos = parameter.indexOf('.');
         if (dotPos < 0)
             throw new ParseFailureException("Parameter specification " + parameter + " is invalid.");
@@ -80,6 +82,17 @@ public abstract class ValidationAssertion {
         } catch (NumberFormatException e) {
             throw new ParseFailureException("Parameter specification " + parameter + " is invalid.");
         }
+    }
+
+    /**
+     * Set the output-file column index for this assertion's column name.
+     * 
+     * @param inStream  input stream for the query output file
+     * 
+     * @throws IOException
+     */
+    public void fix(TabbedLineReader inStream) throws IOException {
+        this.columnIndex = inStream.findField(this.columnName);
     }
 
     /**

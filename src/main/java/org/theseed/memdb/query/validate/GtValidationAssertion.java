@@ -1,14 +1,11 @@
 package org.theseed.memdb.query.validate;
 
-import java.io.IOException;
-
 import org.theseed.basic.ParseFailureException;
-import org.theseed.io.TabbedLineReader;
 
 public class GtValidationAssertion extends ValidationAssertion {
 
-    public GtValidationAssertion(TabbedLineReader outStream, String column, String parameter) throws ParseFailureException, IOException {
-        super(outStream, column, parameter);
+    public GtValidationAssertion(String column, String parameter) throws ParseFailureException {
+        super(column, parameter);
     }
 
     @Override

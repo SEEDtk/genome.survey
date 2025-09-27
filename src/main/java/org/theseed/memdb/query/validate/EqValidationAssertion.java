@@ -1,10 +1,8 @@
 package org.theseed.memdb.query.validate;
 
-import java.io.IOException;
 import java.util.Arrays;
 
 import org.theseed.basic.ParseFailureException;
-import org.theseed.io.TabbedLineReader;
 
 /**
  * This assertion returns TRUE if the specified column value is equal to the parameter value.
@@ -15,8 +13,8 @@ import org.theseed.io.TabbedLineReader;
  */
 public class EqValidationAssertion extends ValidationAssertion {
 
-    public EqValidationAssertion(TabbedLineReader outStream, String column, String parameter) throws ParseFailureException, IOException {
-        super(outStream, column, parameter);
+    public EqValidationAssertion(String column, String parameter) throws ParseFailureException {
+        super(column, parameter);
     }
 
     @Override

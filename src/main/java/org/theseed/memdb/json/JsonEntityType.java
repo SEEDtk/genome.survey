@@ -1,9 +1,7 @@
 package org.theseed.memdb.json;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.FieldInputStream;
@@ -14,11 +12,11 @@ public class JsonEntityType extends EntityType {
 
     // FIELDS
     /** list of attribute builders for this entity type */
-    private List<JsonAttributeBuilder> attributes;
+    // private List<JsonAttributeBuilder> attributes;
 
     public JsonEntityType(String name) {
         super(name);
-        this.attributes = new ArrayList<>();
+        // this.attributes = new ArrayList<>();
     }
 
     @Override
