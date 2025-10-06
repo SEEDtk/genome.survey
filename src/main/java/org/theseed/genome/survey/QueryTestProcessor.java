@@ -289,6 +289,7 @@ public class QueryTestProcessor extends BaseMultiReportProcessor {
                         this.badTemplates.add(template);
                     }
                 } else {
+                    log.info("Processing question {}: {}.", qCounter, question.getStringOrDefault(QuestionKeys.QUESTION));
                     // Get the correct answer and then the distractors into the first temp file.
                     String answerString = this.buildAnswerFile(tempFiles[0], question);
                     // Get the parameterization for this question. We'll need it to do parameter substitution.
@@ -307,6 +308,7 @@ public class QueryTestProcessor extends BaseMultiReportProcessor {
                         args.add(tempFiles[i-1].getAbsolutePath());
                         args.add("-o");
                         args.add(tempFiles[i].getAbsolutePath());
+                        log.info("Processing query: {}", String.join(" ", args));
                         this.queryEngine.parseCommandLine(args.toArray(String[]::new));
                         this.queryEngine.run();
                         i++;
