@@ -9,7 +9,7 @@ public class JsonAttributeBuilder extends AttributeBuilder {
 
     @Override
     protected void processAttribute(DbInstance db, Record record, EntityInstance instance) {
-        // TODO Auto-generated method stub
+        // TODO Store the attribute data from the record in the entity instance
         throw new UnsupportedOperationException("Unimplemented method 'processAttribute'");
     }
 

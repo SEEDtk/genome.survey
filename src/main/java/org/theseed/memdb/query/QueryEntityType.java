@@ -28,7 +28,7 @@ public class QueryEntityType extends EntityType {
 
     // FIELDS
     /** list of attribute names */
-    private Set<String> attributeNames;
+    private final Set<String> attributeNames;
     /** pattern for matching up to the first whitespace */
     private static final Pattern ATTR_NAME = Pattern.compile("(\\S+).*");
 
@@ -39,7 +39,7 @@ public class QueryEntityType extends EntityType {
      */
     public QueryEntityType(String name) {
         super(name);
-        this.attributeNames = new TreeSet<String>();
+        this.attributeNames = new TreeSet<>();
     }
 
     @Override
