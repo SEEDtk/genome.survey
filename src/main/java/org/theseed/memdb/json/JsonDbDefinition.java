@@ -43,19 +43,19 @@ public class JsonDbDefinition extends DbDefinition {
     @Override
     protected RelationshipType createRelationshipType(EntityType sourceType, String sourceIdColName,
             EntityType targetType, String targetIdColName) {
-        // TODO create a JSON relationship type connecting the two specified entity types
+        // FUTURE create a JSON relationship type connecting the two specified entity types
         throw new UnsupportedOperationException("Unimplemented method 'createRelationshipType'");
     }
 
     @Override
     protected String processRelationshipDefinition(RelationshipType rel, DbDefinition db) throws ParseFailureException {
-        // TODO read the JSON relationship definition from the DbDefinition stream
+        // FUTURE read the JSON relationship definition from the DbDefinition stream
         throw new UnsupportedOperationException("Unimplemented method 'processRelationshipDefinition'");
     }
 
     @Override
     protected DbInstance createDbInstance(List<String> typeNames) {
-        // TODO Create a JSON database instance with the specified entity types
+        // FUTURE Create a JSON database instance with the specified entity types
         throw new UnsupportedOperationException("Unimplemented method 'createDbInstance'");
     }
 

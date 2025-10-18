@@ -23,7 +23,7 @@ public class JsonEntityType extends EntityType {
 
     @Override
     protected void addAttribute(String line) {
-        // TODO convert an attribute description line into an attribute builder
+        // FUTURE convert an attribute description line into an attribute builder
         throw new UnsupportedOperationException("Unimplemented method 'addAttribute'");
     }
 
