@@ -37,7 +37,7 @@ public abstract class BinaryProposalField extends ProposalField {
         super(fieldSpec);
         try {
             this.valueReturn = List.of(value);
-            this.target = Double.valueOf(value);
+            this.target = Double.parseDouble(value);
         } catch (NumberFormatException e) {
             throw new ParseFailureException("Invalid target on field specification \"" + fieldSpec + "\".");
         }
