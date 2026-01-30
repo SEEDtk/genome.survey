@@ -5,7 +5,7 @@ package org.theseed.memdb.query.proposal;
 
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.Attribute;
 import org.theseed.memdb.query.QueryEntityInstance;
@@ -45,7 +45,7 @@ public class EqualProposalField extends ProposalField {
         List<String> retVal;
         Attribute instanceVal = instance.getAttribute(this.getName());
         List<String> actualVal = instanceVal.getList();
-        boolean found = actualVal.stream().anyMatch(x -> StringUtils.equalsIgnoreCase(x, comparand));
+        boolean found = actualVal.stream().anyMatch(x -> Strings.CI.equals(x, comparand));
         if (found)
             retVal = this.valueList;
         else

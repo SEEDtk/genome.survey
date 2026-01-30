@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.Option;
 import org.slf4j.Logger;
@@ -209,11 +209,11 @@ public class QueryGenerateProcessor extends BaseTextProcessor implements QueryGe
             String resultString = this.safeGet(inputIter);
             // Create the query proposal.
             ProposalQuery proposal;
-            if (StringUtils.compareIgnoreCase(resultString, "count") == 0)
+            if (Strings.CI.compare(resultString, "count") == 0)
                 proposal = new CountProposalQuery(qString, pathString, this.maxLimit);
-            else if (resultString.startsWith("choice"))
+            else if (Strings.CI.startsWith(resultString, "choice"))
                 proposal = new ChoiceProposalQuery(qString, pathString, this.maxLimit, resultString, this.db);
-            else if (resultString.startsWith("group"))
+            else if (Strings.CI.startsWith(resultString, "group"))
                 proposal = new GroupProposalQuery(qString, pathString, 0, resultString);
             else
                 proposal = new ListProposalQuery(qString, pathString, this.maxLimit, resultString);

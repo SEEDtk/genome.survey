@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.memdb.query.QueryEntityInstance;
 
@@ -39,7 +40,7 @@ public abstract class ProposalField {
         String[] pieces = StringUtils.split(fieldSpec, ".");
         if (pieces.length != 2)
             throw new ParseFailureException("Invalid field specification \"" + fieldSpec + "\".");
-        if (StringUtils.contains(pieces[1], ":"))
+        if (Strings.CS.contains(pieces[1], ":"))
             throw new ParseFailureException("Invalid use of colon in \"" + fieldSpec + "\".");
         this.entityType = pieces[0];
         this.attributeName = pieces[1];

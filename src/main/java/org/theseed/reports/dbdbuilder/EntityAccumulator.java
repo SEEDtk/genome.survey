@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 
 /**
  * This object contains information about an entity that can be used by a JSON scan report to build a JSON-walk DBD
@@ -22,9 +23,9 @@ public class EntityAccumulator {
     /** entity file name */
     private String fileName;
     /** list of relationships for this entity */
-    private List<String> relationshipList;
+    private final List<String> relationshipList;
     /** map of file names to the accumulators for that file */
-    private Map<String, FileAccumulator> fileMap;
+    private final Map<String, FileAccumulator> fileMap;
 
     /**
      * Construct a new entity accumulator from the entity definition section of a DBD prototype file.
@@ -35,8 +36,8 @@ public class EntityAccumulator {
      * 
      */
     public EntityAccumulator(List<String> entitySection) throws IOException {
-        this.relationshipList = new ArrayList<String>(entitySection.size());
-        this.fileMap = new HashMap<String, FileAccumulator>(entitySection.size() * 4 / 3 + 1);
+        this.relationshipList = new ArrayList<>(entitySection.size());
+        this.fileMap = new HashMap<>(entitySection.size() * 4 / 3 + 1);
         // We need to check for a source file for this entity. If there is one, it will be the fifth
         // field of the first line, the fields being space-delimited.
         if (entitySection.size() <= 0)
@@ -53,17 +54,17 @@ public class EntityAccumulator {
         // Now we have file and relationship lines to process.
         for (int i = 1; i < entitySection.size(); i++) {
             String line = entitySection.get(i);
-            if (StringUtils.startsWith(line, "#Relationship"))
+            if (Strings.CS.startsWith(line, "#Relationship"))
                 this.relationshipList.add(line);
-            else if (StringUtils.startsWith(line, "#File")) {
+            else if (Strings.CS.startsWith(line, "#File")) {
                 // Here we have a file line. We need to extract the file name and create an accumulator
                 // for it. The file name is in the second field, and the fields are space-delimited.
                 String[] fileFields = StringUtils.split(line, ' ');
                 if (fileFields.length < 3)
                     throw new IOException("Invalid file line in entity section: " + line);
                 else {
-                    String fileName = fileFields[1];
-                    this.fileMap.put(fileName, new FileAccumulator(line));
+                    String fileName2 = fileFields[1];
+                    this.fileMap.put(fileName2, new FileAccumulator(line));
                 }
             }
         }
@@ -117,7 +118,7 @@ public class EntityAccumulator {
      */
     public Collection<FileAccumulator> getAdjunctFileAccumulators() {
         // We return all the files but the main one.
-        List<FileAccumulator> retVal = new ArrayList<FileAccumulator>(this.fileMap.size());
+        List<FileAccumulator> retVal = new ArrayList<>(this.fileMap.size());
         for (var mapEntry : this.fileMap.entrySet()) {
             String adjunctName = mapEntry.getKey();
             if (! adjunctName.equals(this.fileName))
