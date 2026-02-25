@@ -2,6 +2,7 @@ package org.theseed.genome.survey;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -77,7 +78,8 @@ import com.github.cliftonlabs.json_simple.Jsoner;
  * -v	display more detailed log messages
  * -D   output directory for reports (default is "QueryTest" in the current directory)
  * 
- * --temp   directory for temporary files (default "Temp" in the current directory)
+ * --temp       directory for temporary files (default "Temp" in the current directory)
+ * --resume     if specified, the command will attempt to resume a previous run
  * 
  */
 public class QueryTestProcessor extends BaseMultiReportProcessor {
@@ -101,6 +103,10 @@ public class QueryTestProcessor extends BaseMultiReportProcessor {
     /** temporary directory name */
     @Option(name = "--temp", metaVar = "Temp", usage = "name of a directory to hold temporary files")
     private File tempDir;
+
+    /** resume previous run */
+    @Option(name = "--resume", usage = "if specified, the command will attempt to resume a previous run")
+    private boolean resume;
 
     /** query specification file */
     @Argument(index = 0, metaVar = "querySpecFile", usage = "query specification file", required = true)
@@ -154,6 +160,8 @@ public class QueryTestProcessor extends BaseMultiReportProcessor {
     protected void setMultiReportDefaults() {
         // Set up the default temporary directory.
         this.tempDir = new File(System.getProperty("user.dir"), "Temp");
+        // Set up the resume flag.
+        this.resume = false;
     }
 
     @Override
@@ -255,118 +263,167 @@ public class QueryTestProcessor extends BaseMultiReportProcessor {
         File[] tempFiles = new File[this.maxQueries + 1];
         for (int i = 0; i <= this.maxQueries; i++)
             tempFiles[i] = File.createTempFile(String.format("qtest%02d", i), ".tbl", this.tempDir);
-        // Open the output files.
-        try (PrintWriter writer = this.openReport("summary.tbl");
-            PrintWriter badQWriter = this.openReport("badq.tbl")){
-            // Now we load the JSON object and process each question against the appropriate validator.
-            JsonArray questions;
-            log.info("Reading question file {}.", this.jsonFile);
-            try (FileReader jsonReader = new FileReader(this.jsonFile)) {
-                questions = (JsonArray) Jsoner.deserialize(jsonReader);
+        // Now we load the JSON object. We will process each question against the appropriate validator.
+        JsonArray questions;
+        log.info("Reading question file {}.", this.jsonFile);
+        try (FileReader jsonReader = new FileReader(this.jsonFile)) {
+            questions = (JsonArray) Jsoner.deserialize(jsonReader);
+        }
+        // Set up our counters.
+        int badCounter = 0;
+        int goodCounter = 0;
+        int qCounter = 0;
+        int skipCounter = 0;
+        int resumeCounter = 0;
+        log.info("{} questions found in file.", questions.size());
+        // Prepare to iterate through the questions.
+        Iterator<Object> iter = questions.iterator();
+        // Get the bad-question and summary file names.
+        File summaryFile = this.getOutFile("summary.tbl");
+        File badQFile = this.getOutFile("badq.tbl");
+        // The basic strategy is to loop through the questions, processing each one. If a question is bad, we write it to the bad question
+        // file and remove it from the JSON array. If it is good, we write it to the summary file and leave it in the JSON array. At the end we write
+        // the JSON array to the good question file. If we are resuming, we need to read in the summary file to determine which questions have already 
+        // been processed. We build sets of pre-processed question strings and skip any question whose string is in the set. For the bad questions,
+        // we will need to remove them from the question list, so we keep the two sets separate.
+        Set<String> goodQuestions = new HashSet<>();
+        Set<String> badQuestions = new HashSet<>();
+        if (this.resume) {
+            // We are resuming. Read in the summary file and the bad question file to get the sets of good and bad questions.
+            log.info("Resuming previous run. Reading summary file {}.", summaryFile);
+            try (TabbedLineReader summaryStream = new TabbedLineReader(summaryFile)) {
+                // The header line was already read by the constructor, so we don't need to skip it.
+                while (summaryStream.hasNext()) {
+                    TabbedLineReader.Line line = summaryStream.next();
+                    String qString = line.get(0);
+                    String status = line.get(1);
+                    if (status.equals("ok")) {
+                        goodQuestions.add(qString);
+                        goodCounter++;
+                    } else {
+                        badCounter++;
+                        badQuestions.add(qString);
+                    }
+                }
             }
-            // Set up our counters.
-            int badCounter = 0;
-            int goodCounter = 0;
-            int qCounter = 0;
-            int skipCounter = 0;
-            log.info("{} questions found in file.", questions.size());
-            // Initialize the output file.
-            writer.println("question\tstatus\tassertions\tanswers_good\tdistractors_good\tbest_bad\ttemplate");
-            // Prepare to iterate through the questions.
-            Iterator<Object> iter = questions.iterator();
-            while (iter.hasNext()) {
-                JsonObject question = (JsonObject) iter.next();
-                qCounter++;
-                // Get the template string for this question.
-                String template = question.getString(QuestionKeys.TEMPLATE);
-                // Find the appropriate validator.
-                QueryValidator validator = this.validatorMap.get(template);
-                if (validator == null) {
-                    skipCounter++;
-                    if (! this.badTemplates.contains(template)) {
-                        log.warn("No query definition found for question template \"{}\".", template);
-                        // Make sure we don't get another warning for the same template.
-                        this.badTemplates.add(template);
-                    }
-                } else {
-                    log.info("Processing question {}: {}.", qCounter, question.getStringOrDefault(QuestionKeys.QUESTION));
-                    // Get the correct answer and then the distractors into the first temp file.
-                    String answerString = this.buildAnswerFile(tempFiles[0], question);
-                    // Get the parameterization for this question. We'll need it to do parameter substitution.
-                    JsonObject parameterizations = question.getMapOrDefault(QuestionKeys.PARAMETERS);
-                    // Now we run through the queries. This builds us our final output file.
-                    Iterator<List<String>> parmIter = validator.getParmIterator();
-                    int i = 1;
-                    while (parmIter.hasNext()) {
-                        // Now we build the output parameter list.
-                        List<String> args = new ArrayList<>();
-                        // Process any substitions.
-                        List<String> rawParms = parmIter.next();
-                        this.copyParameters(rawParms, parameterizations, args);
-                        // Add the input and output file names.
-                        args.add("-i");
-                        args.add(tempFiles[i-1].getAbsolutePath());
-                        args.add("-o");
-                        args.add(tempFiles[i].getAbsolutePath());
-                        log.info("Processing query: {}", String.join(" ", args));
-                        this.queryEngine.parseCommandLine(args.toArray(String[]::new));
-                        this.queryEngine.run();
-                        i++;
-                    }
-                    // We need the question string, the parameterization, and the number of assertions.
+            log.info("{} good questions and {} bad questions found in summary file.", goodCounter, badCounter);
+        }
+        // Now we must open the output files.
+        try (FileOutputStream summaryOutStream = new FileOutputStream(summaryFile, this.resume);
+                FileOutputStream badQOutStream = new FileOutputStream(badQFile, this.resume)) {
+            try (PrintWriter writer = new PrintWriter(summaryOutStream);
+                    PrintWriter badQWriter = new PrintWriter(badQOutStream)) {
+                // Write the summary header if we are not resuming.
+                if (! this.resume)
+                    writer.println("question\tstatus\tassertions\tanswers_good\tdistractors_good\tbest_bad\ttemplate");
+                // Now loop through the questions.
+                while (iter.hasNext()) {
+                    JsonObject question = (JsonObject) iter.next();
+                    qCounter++;
+                    // Extract the question string. If we are resuming and this question has already been processed, we skip it.
                     String qString = question.getStringOrDefault(QuestionKeys.QUESTION);
-                    int assertCount = validator.getAssertionCount();
-                    // The output file to use as input to the validation is now in tempFiles[i-1].
-                    try (TabbedLineReader outFileinStream = new TabbedLineReader(tempFiles[i-1])) {
-                        // We need to count the number of distractors with a full match, the number of answers
-                        // with a full match, and the maximum number of matches for a distractor.
-                        int answersOk = 0;
-                        int distractorsOk = 0;
-                        int maxDistractorMatch = 0;
-                        // Fix the validator's column indices.
-                        validator.fix(outFileinStream);
-                        // Now we process each line of the output file.
-                        while (outFileinStream.hasNext()) {
-                            TabbedLineReader.Line line = outFileinStream.next();
-                            // Find out if this is an answer or a distractor.
-                            boolean isAnswer = line.get(0).equals(answerString);
-                            // Validate this line.
-                            int matchCount = validator.checkLine(line, parameterizations);
-                            if (isAnswer) {
-                                // Here we have an answer line.
-                                if (matchCount == assertCount)
-                                    answersOk++;
-                            } else {
-                                // Here we have a distractor. We need to count a full match, and we need
-                                // to update the maximum match if it's not full.
-                                if (matchCount == assertCount) {
-                                    distractorsOk++;
-                                    badQWriter.println(qString + "\t" + line.toString());
+                    if (goodQuestions.contains(qString)) {
+                        log.info("Skipping previously processed good question {}: {}.", qCounter, qString);
+                        resumeCounter++;
+                    } else if (badQuestions.contains(qString)) {
+                        // For a bad question, we need to remove it from the JSON array so it isn't output.
+                        log.info("Skipping previously processed bad question {}: {}.", qCounter, qString);
+                        iter.remove();
+                        resumeCounter++;
+                    } else {
+                        // Get the template string for this question.
+                        String template = question.getString(QuestionKeys.TEMPLATE);
+                        // Find the appropriate validator.
+                        QueryValidator validator = this.validatorMap.get(template);
+                        if (validator == null) {
+                            skipCounter++;
+                            if (! this.badTemplates.contains(template)) {
+                                log.warn("No query definition found for question template \"{}\".", template);
+                                // Make sure we don't get another warning for the same template.
+                                this.badTemplates.add(template);
+                            }
+                        } else {
+                            log.info("Processing question {}: {}.", qCounter, question.getStringOrDefault(QuestionKeys.QUESTION));
+                            // Get the correct answer and then the distractors into the first temp file.
+                            String answerString = this.buildAnswerFile(tempFiles[0], question);
+                            // Get the parameterization for this question. We'll need it to do parameter substitution.
+                            JsonObject parameterizations = question.getMapOrDefault(QuestionKeys.PARAMETERS);
+                            // Now we run through the queries. This builds us our final output file.
+                            Iterator<List<String>> parmIter = validator.getParmIterator();
+                            int i = 1;
+                            while (parmIter.hasNext()) {
+                                // Now we build the output parameter list.
+                                List<String> args = new ArrayList<>();
+                                // Process any substitions.
+                                List<String> rawParms = parmIter.next();
+                                this.copyParameters(rawParms, parameterizations, args);
+                                // Add the input and output file names.
+                                args.add("-i");
+                                args.add(tempFiles[i-1].getAbsolutePath());
+                                args.add("-o");
+                                args.add(tempFiles[i].getAbsolutePath());
+                                log.info("Processing query: {}", String.join(" ", args));
+                                this.queryEngine.parseCommandLine(args.toArray(String[]::new));
+                                this.queryEngine.run();
+                                i++;
+                            }
+                            // We need the number of assertions.
+                            int assertCount = validator.getAssertionCount();
+                            // The output file to use as input to the validation is now in tempFiles[i-1].
+                            try (TabbedLineReader outFileinStream = new TabbedLineReader(tempFiles[i-1])) {
+                                // We need to count the number of distractors with a full match, the number of answers
+                                // with a full match, and the maximum number of matches for a distractor.
+                                int answersOk = 0;
+                                int distractorsOk = 0;
+                                int maxDistractorMatch = 0;
+                                // Fix the validator's column indices.
+                                validator.fix(outFileinStream);
+                                // Now we process each line of the output file.
+                                while (outFileinStream.hasNext()) {
+                                    TabbedLineReader.Line line = outFileinStream.next();
+                                    // Find out if this is an answer or a distractor.
+                                    boolean isAnswer = line.get(0).equals(answerString);
+                                    // Validate this line.
+                                    int matchCount = validator.checkLine(line, parameterizations);
+                                    if (isAnswer) {
+                                        // Here we have an answer line.
+                                        if (matchCount == assertCount)
+                                            answersOk++;
+                                    } else {
+                                        // Here we have a distractor. We need to count a full match, and we need
+                                        // to update the maximum match if it's not full.
+                                        if (matchCount == assertCount) {
+                                            distractorsOk++;
+                                            badQWriter.println(qString + "\t" + line.toString());
+                                        }
+                                        else if (maxDistractorMatch < matchCount)
+                                            maxDistractorMatch = matchCount;
+                                    }
                                 }
-                                else if (maxDistractorMatch < matchCount)
-                                    maxDistractorMatch = matchCount;
+                                // Write the results for this question.
+                                String status;
+                                if (answersOk > 0 && distractorsOk <= 0) {
+                                    status = "ok";
+                                    goodCounter++;
+                                } else {
+                                    status = "INVALID";
+                                    badCounter++;
+                                    // Remove this question from the JSON array.
+                                    iter.remove();
+                                }
+                                writer.println(qString + "\t" + status + "\t" + assertCount + "\t" + answersOk + "\t" + distractorsOk
+                                    + "\t" + maxDistractorMatch + "\t" + template);
+                                writer.flush();
+                                badQWriter.flush();
                             }
                         }
-                        // Write the results for this question.
-                        String status;
-                        if (answersOk > 0 && distractorsOk <= 0) {
-                            status = "ok";
-                            goodCounter++;
-                        } else {
-                            status = "INVALID";
-                            badCounter++;
-                            // Remove this question from the JSON array.
-                            iter.remove();
-                        }
-                        writer.println(qString + "\t" + status + "\t" + assertCount + "\t" + answersOk + "\t" + distractorsOk
-                            + "\t" + maxDistractorMatch + "\t" + template);
-                        writer.flush();
-                        badQWriter.flush();
                     }
                 }
             }
             log.info("Processed {} total questions. {} bad, {} good, {} skipped.", qCounter, badCounter, goodCounter, skipCounter);
-            // Now write out the remaining good questions.
+            if (this.resume)
+                log.info("Results for {} questions copied from previous run.", resumeCounter);
+            // Now write out the good questions. All the bad ones have been removed from the JSON array.
             if (goodCounter <= 0) {
                 log.warn("No good questions found. No good question file created.");
             } else {
