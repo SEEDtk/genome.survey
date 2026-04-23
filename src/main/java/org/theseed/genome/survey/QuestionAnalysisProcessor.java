@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -249,23 +250,23 @@ public class QuestionAnalysisProcessor extends BasePipeProcessor {
         // Run the processor. This will write the output to the temporary file.
         processor.run();
         // Now we need to read the output back in and remove duplicates. We will use a set for this.
-        Set<String[]> results = new HashSet<>();
+        Set<List<String>> results = new HashSet<>();
         try (TabbedLineReader reader = new TabbedLineReader(this.tempFileName)) {
             // First, we get the field names, which are also the column headers.
             String[] fields = reader.getLabels();
             // Loop through the output lines and add the each line to the set.
             int linesIn = 0;
             for (var line : reader) {
-                results.add(line.getFields());            
+                results.add(Arrays.asList(line.getFields()));            
                 linesIn++;
             }
             log.info("{} lines read from query output, {} unique.", linesIn, results.size());
             // Now we need to convert the unique results to JSON objects. We will use the field names 
             // as the keys and the field values as the values.
-            for (String[] result : results) {
+            for (List<String> result : results) {
                 JsonObject obj = new JsonObject();
                 for (int i = 0; i < fields.length; i++) {
-                    obj.put(fields[i], result[i]);
+                    obj.put(fields[i], result.get(i));
                 }
                 retVal.add(obj);
             }
