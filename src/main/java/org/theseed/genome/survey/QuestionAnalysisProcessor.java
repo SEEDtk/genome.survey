@@ -11,6 +11,7 @@ import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.Strings;
+import org.kohsuke.args4j.Option;
 import org.theseed.basic.ICommand;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.TabbedLineReader;
@@ -37,8 +38,16 @@ import com.github.cliftonlabs.json_simple.JsonObject;
  * -i   input file containing the questions and queries (if not STDIN)
  * -o   output file for the JSON report (if not STDOUT)
  * 
+ * --badFile    if specified, the name of a file to write the queries that produced no results. If not specified, these will be written to the log.
+ * 
  */
 public class QuestionAnalysisProcessor extends BasePipeProcessor {
+
+    // COMMAND-LINE OPTIONS
+
+    /** name of file to write queries with no results */
+    @Option(name = "--badFile", metaVar = "badQuestions.tbl", usage = "file to write queries with no results")
+    private File badFile;
 
     // FIELDS
     /** logging facility */
@@ -55,9 +64,14 @@ public class QuestionAnalysisProcessor extends BasePipeProcessor {
     private int questionIndex;
     /** index of the query column in the input file */
     private int queryIndex;
+    /** count of queries without results */
+    private int noResultCount;
+    /** output stream for bad queries */
+    private PrintWriter badStream;
 
     @Override
     protected void setPipeDefaults() {
+        this.badFile = null;
     }
 
     @Override
@@ -69,6 +83,12 @@ public class QuestionAnalysisProcessor extends BasePipeProcessor {
 
     @Override
     protected void validatePipeParms() throws IOException, ParseFailureException {
+        if (this.badFile != null) {
+            this.badStream = new PrintWriter(this.badFile);
+            log.info("Bad queries will be written to {}.", this.badFile);
+            this.badStream.println("question\tquery");
+        } else
+            this.badStream = null;
     }
 
     @Override
@@ -91,6 +111,7 @@ public class QuestionAnalysisProcessor extends BasePipeProcessor {
             int questionsOut = 0;
             int questionsIn = 0;
             int recordsOut = 0;
+            this.noResultCount = 0;
             // Loop through the input lines.
             for (var line : inputStream) {
                 String question = line.get(this.questionIndex);
@@ -102,6 +123,12 @@ public class QuestionAnalysisProcessor extends BasePipeProcessor {
                 List<String> parms = parseQueryLine(query);
                 JsonArray results = runQuery(processor, parms);
                 recordsOut += results.size();
+                if (results.isEmpty()) {
+                    this.noResultCount++;
+                    log.warn("No results found for query {}: {}", questionsIn, query);
+                    if (this.badStream != null)
+                        this.badStream.println(question + "\t" + query);
+                }
                 // Form a JSON object describing the question and its results.
                 JsonObject jsonObject = new JsonObject();
                 jsonObject.put("question", question);
@@ -116,9 +143,15 @@ public class QuestionAnalysisProcessor extends BasePipeProcessor {
             writer.println();
             writer.println("]");
             log.info("Output {} questions with {} total records written.", questionsOut, recordsOut);
+            if (this.noResultCount > 0)
+                log.warn("No results found for {} queries.", this.noResultCount);
         } finally {
             log.info("Deleting temporary file {}.", this.tempFileName);
             FileUtils.forceDelete(this.tempFileName);
+            if (this.badStream != null) {
+                this.badStream.flush();
+                this.badStream.close();
+            }
         }
     }
 
@@ -261,6 +294,8 @@ public class QuestionAnalysisProcessor extends BasePipeProcessor {
                 linesIn++;
             }
             log.info("{} lines read from query output, {} unique.", linesIn, results.size());
+            if (linesIn <= 0)
+                log.warn("No results found for query.");
             // Now we need to convert the unique results to JSON objects. We will use the field names 
             // as the keys and the field values as the values.
             for (List<String> result : results) {
