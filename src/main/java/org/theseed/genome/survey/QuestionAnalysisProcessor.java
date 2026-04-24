@@ -134,6 +134,8 @@ public class QuestionAnalysisProcessor extends BasePipeProcessor {
                 jsonObject.put("question", question);
                 jsonObject.put("query", query);
                 jsonObject.put("results", results);
+                jsonObject.put("status", "untested");
+                jsonObject.put("comment", "");
                 // Write the JSON object to the output.
                 if (questionsOut > 0)
                     writer.println(",");
