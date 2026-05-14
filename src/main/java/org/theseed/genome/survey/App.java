@@ -31,6 +31,7 @@ import org.theseed.basic.BaseProcessor;
  * qselect      select random questions from model-testing question files and write them to a JSON file
  * qprocess     build a JSON file for driving model testing from a question list
  * qsummary     summarize the results in a model-testing JSON file
+ * qformat      extract the results from a JSON question results file and format them for easier analysis
  */
 
 public class App
@@ -60,7 +61,8 @@ public class App
              "multiSubs", "find how many features are in multiple subsystems",
              "qselect", "select random questions from model-testing question files and write them to a JSON file",
              "qprocess", "build a JSON file for driving model testing from a question list",
-             "qsummary", "summarize the results in a model-testing JSON file"
+             "qsummary", "summarize the results in a model-testing JSON file",
+             "qformat", "extract the results from a JSON question results file and format them for easier analysis"
     };
 
     public static void main( String[] args )
@@ -95,6 +97,7 @@ public class App
         case "qselect" -> processor = new QuestionSelectProcessor();
         case "qprocess" -> processor = new QuestionAnalysisProcessor();
         case "qsummary" -> processor = new QuestionSummaryProcessor();
+        case "qformat" -> processor = new QuestionFormatProcessor();
         case "-h", "--help" -> processor = null;
         default -> throw new RuntimeException("Invalid command " + command + ".");
         }
