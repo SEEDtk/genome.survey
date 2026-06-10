@@ -24,7 +24,7 @@ public class TextEntityInstance extends EntityInstance {
 
     // FIELDS
     /** list of attribute sentences */
-    private List<String> attributes;
+    private final List<String> attributes;
     /** TRUE if this instance has been deleted */
     private boolean deleted;
 
@@ -37,7 +37,7 @@ public class TextEntityInstance extends EntityInstance {
     public TextEntityInstance(EntityType type, String id) {
         super(type, id);
         // Start with no attributes and not deleted.
-        this.attributes = new ArrayList<String>();
+        this.attributes = new ArrayList<>();
         this.deleted = false;
     }
 
