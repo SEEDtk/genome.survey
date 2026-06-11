@@ -51,7 +51,7 @@ public class TextDbDefinition extends DbDefinition {
         if (retVal == null || retVal.startsWith("#"))
             throw new ParseFailureException("Missing template strings for relationship at line " + db.getLineCount() + " in definition file.");
         textRel.addFowardString(retVal);
-        // The second line is the reserve template.
+        // The second line is the reverse template.
         retVal = db.readNext();
         if (retVal == null || retVal.startsWith("#"))
             throw new ParseFailureException("Missing reverse template string for relationship at line " + db.getLineCount() + " in definition file.");

@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+
 import org.theseed.stats.Shuffler;
 
 /**
@@ -34,7 +35,7 @@ public abstract class DbInstance {
     /**
      * Create a blank, empty database instance.
      *
-     * @param size	number of entity types in this database
+     * @param types	list of entity type names in priority order
      */
     public DbInstance(List<String> types) {
         this.typeNames = types;
