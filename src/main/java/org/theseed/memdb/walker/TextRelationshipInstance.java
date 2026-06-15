@@ -17,7 +17,7 @@ public class TextRelationshipInstance extends RelationshipInstance {
 
     // FIELDS
     /** text for the relationship crossing */
-    private String crossingText;
+    private final String crossingText;
 
     /**
      * Construct a relationship instance for a text-walk crossing.

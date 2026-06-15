@@ -15,9 +15,9 @@ public abstract class RelationshipInstance {
 
     // FIELDS
     /** target entity type */
-    private String targetType;
+    private final String targetType;
     /** target entity ID */
-    private String targetId;
+    private final String targetId;
 
 
     /**

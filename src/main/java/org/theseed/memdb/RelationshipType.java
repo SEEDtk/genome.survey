@@ -24,13 +24,13 @@ public abstract class RelationshipType {
 
     // FIELDS
     /** source entity type */
-    private EntityType source;
+    private final EntityType source;
     /** target entity type */
-    private EntityType target;
+    private final EntityType target;
     /** source entity column name */
-    private String sourceColName;
+    private final String sourceColName;
     /** target entity column name */
-    private String targetColName;
+    private final String targetColName;
 
     /**
      * Construct a relationship type for a specified relationship.

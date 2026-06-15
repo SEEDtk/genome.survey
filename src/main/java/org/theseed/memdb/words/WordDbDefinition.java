@@ -30,21 +30,35 @@ public class WordDbDefinition extends DbDefinition {
 
     @Override
     protected String processRelationshipDefinition(RelationshipType rel, DbDefinition db) throws ParseFailureException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'processRelationshipDefinition'");
+        // We have three lines of text-- the source ID template, the relationship name template, and the target ID template. 
+        // We need to read those three lines and store them in the relationship type.
+        WordRelationshipType wordRel = (WordRelationshipType) rel;
+        String retVal = db.readNext();
+        if (retVal == null || retVal.startsWith("#"))
+            throw new ParseFailureException("Missing template strings for relationship at line " + db.getLineCount() + " in definition file.");
+        wordRel.setSourceString(retVal);
+        retVal = db.readNext();
+        if (retVal == null || retVal.startsWith("#"))
+            throw new ParseFailureException("Missing relationship name template string for relationship at line " + db.getLineCount() + " in definition file.");
+        wordRel.setNameString(retVal);
+        retVal = db.readNext();
+        if (retVal == null || retVal.startsWith("#"))
+            throw new ParseFailureException("Missing target ID template string for relationship at line " + db.getLineCount() + " in definition file.");
+        wordRel.setTargetString(retVal);
+        // End by reading ahead to what should be the next header.
+        retVal = db.readNext();
+        return retVal;
     }
 
     @Override
     protected RelationshipType createRelationshipType(EntityType sourceType, String sourceIdColName,
             EntityType targetType, String targetIdColName) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'createRelationshipType'");
+        return new WordRelationshipType(sourceType, sourceIdColName, targetType, targetIdColName);
     }
 
     @Override
     protected DbInstance createDbInstance(List<String> typeNames) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'createDbInstance'");
+        return new WordDbInstance(typeNames);
     }
 
 }
