@@ -28,4 +28,6 @@ public class WordDbInstance extends WalkDbInstance {
         return new WordEntityInstance(entityType, entityId);
     }
 
+    // TODO method to emit a phrase to the output stream
+
 }
