@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.theseed.memdb.walker;
+package org.theseed.memdb.text;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,7 +11,7 @@ import java.util.List;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.FieldInputStream;
 import org.theseed.memdb.AttributeBuilder;
-import org.theseed.memdb.EntityType;
+import org.theseed.memdb.walk.WalkEntityType;
 
 /**
  * This object represents an entity type for a text-walk database.  It will
@@ -21,13 +21,11 @@ import org.theseed.memdb.EntityType;
  * @author Bruce Parrello
  *
  */
-public class TextEntityType extends EntityType {
+public class TextEntityType extends WalkEntityType {
 
     // FIELDS
     /** list of attribute templates */
     private final List<String> attributeStrings;
-    /** token counter for all entity instances */
-    private long tokenCount;
 
     /**
      * Create a new text entity type with the specified name.
@@ -36,7 +34,6 @@ public class TextEntityType extends EntityType {
     public TextEntityType(String name) {
         super(name);
         this.attributeStrings = new ArrayList<>(5);
-        this.tokenCount = 0;
     }
 
     @Override
@@ -55,22 +52,6 @@ public class TextEntityType extends EntityType {
         }
         // Return the attribute builders to the caller.
         return retVal;
-    }
-
-    /**
-     * @return the number of tokens generated for this entity type
-     */
-    public long getTokenCount() {
-        return this.tokenCount;
-    }
-
-    /**
-     * Update the token count for this entity type.
-     *
-     * @param count		number of tokens to add
-     */
-    public void countTokens(long count) {
-        this.tokenCount += count;
     }
 
 }

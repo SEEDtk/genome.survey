@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.theseed.memdb.walker;
+package org.theseed.memdb.text;
 
 import org.theseed.memdb.EntityInstance;
 import org.theseed.memdb.RelationshipInstance;

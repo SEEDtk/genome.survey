@@ -17,7 +17,7 @@ public class WordEntityInstance extends EntityInstance {
     /** list of attributes for this instance */
     private final List<String> attributes;
 
-    public WordEntityInstance(WordEntityType entityType, String id) {
+    public WordEntityInstance(EntityType entityType, String id) {
         super((EntityType)entityType, id);
         this.attributes = new ArrayList<>(5);
     }

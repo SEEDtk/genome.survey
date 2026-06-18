@@ -1,7 +1,7 @@
 /**
  *
  */
-package org.theseed.memdb.walker;
+package org.theseed.memdb.text;
 
 import java.io.File;
 import java.io.IOException;

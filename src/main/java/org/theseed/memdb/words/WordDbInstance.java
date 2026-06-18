@@ -1,13 +1,17 @@
 package org.theseed.memdb.words;
 
-import java.util.Collection;
 import java.util.List;
 
-import org.theseed.memdb.DbInstance;
 import org.theseed.memdb.EntityInstance;
 import org.theseed.memdb.EntityType;
+import org.theseed.memdb.walk.WalkDbInstance;
 
-public class WordDbInstance extends DbInstance {
+
+/**
+ * This is the instance for a word-walk database. Most of the code is in the parent class, but
+ * it needs to know that the entity instances created are for word-walk entities.
+ */
+public class WordDbInstance extends WalkDbInstance {
 
     /**
      * Create a new word database instance
@@ -19,21 +23,9 @@ public class WordDbInstance extends DbInstance {
     }
 
     @Override
-    protected void preProcess() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'preProcess'");
-    }
-
-    @Override
     protected EntityInstance createEntity(EntityType entityType, String entityId) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'createEntity'");
-    }
-
-    @Override
-    protected void postProcessEntities(Collection<EntityType> entityTypes) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'postProcessEntities'");
+        // Create a word entity instance with the specified ID and type.
+        return new WordEntityInstance(entityType, entityId);
     }
 
 }

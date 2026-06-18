@@ -1,7 +1,4 @@
-/**
- *
- */
-package org.theseed.memdb.walker;
+package org.theseed.memdb.walk;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -9,29 +6,26 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.knuddels.jtokkit.Encodings;
-import com.knuddels.jtokkit.api.Encoding;
-import com.knuddels.jtokkit.api.EncodingRegistry;
-import com.knuddels.jtokkit.api.EncodingType;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.theseed.memdb.DbInstance;
 import org.theseed.memdb.EntityInstance;
 import org.theseed.memdb.EntityType;
 
-/**
- * This is the instance for a text-walk database, and it contains the code for doing the
- * random walk.
- *
- * @author Bruce Parrello
- *
- */
-public class TextDbInstance extends DbInstance {
+import com.knuddels.jtokkit.Encodings;
+import com.knuddels.jtokkit.api.Encoding;
+import com.knuddels.jtokkit.api.EncodingRegistry;
+import com.knuddels.jtokkit.api.EncodingType;
 
-    // FIELDS
+/**
+ * This is an intermediate class for databases that do random walks. It contains the basic code for doing
+ * the walk itself, but delegates the data storage and output to the subclasses.
+ */
+public abstract class WalkDbInstance extends DbInstance {
+
+   // FIELDS
     /** logging facility */
-    private static final Logger log = LoggerFactory.getLogger(TextDbInstance.class);
+    private static final Logger log = LoggerFactory.getLogger(WalkDbInstance.class);
     /** number of relation crossings */
     private int crossCount;
     /** number of attributes emitted */
@@ -46,7 +40,7 @@ public class TextDbInstance extends DbInstance {
      *
      * @param types		list of entity type names
      */
-    public TextDbInstance(List<String> types) {
+    public WalkDbInstance(List<String> types) {
         super(types);
         // Clear everything.
         this.attrCount = 0;
@@ -66,12 +60,6 @@ public class TextDbInstance extends DbInstance {
         this.tokenTotal = 0L;
     }
 
-    @Override
-    protected EntityInstance createEntity(EntityType entityType, String entityId) {
-        // Create a text entity instance with the specified ID and type.
-        return new TextEntityInstance(entityType, entityId);
-    }
-
     /**
      * Generate a random walk and output it to the specified output stream.  Note that the
      * random walk destroys the database instance as it goes.
@@ -83,13 +71,13 @@ public class TextDbInstance extends DbInstance {
         this.crossCount = 0;
         long walkCount = 0;
         // Link all the entity instances into a master list.  We process the types in priority order.
-        List<TextEntityInstance> masterList = new ArrayList<>();
+        List<WalkEntityInstance> masterList = new ArrayList<>();
         for (String typeName : this.getTypeNames()) {
             var entityMap = this.getEntityMap(typeName);
             // Only proceed if this is a real entity. We get all of its instances.
             if (entityMap != null) {
                 for (EntityInstance x : entityMap.values())
-                    masterList.add((TextEntityInstance) x);
+                    masterList.add((WalkEntityInstance) x);
             }
         }
         int passCount = 0;
@@ -98,7 +86,7 @@ public class TextDbInstance extends DbInstance {
             log.info("{} entity instances in master list for pass {}.", masterList.size(), passCount);
             long lastMsg = System.currentTimeMillis();
             // Loop through the entities, processing the undeleted ones.
-            for (TextEntityInstance curr : masterList) {
+            for (WalkEntityInstance curr : masterList) {
                 if (! curr.isDeleted()) {
                     this.processEntity(writer, curr);
                     walkCount++;
@@ -112,7 +100,7 @@ public class TextDbInstance extends DbInstance {
             }
             // Clean deleted entities from the list.
             log.info("Cleaning the list.");
-            List<TextEntityInstance> newList = masterList.stream().filter(x -> ! x.isDeleted()).collect(Collectors.toList());
+            List<WalkEntityInstance> newList = masterList.stream().filter(x -> ! x.isDeleted()).collect(Collectors.toList());
             masterList = newList;
         }
         log.info("{} total walks completed in {} passes. {} attributes written, {} crossings.",
@@ -125,13 +113,13 @@ public class TextDbInstance extends DbInstance {
      * @param writer	current output text writer
      * @param first		entity instance from which to start the walk.
      */
-    private void processEntity(PrintWriter writer, TextEntityInstance first) {
-        TextEntityInstance nextEntity = first;
+    private void processEntity(PrintWriter writer, WalkEntityInstance first) {
+        WalkEntityInstance nextEntity = first;
         while (nextEntity != null) {
             // Check for an attribute to write.
             boolean found = nextEntity.popAttribute(writer);
             // Check for a relationship to write.
-            TextEntityInstance target = nextEntity.popRelationship(writer, this);
+            WalkEntityInstance target = nextEntity.popRelationship(writer, this);
             if (target == null && ! found) {
                 // Here we have no more data on this entity, so we need to delete it.
                 this.removeFromMap(nextEntity);
@@ -151,7 +139,7 @@ public class TextDbInstance extends DbInstance {
      *
      * @param curr		entity instance to remove
      */
-    protected void removeFromMap(TextEntityInstance curr) {
+    protected void removeFromMap(WalkEntityInstance curr) {
         String type = curr.getType();
         var entityMap = this.getEntityMap(type);
         if (entityMap != null) {
@@ -188,12 +176,12 @@ public class TextDbInstance extends DbInstance {
         // Loop through the entity instances.  For each one, we shuffle the attribute and relationship lists to
         // get them in random order, and then we output the total token and instance counts for each entity type.
         for (EntityType typeObject : entityTypes) {
-            TextEntityType type = (TextEntityType) typeObject;
+            WalkEntityType type = (WalkEntityType) typeObject;
             String typeName = type.getName();
             long typeTokens = type.getTokenCount();
             log.info("Entity type {} has {} instances and generated {} tokens.", typeName, this.getTypeCount(typeName), typeTokens);
             for (EntityInstance instanceObject : this.getAllEntities(typeName)) {
-                TextEntityInstance instance = (TextEntityInstance) instanceObject;
+                WalkEntityInstance instance = (WalkEntityInstance) instanceObject;
                 instance.shuffleAll();
             }
         }

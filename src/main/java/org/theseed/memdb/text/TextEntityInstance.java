@@ -1,16 +1,17 @@
 /**
  *
  */
-package org.theseed.memdb.walker;
+package org.theseed.memdb.text;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.theseed.memdb.EntityInstance;
 import org.theseed.memdb.EntityType;
 import org.theseed.memdb.RelationshipInstance;
+import org.theseed.memdb.walk.WalkDbInstance;
+import org.theseed.memdb.walk.WalkEntityInstance;
 
 /**
  * The entity instance for a text-walk database contains the attributes in the form of
@@ -20,13 +21,11 @@ import org.theseed.memdb.RelationshipInstance;
  * @author Bruce Parrello
  *
  */
-public class TextEntityInstance extends EntityInstance {
+public class TextEntityInstance extends WalkEntityInstance {
 
     // FIELDS
     /** list of attribute sentences */
     private final List<String> attributes;
-    /** TRUE if this instance has been deleted */
-    private boolean deleted;
 
     /**
      * Create a new text entity instance.
@@ -36,39 +35,27 @@ public class TextEntityInstance extends EntityInstance {
      */
     public TextEntityInstance(EntityType type, String id) {
         super(type, id);
-        // Start with no attributes and not deleted.
+        // Start with no attributes.
         this.attributes = new ArrayList<>();
-        this.deleted = false;
     }
 
     /**
      * Reorder the attributes and relationships in this entity instance.
      */
+    @Override
     public void shuffleAll() {
         Collections.shuffle(this.attributes);
         List<RelationshipInstance> rels = this.getRelationships();
         Collections.shuffle(rels);
     }
 
-    /**
-     * @return TRUE if this entity instance is deleted
-     */
-    public boolean isDeleted() {
-        return this.deleted;
-    }
-
-    /**
-     * Denote that this entity instance is deleted.
-     */
-    public void setDeleted() {
-        this.deleted = true;
-    }
-
+ 
     /**
      * Add an attribute to this instance.
      *
      * @param attribute		attribute string to add
      */
+    @Override
     public void addAttribute(String attribute) {
         this.attributes.add(attribute);
     }
@@ -80,6 +67,7 @@ public class TextEntityInstance extends EntityInstance {
      *
      * @return TRUE if an attribute was written, else FALSE
      */
+    @Override
     public boolean popAttribute(PrintWriter writer) {
         boolean retVal = false;
         final int lastN = this.attributes.size() - 1;
@@ -100,8 +88,9 @@ public class TextEntityInstance extends EntityInstance {
      *
      * @return the target entity instance, or NULL if there is none available
      */
-    public TextEntityInstance popRelationship(PrintWriter writer, TextDbInstance db) {
-        TextEntityInstance retVal = null;
+    @Override
+    public WalkEntityInstance popRelationship(PrintWriter writer, WalkDbInstance db) {
+        WalkEntityInstance retVal = null;
         // Get the list of relationship instances.
         var connections = this.getRelationships();
         final int lastN = connections.size() - 1;
@@ -112,7 +101,7 @@ public class TextEntityInstance extends EntityInstance {
             writer.println(rel.getSentence());
             // Get the target entity instance.  This could be NULL if the entity
             // is already exhausted.
-            retVal = (TextEntityInstance) rel.getTarget(db);
+            retVal = (WalkEntityInstance) rel.getTarget(db);
             // Delete the relationship from the entity instance.
             connections.remove(lastN);
         }

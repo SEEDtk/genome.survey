@@ -10,6 +10,7 @@ import org.theseed.memdb.DbInstance;
 import org.theseed.memdb.EntityInstance;
 import org.theseed.memdb.RelationBuilder;
 import org.theseed.memdb.RelationshipInstance;
+import org.theseed.memdb.walk.WalkDbInstance;
 
 public class WordRelationBuilder extends RelationBuilder {
 
@@ -35,6 +36,7 @@ public class WordRelationBuilder extends RelationBuilder {
         String sourceId = this.sourceTemplate.apply(record);
         String name = this.nameTemplate.apply(record);
         String targetId = this.targetTemplate.apply(record);
+        this.countTokens(db, name, targetId);
         return new WordRelationshipInstance(sourceId, name, targetId, targetInstance);
     }
 
@@ -44,7 +46,22 @@ public class WordRelationBuilder extends RelationBuilder {
         String sourceId = this.sourceTemplate.apply(record);
         String name = this.nameTemplate.apply(record);
         String targetId = this.targetTemplate.apply(record);
+        this.countTokens(db, name, sourceId);
         return new WordRelationshipInstance(targetId, name, sourceId, sourceInstance);
+    }
+
+    /**
+     * Count the tokens in a relationship crossing. It is the sum of the tokens for the relationship name and 
+     * destination ID output strings.
+     * 
+     * @param db        database instance for counting tokens
+     * @param name      output relationship name string
+     * @param destId    output destination ID string
+     */
+    private void countTokens(DbInstance db, String name, String destId) {
+        WalkDbInstance walkDb = (WalkDbInstance) db;
+        walkDb.countTokens(name);
+        walkDb.countTokens(destId);
     }
 
 }

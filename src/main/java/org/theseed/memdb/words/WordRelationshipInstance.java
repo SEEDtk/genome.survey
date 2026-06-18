@@ -20,6 +20,27 @@ public class WordRelationshipInstance extends RelationshipInstance {
         this.targetId = targetId;
     }
 
+    /**
+     * @return the output string for the source ID
+     */
+    public String getSourceId() {
+        return sourceId;
+    }
+
+    /**
+     * @return the output string for the relationship name
+     */
+    public String getName() {
+        return name;
+    }
+
+    /**
+     * @return the output string for the target ID
+     */
+    public String getTargetId() {
+        return targetId;
+    }
+
 
 
 
