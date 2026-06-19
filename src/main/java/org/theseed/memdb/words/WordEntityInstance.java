@@ -43,8 +43,11 @@ public class WordEntityInstance extends WalkEntityInstance {
         boolean retVal = false;
         final int lastN = this.attributes.size() - 1;
         if (lastN >= 0) {
-            // Here we have an attribute to print.
+            // Here we have an attribute to print. We put our ID first, then the attribute, to insure that the
+            // ID is considered related to the attribute. Most of the time, the ID will be suppressed, since the entity ID will have
+            // been emitted as part of the relationship sentence.
             WordDbInstance db = (WordDbInstance) this.getParentDb();
+            db.emitPhrase(writer, this.getId());
             db.emitPhrase(writer, this.attributes.get(lastN));
             this.attributes.remove(lastN);
             retVal = true;

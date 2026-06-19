@@ -57,4 +57,12 @@ public class WordDbInstance extends WalkDbInstance {
         }
     }
 
+    @Override
+    protected void endSequence(PrintWriter writer) {
+        // End the current sequence by printing a newline.
+        writer.println();
+        // Reset the last phrase for the next sequence.
+        this.lastPhrase = null;
+    }
+
 }

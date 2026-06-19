@@ -132,7 +132,15 @@ public abstract class WalkDbInstance extends DbInstance {
             // Keep walking.  If the target was NULL, we will stop.
             nextEntity = target;
         }
+        this.endSequence(writer);
     }
+
+    /**
+     * End the current sequence in the walk.
+     *
+     * @param writer	current output text writer
+     */
+    protected abstract void endSequence(PrintWriter writer);
 
     /**
      * Remove the specified entity instance from the master map.

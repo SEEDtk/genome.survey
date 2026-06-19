@@ -3,6 +3,7 @@
  */
 package org.theseed.memdb.text;
 
+import java.io.PrintWriter;
 import java.util.List;
 
 import org.theseed.memdb.EntityInstance;
@@ -31,6 +32,11 @@ public class TextDbInstance extends WalkDbInstance {
     protected EntityInstance createEntity(EntityType entityType, String entityId) {
         // Create a text entity instance with the specified ID and type.
         return new TextEntityInstance(entityType, entityId, this);
+    }
+
+    @Override
+    protected void endSequence(PrintWriter writer) {
+        // No action is needed for a text walk.
     }
 
 }
