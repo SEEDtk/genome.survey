@@ -17,8 +17,8 @@ import org.slf4j.LoggerFactory;
 import org.theseed.basic.BaseReportProcessor;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.memdb.DbDefinition;
-import org.theseed.memdb.text.TextDbDefinition;
-import org.theseed.memdb.text.TextDbInstance;
+import org.theseed.memdb.walk.WalkDbInstance;
+import org.theseed.memdb.walk.WalkType;
 
 /**
  * This command will use an entity-relationship model to guide a random walk of a JSON database dump.  The model
@@ -34,6 +34,8 @@ import org.theseed.memdb.text.TextDbInstance;
  * -v	display more frequent log messages
  * -o	output file for the text (if not STDOUT)
  * -R	if specified, the input directory is considered a master directory, and all subdirectories will be processed
+ * 
+ * --type    type of walk to perform (default is TEXT)
  *
  * @author Bruce Parrello
  *
@@ -54,6 +56,10 @@ public class RandomWalkProcessor extends BaseReportProcessor {
     @Option(name = "--recursive", aliases = { "-R" }, usage = "if specified, process the subdirectories of the input directory instead of the input directory itself")
     private boolean recursive;
 
+    /** type of walk to perform */
+    @Option(name = "--type", usage = "type of walk to perform")
+    private WalkType walkType;
+
     /** name of the database definition file */
     @Argument(index = 0, metaVar = "definition.txt", usage = "database definition file", required = true)
     private File dbdFile;
@@ -65,6 +71,7 @@ public class RandomWalkProcessor extends BaseReportProcessor {
     @Override
     protected void setReporterDefaults() {
         this.recursive = false;
+        this.walkType = WalkType.TEXT;
     }
 
     @Override
@@ -90,13 +97,13 @@ public class RandomWalkProcessor extends BaseReportProcessor {
     protected void runReporter(PrintWriter writer) throws Exception {
         // Create the database definition.
         long start = System.currentTimeMillis();
-        DbDefinition dbd = new TextDbDefinition(this.dbdFile);
+        DbDefinition dbd = this.walkType.getDbDefinition(this.dbdFile);
         Duration d = Duration.ofMillis(System.currentTimeMillis() - start);
         log.info("{} to compile database definition.", d);
         // Read in the data.
         log.info("Reading data from {}.", this.inDir);
         start = System.currentTimeMillis();
-        TextDbInstance db = (TextDbInstance) dbd.readDatabase(this.inDirs);
+        WalkDbInstance db = (WalkDbInstance) dbd.readDatabase(this.inDirs);
         d = Duration.ofMillis(System.currentTimeMillis() - start);
         log.info("{} to read in database.", d);
         // Now perform the random walk.

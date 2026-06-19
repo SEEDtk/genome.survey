@@ -23,17 +23,21 @@ public abstract class EntityInstance {
     private final String entityType;
     /** list of relationship instances */
     private final List<RelationshipInstance> connections;
+    /** parent database instance */
+    private final DbInstance parentDb;
 
     /**
      * Create a new, empty entity instance.
      *
      * @param type		type of the new entity
      * @param id		ID of the instance
+     * @param db		parent database instance
      */
-    public EntityInstance(EntityType type, String id) {
+    public EntityInstance(EntityType type, String id, DbInstance db) {
         this.entityId = id;
         this.entityType = type.getName();
         this.connections = new ArrayList<>();
+        this.parentDb = db;
     }
 
     /**
@@ -110,6 +114,13 @@ public abstract class EntityInstance {
             return false;
         }
         return Objects.equals(this.entityType, other.entityType);
+    }
+
+    /**
+     * @return the database instance containing this entity instance
+     */
+    public DbInstance getParentDb() {
+        return this.parentDb;
     }
 
 }

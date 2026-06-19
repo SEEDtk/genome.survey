@@ -32,9 +32,10 @@ public class TextEntityInstance extends WalkEntityInstance {
      *
      * @param type	entity type
      * @param id	ID of the instance
+     * @param db    parent database instance
      */
-    public TextEntityInstance(EntityType type, String id) {
-        super(type, id);
+    public TextEntityInstance(EntityType type, String id, TextDbInstance db) {
+        super(type, id, db);
         // Start with no attributes.
         this.attributes = new ArrayList<>();
     }

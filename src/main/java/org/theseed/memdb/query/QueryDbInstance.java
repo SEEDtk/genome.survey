@@ -5,6 +5,7 @@ package org.theseed.memdb.query;
 
 import java.util.Collection;
 import java.util.List;
+
 import org.theseed.memdb.DbInstance;
 import org.theseed.memdb.EntityInstance;
 import org.theseed.memdb.EntityType;
@@ -34,7 +35,7 @@ public class QueryDbInstance extends DbInstance {
 
     @Override
     protected EntityInstance createEntity(EntityType entityType, String entityId) {
-        return new QueryEntityInstance(entityType, entityId);
+        return new QueryEntityInstance(entityType, entityId, this);
     }
 
     @Override

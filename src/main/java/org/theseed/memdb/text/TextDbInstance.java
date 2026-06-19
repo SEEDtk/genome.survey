@@ -30,7 +30,7 @@ public class TextDbInstance extends WalkDbInstance {
     @Override
     protected EntityInstance createEntity(EntityType entityType, String entityId) {
         // Create a text entity instance with the specified ID and type.
-        return new TextEntityInstance(entityType, entityId);
+        return new TextEntityInstance(entityType, entityId, this);
     }
 
 }

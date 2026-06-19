@@ -31,9 +31,10 @@ public class QueryEntityInstance extends EntityInstance {
      *
      * @param type	entity type
      * @param id	ID of this instance
+     * @param db    parent database instance
      */
-    public QueryEntityInstance(EntityType type, String id) {
-        super(type, id);
+    public QueryEntityInstance(EntityType type, String id, QueryDbInstance db) {
+        super(type, id, db);
         // Create the attribute map.
         this.attributes = new TreeMap<>();
     }

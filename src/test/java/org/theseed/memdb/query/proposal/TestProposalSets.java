@@ -10,6 +10,7 @@ import static org.hamcrest.Matchers.not;
 import org.junit.jupiter.api.Test;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.memdb.query.QueryDbDefinition;
+import org.theseed.memdb.query.QueryDbInstance;
 import org.theseed.memdb.query.QueryEntityInstance;
 import org.theseed.memdb.query.QueryEntityType;
 
@@ -37,19 +38,20 @@ public class TestProposalSets {
         // Get a DB definition.
         File dbdFile = new File("data", "querydbd.txt");
         QueryDbDefinition dbDef = new QueryDbDefinition(dbdFile);
+        QueryDbInstance db = new QueryDbInstance(dbDef.getEntityNameList());
         // Create two identical entity instances and one odd one.
         QueryEntityType gType = (QueryEntityType) dbDef.findEntityType("Genome");
-        QueryEntityInstance g0 = new QueryEntityInstance(gType, "g0");
-        QueryEntityInstance g1A = new QueryEntityInstance(gType, "g1");
-        QueryEntityInstance g1B = new QueryEntityInstance(gType, "g1");
+        QueryEntityInstance g0 = new QueryEntityInstance(gType, "g0", db);
+        QueryEntityInstance g1A = new QueryEntityInstance(gType, "g1", db);
+        QueryEntityInstance g1B = new QueryEntityInstance(gType, "g1", db);
         assertThat(g1A.hashCode(), equalTo(g1B.hashCode()));
         assertThat(g1A.equals(g1B), is(true));
         assertThat(g0.hashCode(), not(equalTo(g1A.hashCode())));
         assertThat(g0.equals(g1A), is(false));
         // Create two feature instances.
         QueryEntityType fType = (QueryEntityType) dbDef.findEntityType("Feature");
-        QueryEntityInstance f0 = new QueryEntityInstance(fType, "g0");
-        QueryEntityInstance f1 = new QueryEntityInstance(fType, "f1");
+        QueryEntityInstance f0 = new QueryEntityInstance(fType, "g0", db);
+        QueryEntityInstance f1 = new QueryEntityInstance(fType, "f1", db);
         assertThat(f0.hashCode(), not(equalTo(f1.hashCode())));
         assertThat(f0.equals(f1), is(false));
         assertThat(f0.hashCode(), not(equalTo(g0.hashCode())));

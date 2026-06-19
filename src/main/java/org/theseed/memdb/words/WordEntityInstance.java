@@ -2,9 +2,11 @@ package org.theseed.memdb.words;
 
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.theseed.memdb.EntityType;
+import org.theseed.memdb.RelationshipInstance;
 import org.theseed.memdb.walk.WalkDbInstance;
 import org.theseed.memdb.walk.WalkEntityInstance;
 
@@ -19,8 +21,8 @@ public class WordEntityInstance extends WalkEntityInstance {
     /** list of attributes for this instance */
     private final List<String> attributes;
 
-    public WordEntityInstance(EntityType entityType, String id) {
-        super(entityType, id);
+    public WordEntityInstance(EntityType entityType, String id, WordDbInstance db) {
+        super(entityType, id, db);
         this.attributes = new ArrayList<>(5);
     }
 
@@ -31,20 +33,46 @@ public class WordEntityInstance extends WalkEntityInstance {
 
     @Override
     public void shuffleAll() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'shuffleAll'");
+        Collections.shuffle(this.attributes);
+        List<RelationshipInstance> rels = this.getRelationships();
+        Collections.shuffle(rels);
     }
 
     @Override
     public boolean popAttribute(PrintWriter writer) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'popAttribute'");
+        boolean retVal = false;
+        final int lastN = this.attributes.size() - 1;
+        if (lastN >= 0) {
+            // Here we have an attribute to print.
+            WordDbInstance db = (WordDbInstance) this.getParentDb();
+            db.emitPhrase(writer, this.attributes.get(lastN));
+            this.attributes.remove(lastN);
+            retVal = true;
+        }
+        return retVal;
     }
 
     @Override
     public WalkEntityInstance popRelationship(PrintWriter writer, WalkDbInstance db) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'popRelationship'");
+        WalkEntityInstance retVal = null;
+        // Get the list of relationship instances.
+        var connections = this.getRelationships();
+        final int lastN = connections.size() - 1;
+        if (lastN >= 0) {
+            // Here we have a relationship instance to traverse.  First, write the
+            // relationship sentence.
+            WordRelationshipInstance rel = (WordRelationshipInstance) connections.get(lastN);
+            WordDbInstance wdb = (WordDbInstance) this.getParentDb();
+            wdb.emitPhrase(writer, rel.getSourceId());
+            wdb.emitPhrase(writer, rel.getName());
+            wdb.emitPhrase(writer, rel.getTargetId());
+            // Get the target entity instance.  This could be NULL if the entity
+            // is already exhausted.
+            retVal = (WalkEntityInstance) rel.getTarget(db);
+            // Delete the relationship from the entity instance.
+            connections.remove(lastN);
+        }
+        return retVal;
     }
     
 }

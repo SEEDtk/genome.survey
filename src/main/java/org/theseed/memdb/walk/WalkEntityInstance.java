@@ -22,9 +22,10 @@ public abstract class WalkEntityInstance extends EntityInstance {
      *
      * @param type	entity type
      * @param id	ID of the instance
+     * @param db    parent database instance
      */
-    public WalkEntityInstance(EntityType type, String id) {
-        super(type, id);
+    public WalkEntityInstance(EntityType type, String id, WalkDbInstance db) {
+        super(type, id, db);
         // Start un-deleted.
         this.deleted = false;
     }
