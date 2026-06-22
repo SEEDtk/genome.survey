@@ -9,6 +9,7 @@ import org.theseed.io.template.LineTemplate;
 import org.theseed.memdb.AttributeBuilder;
 import org.theseed.memdb.DbInstance;
 import org.theseed.memdb.EntityInstance;
+import org.theseed.memdb.walk.WalkDbInstance;
 
 /**
  * The word attribute builder creates a line template for each attribute, and this is then
@@ -21,6 +22,8 @@ public class WordAttributeBuilder extends AttributeBuilder {
     // FIELDS
     /** line template for this attribute */
     private final LineTemplate template;
+    /** parent entity type */
+    private final WordEntityType entityType;
 
    /**
      * Create the line template for this attribute builder.
@@ -36,6 +39,7 @@ public class WordAttributeBuilder extends AttributeBuilder {
     public WordAttributeBuilder(WordEntityType wordEntityType, String attributeString,
             FieldInputStream instanceStream) throws IOException, ParseFailureException {
         this.template = new LineTemplate(instanceStream, attributeString, null);
+        this.entityType = wordEntityType;
     }
 
     @Override
@@ -47,6 +51,9 @@ public class WordAttributeBuilder extends AttributeBuilder {
         if (attribute != null && ! attribute.isBlank()) {
             WordEntityInstance wordInstance = (WordEntityInstance) instance;
             wordInstance.addAttribute(attribute);
+            WalkDbInstance walkDb = (WalkDbInstance) db;
+            long count = walkDb.countTokens(attribute);
+            this.entityType.countTokens(count);
         }
     }
 

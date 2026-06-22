@@ -115,6 +115,9 @@ public abstract class WalkDbInstance extends DbInstance {
      */
     private void processEntity(PrintWriter writer, WalkEntityInstance first) {
         WalkEntityInstance nextEntity = first;
+        // This will be set to TRUE if we write an attribute or cross a relationship. If we do either, we need to end the current
+        // line.
+        boolean output = false;
         while (nextEntity != null) {
             // Check for an attribute to write.
             boolean found = nextEntity.popAttribute(writer);
@@ -128,11 +131,13 @@ public abstract class WalkDbInstance extends DbInstance {
                     this.crossCount++;
                 if (found)
                     this.attrCount++;
+                output = true;
             }
             // Keep walking.  If the target was NULL, we will stop.
             nextEntity = target;
         }
-        this.endSequence(writer);
+        if (output)
+            this.endSequence(writer);
     }
 
     /**

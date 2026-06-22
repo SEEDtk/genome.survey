@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.memdb.DbDefinition;
 import org.theseed.memdb.text.TextDbDefinition;
+import org.theseed.memdb.words.WordDbDefinition;
 
 /**
  * This enum represents the different types of walks that can be performed using an in-memory database.
@@ -22,7 +23,7 @@ public enum WalkType {
     WORD {
         @Override
         public DbDefinition getDbDefinition(File dbdFile) throws IOException, ParseFailureException {
-            return new TextDbDefinition(dbdFile);
+            return new WordDbDefinition(dbdFile);
         }
     };
 

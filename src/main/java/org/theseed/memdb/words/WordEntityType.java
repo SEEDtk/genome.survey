@@ -8,9 +8,9 @@ import java.util.List;
 import org.theseed.basic.ParseFailureException;
 import org.theseed.io.FieldInputStream;
 import org.theseed.memdb.AttributeBuilder;
-import org.theseed.memdb.EntityType;
+import org.theseed.memdb.walk.WalkEntityType;
 
-public class WordEntityType extends EntityType {
+public class WordEntityType extends WalkEntityType {
 
     // FIELDS
     /** list of attribute templates */

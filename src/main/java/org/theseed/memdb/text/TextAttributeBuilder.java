@@ -12,6 +12,7 @@ import org.theseed.io.template.LineTemplate;
 import org.theseed.memdb.AttributeBuilder;
 import org.theseed.memdb.DbInstance;
 import org.theseed.memdb.EntityInstance;
+import org.theseed.memdb.walk.WalkDbInstance;
 
 /**
  * The text attribute builder creates a line template for each attribute, and this is then
@@ -54,8 +55,8 @@ public class TextAttributeBuilder extends AttributeBuilder {
         if (! StringUtils.isBlank(attribute)) {
             TextEntityInstance textInstance = (TextEntityInstance) instance;
             textInstance.addAttribute(attribute);
-            TextDbInstance textDb = (TextDbInstance) db;
-            long count = textDb.countTokens(attribute);
+            WalkDbInstance walkDb = (WalkDbInstance) db;
+            long count = walkDb.countTokens(attribute);
             this.entityType.countTokens(count);
         }
     }
